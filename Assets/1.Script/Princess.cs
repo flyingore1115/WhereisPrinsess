@@ -1,26 +1,32 @@
 using UnityEngine;
 
-public class PrincessMovement : MonoBehaviour
+public class Princess : MonoBehaviour
 {
     public float moveSpeed = 3f;
-    public float princessRange;
-
     private Rigidbody2D rb;
+    private Collider2D playerCollider;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        
+        // í”Œë ˆì´ì–´ ì˜¤ë¸Œì íŠ¸ë¥¼ ì°¾ì•„ ì¶©ëŒ ë¹„í™œì„±í™”
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerCollider = player.GetComponent<Collider2D>();
+            Collider2D princessCollider = GetComponent<Collider2D>();
+
+            if (playerCollider != null && princessCollider != null)
+            {
+                Physics2D.IgnoreCollision(princessCollider, playerCollider);
+            }
+        }
     }
 
     void Update()
     {
         // Princess moves to the right continuously
         rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
-    }
-    void OnDrawGizmos()
-    {
-        // °ø°İ ¹üÀ§¸¦ Ç¥½ÃÇÏ±â À§ÇØ »¡°£»ö ¿øÀ¸·Î ±×¸®±â
-        Gizmos.color = Color.gray;
-        Gizmos.DrawWireSphere(transform.position, princessRange);
     }
 }

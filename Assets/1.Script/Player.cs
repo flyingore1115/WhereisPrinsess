@@ -8,42 +8,34 @@ public class PlayerMovement : MonoBehaviour
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
     public float attackRange = 3f;
-    public float attackMoveSpeed = 15f; // ºü¸¥ ÀÌµ¿ ¼Óµµ
-
+    public float attackMoveSpeed = 15f;
     private Rigidbody2D rb;
+    private Collider2D playerCollider;
     private bool isGrounded;
     private bool isAttacking = false;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerCollider = GetComponent<Collider2D>();
     }
 
     void Update()
     {
-        playerMove();
-    }
-
-    private void playerMove()
-    {
         if (!isAttacking)
         {
-            // Horizontal movement
             float moveInput = Input.GetAxis("Horizontal");
             rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
 
-            // Check if grounded
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
-            // Jump
             if (Input.GetKeyDown(KeyCode.W) && isGrounded)
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             }
         }
 
-        // Check for mouse click and enemy within range
-        if (Input.GetMouseButtonDown(0)) // Left mouse button
+        if (Input.GetMouseButtonDown(0))
         {
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit.collider != null && hit.collider.CompareTag("Enemy"))
@@ -51,7 +43,6 @@ public class PlayerMovement : MonoBehaviour
                 float distanceToEnemy = Vector2.Distance(transform.position, hit.collider.transform.position);
                 if (distanceToEnemy <= attackRange)
                 {
-                    // Move player to enemy position and destroy enemy
                     StartCoroutine(MoveToEnemyAndAttack(hit.collider.gameObject));
                 }
             }
@@ -61,24 +52,33 @@ public class PlayerMovement : MonoBehaviour
     private System.Collections.IEnumerator MoveToEnemyAndAttack(GameObject enemy)
     {
         isAttacking = true;
-        rb.gravityScale = 0; // Áß·Â ºñÈ°¼ºÈ­
+        
+        rb.gravityScale = 0;
+        rb.velocity = Vector2.zero;
+        playerCollider.enabled = false;
 
+        // ì  ìœ„ì¹˜ë¡œ ì´ë™
         while (Vector2.Distance(transform.position, enemy.transform.position) > 0.1f)
         {
             transform.position = Vector2.MoveTowards(transform.position, enemy.transform.position, attackMoveSpeed * Time.deltaTime);
             yield return null;
         }
 
-        // Destroy the enemy
+        // ì  ì œê±°
         Destroy(enemy);
 
-        rb.gravityScale = 1; // Áß·Â ´Ù½Ã È°¼ºÈ­
+        // ê³µê²© í›„ í”Œë ˆì´ì–´ ìœ„ì¹˜ë¥¼ ì ì˜ ìœ„ì¹˜ì—ì„œ ë©€ì–´ì§€ë„ë¡ ì•½ê°„ ì¡°ì •
+        Vector2 escapeDirection = (transform.position - enemy.transform.position).normalized;
+        transform.position += (Vector3)escapeDirection * 0.5f;
+
+        // ì¶©ëŒ, ì¤‘ë ¥ ë° ì†ë„ ë³µì›
+        playerCollider.enabled = true;
+        rb.gravityScale = 1;
         isAttacking = false;
     }
 
     void OnDrawGizmos()
     {
-        // °ø°İ ¹üÀ§¸¦ Ç¥½ÃÇÏ±â À§ÇØ »¡°£»ö ¿øÀ¸·Î ±×¸®±â
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
