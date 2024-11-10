@@ -9,15 +9,20 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask groundLayer;
     public float attackRange = 3f;
     public float attackMoveSpeed = 15f;
-    private Rigidbody2D rb;
-    private Collider2D playerCollider;
     private bool isGrounded;
     private bool isAttacking = false;
 
+    private Rigidbody2D rb;
+    private Animator animator;
+    private Collider2D playerCollider;
+    private SpriteRenderer spriteRenderer;
+
     void Start()
     {
+        animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>(); // SpriteRenderer 참조
     }
 
     void Update()
@@ -26,6 +31,26 @@ public class PlayerMovement : MonoBehaviour
         {
             float moveInput = Input.GetAxis("Horizontal");
             rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+
+            // 방향키 입력에 따라 애니메이션 상태 설정
+            if (moveInput != 0)
+            {
+                animator.SetBool("isRun", true);
+
+                // 좌우 방향 전환 (Sprite만 뒤집기)
+                if (moveInput > 0)
+                {
+                    spriteRenderer.flipX = false; // 오른쪽 바라보기
+                }
+                else if (moveInput < 0)
+                {
+                    spriteRenderer.flipX = true; // 왼쪽 바라보기
+                }
+            }
+            else
+            {
+                animator.SetBool("isRun", false);
+            }
 
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
@@ -52,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     private System.Collections.IEnumerator MoveToEnemyAndAttack(GameObject enemy)
     {
         isAttacking = true;
-        
+
         rb.gravityScale = 0;
         rb.velocity = Vector2.zero;
         playerCollider.enabled = false;
