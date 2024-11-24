@@ -9,18 +9,23 @@ public class ExplosiveEnemy : MonoBehaviour
     public Sprite activeSprite; // 일어서는 이미지
     public Color explosionColor = Color.red; // 폭발 시 색상
 
-    private Transform target; // 추적 대상 (플레이어 또는 공주)
+    private Transform target; // 추적 대상 (공주만 대상)
     private bool isActivated = false;
+    private bool isExploding = false; // 폭발 중인지 여부
     private SpriteRenderer spriteRenderer;
+    private Animator animator; // 폭발 애니메이션 관리
 
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
         spriteRenderer.sprite = idleSprite; // 시작 시 가만히 있는 이미지로 설정
     }
 
     void Update()
     {
+        if (isExploding) return; // 폭발 중에는 업데이트 중지
+
         if (!isActivated)
         {
             CheckForTargets(); // 감지 반경 안에 있는지 확인
@@ -39,9 +44,9 @@ public class ExplosiveEnemy : MonoBehaviour
 
         foreach (Collider2D hit in hits)
         {
-            if (hit.CompareTag("Player") || hit.CompareTag("Princess"))
+            if (hit.CompareTag("Princess")) // 공주만 추적
             {
-                target = hit.transform; // 첫 번째로 감지된 플레이어 또는 공주를 추적 대상으로 설정
+                target = hit.transform;
                 ActivateEnemy(); // 적 활성화
                 break;
             }
@@ -60,10 +65,10 @@ public class ExplosiveEnemy : MonoBehaviour
     {
         float distanceToTarget = Vector2.Distance(transform.position, target.position);
 
-        // 폭발 반경에 들어오면 폭발
+        // 폭발 반경에 들어오면 폭발 준비
         if (distanceToTarget <= explosionRadius)
         {
-            Explode();
+            StartCoroutine(PrepareToExplode()); // 폭발 준비 코루틴 실행
         }
         else
         {
@@ -73,22 +78,43 @@ public class ExplosiveEnemy : MonoBehaviour
         }
     }
 
+    // 폭발 준비 코루틴
+    private System.Collections.IEnumerator PrepareToExplode()
+    {
+        if (isExploding) yield break; // 중복 폭발 방지
+
+        isExploding = true;
+
+        // 폭발 애니메이션 트리거
+        if (animator != null)
+        {
+            animator.SetTrigger("Explode"); // 폭발 애니메이션 트리거 설정
+        }
+
+        Debug.Log("ExplosiveEnemy is preparing to explode!");
+
+        // 1초 대기
+        yield return new WaitForSeconds(1f);
+
+        Explode(); // 폭발
+    }
+
     // 폭발 함수
     void Explode()
     {
-        spriteRenderer.color = explosionColor; // 색상 변경
+        Debug.Log("ExplosiveEnemy 폭발!");
 
+        // 공주와 충돌 시 게임 오버
         if (target.CompareTag("Princess"))
         {
             Princess princessScript = target.GetComponent<Princess>();
             if (princessScript != null)
             {
-                princessScript.GameOver(); // 공주 게임 오버 함수 호출
+                princessScript.GameOver(); // 공주 게임 오버 호출
             }
         }
 
-        Debug.Log("ExplosiveEnemy 폭발!"); // 콘솔에 폭발 메시지 출력
-        Destroy(gameObject, 0.5f); // 적을 0.5초 후에 제거하여 색상 변경이 보이도록 함
+        Destroy(gameObject); // 오브젝트 삭제
     }
 
     // 감지 반경을 시각적으로 확인 (에디터 전용)

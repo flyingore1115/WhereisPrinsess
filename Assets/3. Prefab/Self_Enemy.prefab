@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 736015699955842977}
   - component: {fileID: 6223078550933944407}
   - component: {fileID: 4151227439787305145}
+  - component: {fileID: 1832750365401611067}
   m_Layer: 0
   m_Name: Self_Enemy
   m_TagString: Enemy
@@ -167,3 +168,24 @@ MonoBehaviour:
   idleSprite: {fileID: 151054590, guid: 29ba87effe29aaf4b8d108aebbb838c9, type: 3}
   activeSprite: {fileID: -1302567872, guid: 29ba87effe29aaf4b8d108aebbb838c9, type: 3}
   explosionColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!95 &1832750365401611067
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9111114552017269933}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c313e98225a62b541a8b7e4e56000091, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
