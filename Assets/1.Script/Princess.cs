@@ -4,7 +4,6 @@ public class Princess : MonoBehaviour
 {
     public float moveSpeed = 3f;
     public GameObject gameOverScreen; // 게임 오버 화면 UI 오브젝트
-
     private Rigidbody2D rb;
     private Collider2D playerCollider;
     private bool isGameOver = false;
@@ -35,10 +34,17 @@ public class Princess : MonoBehaviour
 
     void Update()
     {
-        if (!isGameOver)
+        if (FindObjectOfType<DebugManager>()?.IsStop() == true)
         {
-            // Princess moves to the right continuously
-            rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
+        }
+        else{
+            if (!isGameOver)
+            {
+                // Princess moves to the right continuously
+                rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
+            }
+            Debug.Log("Princess is invincible!");
+            return;
         }
     }
 
@@ -52,16 +58,22 @@ public class Princess : MonoBehaviour
 
     public void GameOver()
     {
-        isGameOver = true;
-        Debug.Log("Game Over"); // 콘솔에 게임 오버 출력
-
-        // 모든 움직임 정지
-        Time.timeScale = 0;
-
-        // 게임 오버 화면 활성화
-        if (gameOverScreen != null)
+        if (FindObjectOfType<DebugManager>()?.IsInvincible() == true)
         {
-            gameOverScreen.SetActive(true);
+            Debug.Log("Princess is invincible!");
+            return;
+        }
+        else
+        {
+            isGameOver = true;
+            Debug.Log("Game Over"); // 콘솔에 게임 오버 출력
+
+            // GameOverManager 호출
+            GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
+            if (gameOverManager != null)
+            {
+                gameOverManager.TriggerGameOver(); // 게임 오버 효과 시작
+            }
         }
     }
 }
