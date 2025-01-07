@@ -6,7 +6,7 @@ TagManager:
   tags:
   - Princess
   - Enemy
-  - Obstacle
+  - fall
   layers:
   - Default
   - TransparentFX
