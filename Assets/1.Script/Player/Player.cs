@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+
+    //이동
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
     public Transform groundCheck;
@@ -14,16 +16,15 @@ public class Player : MonoBehaviour
     private bool isGrounded;
     private bool isAttacking = false;
 
+    //적
+    private ExplosiveEnemy[] explosiveEnemies;
+    private SniperEnemy[] sniperEnemies;
+
     //컴포넌트
     private Rigidbody2D rb;
     private Animator animator;
     private Collider2D playerCollider;
     private SpriteRenderer spriteRenderer;
-
-    //사운드
-    private AudioSource audioSource;
-    public AudioClip jumpSound;
-    public AudioClip attackSound;
 
     void Start()
     {
@@ -31,7 +32,9 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        audioSource = GetComponent<AudioSource>();
+
+        explosiveEnemies = FindObjectsOfType<ExplosiveEnemy>();
+        sniperEnemies = FindObjectsOfType<SniperEnemy>();
     }
 
     void Update()
@@ -65,7 +68,7 @@ public class Player : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.W) && isGrounded)
             {
-                audioSource.PlayOneShot(jumpSound);
+                SoundManager.Instance.PlaySFX("playerJumpSound");
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             }
         }
@@ -80,6 +83,19 @@ public class Player : MonoBehaviour
                 {
                     StartCoroutine(MoveToEnemyAndAttack(hit.collider.gameObject));
                 }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.E)) // 특정 키로 어그로 끌기
+        {
+            foreach (var enemy in explosiveEnemies)
+            {
+                enemy.AggroPlayer();
+            }
+
+            foreach (var enemy in sniperEnemies)
+            {
+                enemy.AggroPlayer();
             }
         }
 
@@ -120,7 +136,17 @@ public class Player : MonoBehaviour
         }
 
         // 적 제거
-        audioSource.PlayOneShot(attackSound);
+
+        if (SoundManager.Instance != null)
+        {
+            Debug.Log("SoundManager.Instance is available.");
+            SoundManager.Instance.PlaySFX("playerAttackSound");
+        }
+        else
+        {
+            Debug.LogError("SoundManager.Instance is null! Check if it was destroyed or not initialized.");
+        }
+        
         Destroy(enemy);
 
         ScoreManager.Instance.AddScore(100); //점수 추가

@@ -1,8 +1,23 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; // 씬 관리를 위해 필요
 
-public class RestartGame : MonoBehaviour
+public class MySceneManager : MonoBehaviour
 {
+
+    public static MySceneManager Instance;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 씬 전환 후에도 유지
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     public void LoadNextScene()
     {

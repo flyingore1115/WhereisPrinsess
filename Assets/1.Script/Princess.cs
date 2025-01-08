@@ -77,6 +77,7 @@ public class Princess : MonoBehaviour
         {
             // TriggerGameOverAfterAnimation 호출로 변경
             StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
+            Debug.Log("내가호출했엌ㅋㅋㅋㅋㅋㅋ");
         }
     }
 

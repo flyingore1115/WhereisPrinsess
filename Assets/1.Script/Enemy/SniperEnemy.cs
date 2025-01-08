@@ -2,82 +2,71 @@ using UnityEngine;
 
 public class SniperEnemy : MonoBehaviour
 {
-    public GameObject bulletPrefab; // 발사할 총알
-    public Transform firePoint; // 총알 발사 위치
-    public float fireRate = 2f; // 초당 발사 횟수
-    public float bulletSpeed = 10f; // 총알 속도
-    public float attackRange = 10f; // 사격 가능한 최대 거리
-    public AudioClip fireSound; // 총 발사 사운드 클립
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float fireRate = 2f;
+    public float bulletSpeed = 10f;
+    public float attackRange = 10f;
 
-    private AudioSource audioSource; // 오디오 소스 컴포넌트
-    private float nextFireTime;
+    private Transform target;
     private Transform princess;
+    private Transform player;
+
+    private float nextFireTime;
+
+    private bool isAggroOnPlayer = false; // 플레이어에게 어그로 여부
+    public float aggroDuration = 5f; // 플레이어 어그로 지속 시간
 
     void Start()
     {
-        // 공주 오브젝트를 찾아 Transform 저장
         princess = GameObject.FindGameObjectWithTag("Princess").transform;
-
-        // firePoint 위치가 설정되지 않았을 경우 에러 로그 출력
-        if (firePoint == null)
-        {
-            Debug.LogError("FirePoint가 설정되지 않았습니다!");
-        }
-
-        // AudioSource 초기화
-        audioSource = GetComponent<AudioSource>();
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+        target = princess; // 기본 타겟은 공주
     }
 
     void Update()
     {
-        if (princess == null)
-        {
-            Debug.LogWarning("Princess 태그의 게임 오브젝트를 찾을 수 없습니다.");
-            return;
-        }
+        if (target == null) return;
 
-        // 공주와의 거리 계산
-        float distanceToPrincess = Vector2.Distance(transform.position, princess.position);
+        float distanceToTarget = Vector2.Distance(transform.position, target.position);
 
-        // 공주가 범위 안에 있을 경우에만 사격
-        if (distanceToPrincess <= attackRange && Time.time >= nextFireTime)
+        if (distanceToTarget <= attackRange && Time.time >= nextFireTime)
         {
-            FireAtPrincess();
+            FireAtTarget();
             nextFireTime = Time.time + 1f / fireRate;
         }
     }
 
-    void FireAtPrincess()
+    void FireAtTarget()
     {
-        if (princess == null)
-        {
-            Debug.LogWarning("Princess 태그의 게임 오브젝트를 찾을 수 없습니다.");
-            return;
-        }
+        if (firePoint == null || bulletPrefab == null) return;
 
-        // 공주를 향한 방향 계산
-        Vector2 direction = (princess.position - firePoint.position).normalized;
-
-        // 총알 생성 및 속도 설정
+        Vector2 direction = (target.position - firePoint.position).normalized;
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+
         if (rb != null)
         {
             rb.velocity = direction * bulletSpeed;
         }
-        else
-        {
-            Debug.LogError("총알 프리팹에 Rigidbody2D가 없습니다!");
-        }
 
-        // 총알의 회전 설정 (optional: Sprite를 정렬)
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        bullet.transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
+        SoundManager.Instance.PlaySFX("fireSound");
+        Physics2D.IgnoreCollision(bullet.GetComponent<Collider2D>(), GetComponent<Collider2D>());
 
-        // 총 발사 사운드 재생
-        if (audioSource != null && fireSound != null)
-        {
-            audioSource.PlayOneShot(fireSound); // 한 번만 재생
-        }
+    }
+
+    public void AggroPlayer()
+    {
+        if (isAggroOnPlayer) return;
+
+        isAggroOnPlayer = true;
+        target = player; // 타겟을 플레이어로 변경
+        Invoke(nameof(ResetAggro), aggroDuration); // 지속 시간 후 복구
+    }
+
+    private void ResetAggro()
+    {
+        isAggroOnPlayer = false;
+        target = princess; // 타겟을 다시 공주로 변경
     }
 }
