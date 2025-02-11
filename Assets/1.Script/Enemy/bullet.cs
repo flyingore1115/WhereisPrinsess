@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class bullet : MonoBehaviour
 {
+
+    public float lifetime = 5f;
+    void Start()
+    {
+        Destroy(gameObject, lifetime);
+    }
     void OnTriggerEnter2D(Collider2D collision)
     {
         Debug.Log($"Bullet collided with: {collision.name}"); // 충돌 감지 확인 로그

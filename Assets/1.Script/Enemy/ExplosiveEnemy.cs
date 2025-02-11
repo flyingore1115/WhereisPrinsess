@@ -58,8 +58,8 @@ public class ExplosiveEnemy : MonoBehaviour
     {
         isActivated = true;
         animator.SetTrigger("Walk");
-        SoundManager.Instance.PlaySFX("utteranceSound");
-        SoundManager.Instance.PlaySFX("activationSound");
+        //SoundManager.Instance.PlaySFX("utteranceSound");
+        //SoundManager.Instance.PlaySFX("activationSound");
     }
 
     void MoveTowardsTarget()
@@ -79,7 +79,7 @@ public class ExplosiveEnemy : MonoBehaviour
     {
         isExploding = true;
         animator.SetTrigger("Explode");
-        SoundManager.Instance.PlaySFX("explosionSound");
+        //SoundManager.Instance.PlaySFX("explosionSound");
 
         yield return new WaitForSeconds(1f);
 
@@ -118,8 +118,8 @@ public class ExplosiveEnemy : MonoBehaviour
 
         animator.SetTrigger("Walk"); // 걷기 애니메이션 트리거
 
-        SoundManager.Instance.PlaySFX("utteranceSound");
-        SoundManager.Instance.PlaySFX("activationSound");
+        //SoundManager.Instance.PlaySFX("utteranceSound");
+        //SoundManager.Instance.PlaySFX("activationSound");
 
         Invoke(nameof(ResetAggro), aggroDuration); // 일정 시간 후 복구
     }

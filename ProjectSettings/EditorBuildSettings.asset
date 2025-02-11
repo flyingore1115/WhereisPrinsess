@@ -8,10 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/0. Scenes/Start.unity
     guid: 376e83026c5d9f9429a5d999f623887e
-  - enabled: 1
-    path: Assets/0. Scenes/InGame.unity
+  - enabled: 0
+    path: Assets/0. Scenes/Legacy_Game.unity
     guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 1
+  - enabled: 0
     path: Assets/0. Scenes/Stroy.unity
     guid: ae034714b3efa954985acceb041a314e
+  - enabled: 1
+    path: Assets/0. Scenes/New_Game.unity
+    guid: f34dd51e1a37ff04a9f4b42abef99fe1
   m_configObjects: {}

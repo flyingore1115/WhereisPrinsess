@@ -20,6 +20,7 @@ public class Princess : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
+
     void FixedUpdate()
     {
         // 공주 발 아래 땅 감지
@@ -77,7 +78,6 @@ public class Princess : MonoBehaviour
         {
             // TriggerGameOverAfterAnimation 호출로 변경
             StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
-            Debug.Log("내가호출했엌ㅋㅋㅋㅋㅋㅋ");
         }
     }
 

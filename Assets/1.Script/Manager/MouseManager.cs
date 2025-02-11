@@ -79,8 +79,7 @@ public class MouseManager : MonoBehaviour
             // 변경된 배율 적용
             mainCamera.orthographicSize = currentZoom;
 
-            // 디버그 출력
-            Debug.Log($"Current Zoom Level: {currentZoom}");
+            //배율 조정은 사기니까 데모 만들때 쯤에는 빼야해
         }
     }
 }

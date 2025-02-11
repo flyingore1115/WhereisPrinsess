@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // 씬 관리를 위해 필요
+using UnityEngine.SceneManagement;
 
 public class MySceneManager : MonoBehaviour
 {
@@ -31,5 +31,9 @@ public class MySceneManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         Time.timeScale = 1f; // 게임 속도를 정상적으로 복구
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

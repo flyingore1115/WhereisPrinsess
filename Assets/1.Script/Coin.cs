@@ -23,7 +23,7 @@ public class Coin : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             // 점수 추가
-            ScoreManager.Instance.AddScore(500);
+            GameManager.Instance.AddScore(500);
             // 상태 텍스트 표시
             StatusTextManager.Instance.ShowMessage("코인을 획득했습니다!");
 

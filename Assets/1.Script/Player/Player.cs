@@ -32,10 +32,8 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-
-        explosiveEnemies = FindObjectsOfType<ExplosiveEnemy>();
-        sniperEnemies = FindObjectsOfType<SniperEnemy>();
     }
+
 
     void Update()
     {
@@ -68,7 +66,7 @@ public class Player : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.W) && isGrounded)
             {
-                SoundManager.Instance.PlaySFX("playerJumpSound");
+                //SoundManager.Instance.PlaySFX("playerJumpSound");
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             }
         }
@@ -149,7 +147,7 @@ public class Player : MonoBehaviour
         
         Destroy(enemy);
 
-        ScoreManager.Instance.AddScore(100); //점수 추가
+        GameManager.Instance.AddScore(100); //점수 추가
 
         // 공격 후 플레이어 위치를 적의 위치에서 멀어지도록 약간 조정
         Vector2 escapeDirection = (transform.position - enemy.transform.position).normalized;
