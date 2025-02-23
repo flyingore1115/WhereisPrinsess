@@ -10,15 +10,13 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     private Rigidbody2D rb;
     private Animator animator;
-    private bool isGrounded = false;
     private bool isGameOver = false;
     private bool isFalling = false; // 낙하 여부 확인
 
-    private bool isTimeStopped = false; //시간정지
+    // 시간 정지 상태 변수
+    private bool isTimeStopped = false;
     private Color originalColor;
     private SpriteRenderer spriteRenderer;
-
-    
 
     void Start()
     {
@@ -28,21 +26,25 @@ public class Princess : MonoBehaviour, ITimeAffectable
         originalColor = spriteRenderer.color;
     }
 
-
     void FixedUpdate()
     {
-        if (isTimeStopped) return;
-        // 공주 발 아래 땅 감지
-        isGrounded = CheckGrounded();
+        // 시간 정지 상태면 이동 업데이트를 건너뛰고 속도를 0으로 설정
+        if (isTimeStopped)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
 
-        // 땅에 있을 때만 이동
+        bool isGrounded = CheckGrounded();
+
+        // 땅 위에 있고 게임 오버 상태가 아니면 오른쪽으로 이동
         if (!isGameOver && isGrounded)
         {
             rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
         }
+        // 공중에 있을 때는 수평 이동 없이 자연 낙하
         else if (!isGrounded && !isGameOver)
         {
-            // 공중에서는 수평 속도를 멈추고 자연스럽게 떨어짐
             rb.velocity = new Vector2(0, rb.velocity.y);
         }
     }
@@ -81,18 +83,15 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
         Debug.Log("Game Over");
 
-        // GameOverManager 호출
         GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
         if (gameOverManager != null)
         {
-            // TriggerGameOverAfterAnimation 호출로 변경
             StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
         }
     }
 
     private bool CheckGrounded()
     {
-        // 박스 캐스트를 사용해 공주 발 아래 땅 확인
         RaycastHit2D hit = Physics2D.BoxCast(
             groundCheck.position,
             groundCheckSize,
@@ -102,22 +101,14 @@ public class Princess : MonoBehaviour, ITimeAffectable
             groundLayer
         );
 
-        if (hit.collider != null)
-        {
-            Debug.DrawRay(groundCheck.position, Vector2.down * fallThreshold, Color.green); // 땅 감지 시각화
-            return true;
-        }
-
-        Debug.DrawRay(groundCheck.position, Vector2.down * fallThreshold, Color.red); // 땅 미감지 시각화
-        return false;
+        return hit.collider != null;
     }
 
-     public void StopTime()
+    // ITimeAffectable 구현: 시간 정지 시 이동 및 애니메이션을 멈춤
+    public void StopTime()
     {
-        if (this == null || spriteRenderer == null) return;
-
         isTimeStopped = true;
-        spriteRenderer.color = new Color(0.75f, 0.75f, 0.75f, 1f);
+        rb.velocity = Vector2.zero;
         if (animator != null)
         {
             animator.speed = 0;
@@ -126,22 +117,15 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void ResumeTime()
     {
-        if (this == null || spriteRenderer == null) return;
-
         isTimeStopped = false;
         if (animator != null)
         {
             animator.speed = 1;
         }
-        RestoreColor();
     }
 
     public void RestoreColor()
     {
-        if (this == null || spriteRenderer == null) return;
-
         spriteRenderer.color = originalColor;
     }
-
-
 }

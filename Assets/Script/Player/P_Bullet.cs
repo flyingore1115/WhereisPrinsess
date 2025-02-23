@@ -10,6 +10,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        Destroy(gameObject, 2f);
     }
 
     public void SetDirection(Vector2 dir)
@@ -34,13 +35,6 @@ public class Bullet : MonoBehaviour, ITimeAffectable
         {
             Destroy(collision.gameObject); // 적 제거
             Destroy(gameObject); // 총알도 제거
-
-            // 시간 게이지 충전
-            TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
-            if (timeStopController != null)
-            {
-                timeStopController.AddTimeGauge(5f);
-            }
         }
     }
 
