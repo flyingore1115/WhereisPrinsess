@@ -7,7 +7,6 @@ public class GameOverManager : MonoBehaviour
     public Transform princess; // 공주의 Transform
     public Camera mainCamera; // 메인 카메라
     public GameObject gameOverUI; // 게임 오버 UI
-    public GameObject normalCanvas; // 일반 UI 캔버스
     public float cameraMoveSpeed = 5f; // 카메라 이동 속도
     public float zoomSpeed = 2f; // 카메라 줌 속도
     public float targetZoom = 3f; // 게임 오버 시 최종 카메라 줌 크기
@@ -55,8 +54,6 @@ public class GameOverManager : MonoBehaviour
                 yield return null;
             }
         }
-
-        normalCanvas.SetActive(false);
 
         // 모든 사운드 정지
         if (SoundManager.Instance != null)
