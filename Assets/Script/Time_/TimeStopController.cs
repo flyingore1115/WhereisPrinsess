@@ -55,8 +55,12 @@ public class TimeStopController : MonoBehaviour
         }
         else
         {
-            currentTimeGauge += passiveChargeRate * Time.deltaTime;
-            currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
+            //패시브 자동 충전
+            if (!isTimeStopped)
+            {
+                currentTimeGauge += passiveChargeRate * Time.deltaTime;
+                currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
+            }
         }
 
         if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl)) //대상 정지 해제

@@ -19,9 +19,13 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
     private bool isTimeStopped = false; //시간정지
     private Color originalColor;
 
+    public Material grayscaleMaterial;
+    private Material originalMaterial;
+
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        originalMaterial = spriteRenderer.material;
         animator = GetComponent<Animator>();
         originalColor = spriteRenderer.color;
         princess = GameObject.FindGameObjectWithTag("Princess").transform;
@@ -147,19 +151,23 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
     public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
-
+        
         isTimeStopped = true;
-        spriteRenderer.color = new Color(0.75f, 0.75f, 0.75f, 1f);
+        if (grayscaleMaterial != null)
+        {
+            spriteRenderer.material = grayscaleMaterial;
+        }
         if (animator != null)
         {
             animator.speed = 0;
         }
     }
 
+
     public void ResumeTime()
     {
         if (this == null || spriteRenderer == null) return;
-
+        
         isTimeStopped = false;
         if (animator != null)
         {
@@ -171,9 +179,8 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
     public void RestoreColor()
     {
         if (this == null || spriteRenderer == null) return;
-
-        spriteRenderer.color = originalColor;
+        
+        spriteRenderer.material = originalMaterial;
     }
-
 
 }

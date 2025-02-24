@@ -18,11 +18,15 @@ public class Princess : MonoBehaviour, ITimeAffectable
     private Color originalColor;
     private SpriteRenderer spriteRenderer;
 
+    public Material grayscaleMaterial;
+    private Material originalMaterial;
+
     
 
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        originalMaterial = spriteRenderer.material;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         originalColor = spriteRenderer.color;
@@ -115,19 +119,23 @@ public class Princess : MonoBehaviour, ITimeAffectable
      public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
-
+        
         isTimeStopped = true;
-        spriteRenderer.color = new Color(0.75f, 0.75f, 0.75f, 1f);
+        if (grayscaleMaterial != null)
+        {
+            spriteRenderer.material = grayscaleMaterial;
+        }
         if (animator != null)
         {
             animator.speed = 0;
         }
     }
 
+
     public void ResumeTime()
     {
         if (this == null || spriteRenderer == null) return;
-
+        
         isTimeStopped = false;
         if (animator != null)
         {
@@ -139,9 +147,10 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public void RestoreColor()
     {
         if (this == null || spriteRenderer == null) return;
-
-        spriteRenderer.color = originalColor;
+        
+        spriteRenderer.material = originalMaterial;
     }
+
 
 
 }
