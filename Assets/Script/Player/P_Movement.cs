@@ -14,6 +14,8 @@ public class P_Movement : MonoBehaviour
     private Transform firePoint;
     private bool isGrounded;
 
+    public bool canDash;
+
     public void Init(Rigidbody2D rb, Animator animator, SpriteRenderer spriteRenderer, Transform firePoint)
     {
         this.rb = rb;
@@ -55,4 +57,11 @@ public class P_Movement : MonoBehaviour
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
     }
+
+    public void EnableDash()
+    {
+        Debug.Log("[Player] Dash Unlocked!");
+        canDash = true;
+    }
+
 }

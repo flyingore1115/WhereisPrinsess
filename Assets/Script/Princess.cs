@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Princess : MonoBehaviour, ITimeAffectable
 {
@@ -10,14 +11,18 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     private Rigidbody2D rb;
     private Animator animator;
+    private SpriteRenderer spriteRenderer;
+
     private bool isGrounded = false;
     private bool isGameOver = false;
     private bool isFalling = false; // 낙하 여부 확인
-
     private bool isTimeStopped = false; //시간정지
-    private Color originalColor;
-    private SpriteRenderer spriteRenderer;
 
+    private bool isShieldActive = false;
+    private int extraLives = 0; // 여벌 목숨
+    
+//흑백효과
+    private Color originalColor;
     public Material grayscaleMaterial;
     private Material originalMaterial;
 
@@ -53,16 +58,15 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!isGameOver && other.CompareTag("fall")) // 구멍과 충돌
+        if (!isShieldActive && other.CompareTag("Enemy"))
         {
-            Debug.Log("Princess fell into a hole!");
-            isFalling = true; // 낙하 상태로 설정
-            GameOver();
-        }
-        else if (!isGameOver && other.CompareTag("Enemy")) // 적과 충돌
-        {
-            Debug.Log("Princess was defeated by an enemy!");
-            isFalling = false; // 일반 게임오버
+            if (extraLives > 0)
+            {
+                extraLives--; // 여벌 목숨이 있으면 죽지 않음
+                Debug.Log("Princess survived using extra life!");
+                return;
+            }
+            Debug.Log("Princess was defeated!");
             GameOver();
         }
     }
@@ -116,6 +120,27 @@ public class Princess : MonoBehaviour, ITimeAffectable
         return false;
     }
 
+//스킬
+    public void EnableShield(float duration, bool maxLevel)
+    {
+        if (isShieldActive) return;
+
+        isShieldActive = true;
+        spriteRenderer.color = Color.cyan; // 보호막 활성화 표시
+        StartCoroutine(DisableShieldAfterTime(duration));
+
+        if (maxLevel) extraLives++; // MAX 레벨일 경우 여벌 목숨 추가
+    }
+
+    private IEnumerator DisableShieldAfterTime(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        isShieldActive = false;
+        spriteRenderer.color = originalColor;
+    }
+
+
+//이하 시간정지
      public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;

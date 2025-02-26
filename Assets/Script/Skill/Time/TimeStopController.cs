@@ -184,4 +184,5 @@ public class TimeStopController : MonoBehaviour
     {
         timeAffectedObjects.Add(obj);
     }
+
 }

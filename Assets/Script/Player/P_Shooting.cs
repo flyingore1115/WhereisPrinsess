@@ -65,6 +65,10 @@ public class P_Shooting : MonoBehaviour
             return;
         }
 
+        //재장전 에너지 소모
+        timeStopController.currentTimeGauge -= reloadEnergyCost;
+        timeStopController.currentTimeGauge = Mathf.Clamp(timeStopController.currentTimeGauge, 0, timeStopController.maxTimeGauge);
+
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         if (SoundManager.Instance != null)
