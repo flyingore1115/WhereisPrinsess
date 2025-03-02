@@ -30,7 +30,14 @@ public class SkillEffectHandler : MonoBehaviour
     {
         switch (skill.skillName)
         {
-            case "speed_boost": // 이동 속도 증가
+            case "회피": // 랜덤 확률로 회피
+                if (player != null && player.movement != null)
+                {
+                    player.movement.SetDodgeChance(skill.GetEffect(level)); // 회피 확률 적용
+                    Debug.Log($"[Skill] Dodge chance increased to {skill.GetEffect(level) * 100}%");
+                }
+                break;
+            case "이동 속도 증가": // 이동 속도 증가
                 if (player != null && player.movement != null)
                 {
                     player.movement.moveSpeed += skill.GetEffect(level);
@@ -41,7 +48,7 @@ public class SkillEffectHandler : MonoBehaviour
                 }
                 break;
 
-            case "max_energy_increase": // 에너지 총량 증가
+            case "에너지 총량 증가": // 에너지 총량 증가
                 if (timeController != null)
                 {
                     timeController.maxTimeGauge += skill.GetEffect(level);
@@ -52,14 +59,14 @@ public class SkillEffectHandler : MonoBehaviour
                 }
                 break;
 
-            case "energy_gain_on_kill_increase": // 적 처치 시 에너지 획득 증가
+            case "적 처치 에너지 증가": // 적 처치 에너지 증가
                 if (timeController != null)
                 {
                     timeController.enemyKillGain += skill.GetEffect(level);
                 }
                 break;
 
-            case "energy_efficiency": // 시간 정지 에너지 최적화 (소모량 감소 + 패시브 충전량 증가)
+            case "에너지 최적화": // 시간 정지 에너지 최적화 (소모량 감소 + 패시브 충전량 증가)
                 if (timeController != null)
                 {
                     timeController.timeStopDrainRate -= skill.GetEffect(level);

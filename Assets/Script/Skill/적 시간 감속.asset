@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: energy_efficiency
+  m_Name: "\uC801 \uC2DC\uAC04 \uAC10\uC18D"
   m_EditorClassIdentifier: 
-  skillName: energy_efficiency
+  skillName: slow_enemies
   skillIcon: {fileID: 0}
-  skillType: 1
+  skillType: 0
   maxLevel: 6
   levelEffects:
   - 0

@@ -185,4 +185,17 @@ public class TimeStopController : MonoBehaviour
         timeAffectedObjects.Add(obj);
     }
 
+    void ReverseTime(float duration)
+    {
+        Debug.Log("[Skill] Time Reversal Activated!");
+        Vector3 previousPosition = GetPlayerPreviousPosition(duration);
+        transform.position = previousPosition;
+    }
+
+    Vector3 GetPlayerPreviousPosition(float duration)
+    {
+        return transform.position - (Vector3.right * 5f); // 예제: 5유닛 뒤로 이동
+    }
+
+
 }

@@ -15,6 +15,7 @@ public class P_Movement : MonoBehaviour
     private bool isGrounded;
 
     public bool canDash;
+    private float dodgeChance = 0f;
 
     public void Init(Rigidbody2D rb, Animator animator, SpriteRenderer spriteRenderer, Transform firePoint)
     {
@@ -62,6 +63,21 @@ public class P_Movement : MonoBehaviour
     {
         Debug.Log("[Player] Dash Unlocked!");
         canDash = true;
+    }
+
+    public void SetDodgeChance(float chance)
+    {
+        dodgeChance = chance;
+    }
+
+    public bool TryDodge()
+    {
+        if (Random.value < dodgeChance)
+        {
+            Debug.Log("[Skill] Dodge successful!");
+            return true;
+        }
+        return false;
     }
 
 }

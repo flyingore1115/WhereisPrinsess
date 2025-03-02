@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: princess_shield
+  m_Name: "\uACF5\uC8FC \uBCF4\uD638\uB9C9"
   m_EditorClassIdentifier: 
-  skillName: princess_shield
+  skillName: "\uACF5\uC8FC \uBCF4\uD638\uB9C9"
   skillIcon: {fileID: 0}
   skillType: 2
   maxLevel: 6
   levelEffects:
-  - 1
   - 2
   - 3
   - 4
   - 5
   - 6
+  - 7

@@ -10,14 +10,19 @@ public class SkillManager : MonoBehaviour
     public int maxSkillUnlock = 12; // 시침 위치 (최대 습득 가능 스킬)
     private int selectedSkillIndex = 0; // 현재 선택한 스킬 (분침)
 
-    void Start()
+    void Awake()
     {
+        // 게임 시작 시 모든 스킬을 자동 획득 (Awake에서 호출하여 다른 스크립트보다 먼저 실행)
         foreach (SkillData skill in allSkills)
         {
-            Debug.Log($"Skill Loaded: {skill.skillName}");
-            AcquireSkill(skill); // 게임 시작 시 모든 스킬을 자동 획득
+            AcquireSkill(skill);
         }
         UpdateSkillSelection();
+    }
+
+    void Start()
+    {
+        // 추가 초기화가 필요한 경우 Start()에서 처리
     }
 
     void Update()
@@ -72,7 +77,6 @@ public class SkillManager : MonoBehaviour
         Debug.Log($"현재 선택한 스킬: {allSkills[selectedSkillIndex].skillName}");
     }
 
-    // ✅ 추가된 메서드
     public SkillData GetSkillByName(string skillName)
     {
         SkillData skill = allSkills.FirstOrDefault(s => s.skillName == skillName);

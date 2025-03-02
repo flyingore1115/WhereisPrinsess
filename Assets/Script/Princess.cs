@@ -20,14 +20,14 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     private bool isShieldActive = false;
     private int extraLives = 0; // 여벌 목숨
+    private bool shieldActive = false;
     
-//흑백효과
+    //흑백효과
     private Color originalColor;
     public Material grayscaleMaterial;
     private Material originalMaterial;
 
     
-
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -121,27 +121,44 @@ public class Princess : MonoBehaviour, ITimeAffectable
     }
 
 //스킬
+
     public void EnableShield(float duration, bool maxLevel)
     {
-        if (isShieldActive) return;
-
-        isShieldActive = true;
-        spriteRenderer.color = Color.cyan; // 보호막 활성화 표시
+        if (shieldActive) return;
+        shieldActive = true;
+        // 보호막 효과: 색상 변경, 애니메이션, 무적 상태 적용 등
+        spriteRenderer.color = Color.cyan;
+        // MAX 레벨이면 여벌 목숨 추가 (여기서도 적용 가능)
+        if(maxLevel)
+        {
+            // 예를 들어, extraLives++ 등
+        }
         StartCoroutine(DisableShieldAfterTime(duration));
-
-        if (maxLevel) extraLives++; // MAX 레벨일 경우 여벌 목숨 추가
     }
 
     private IEnumerator DisableShieldAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
-        isShieldActive = false;
+        shieldActive = false;
         spriteRenderer.color = originalColor;
     }
 
+    // 데미지 처리 함수에서 shieldActive 확인
+    public void TakeDamage(int damage)
+    {
+        if(shieldActive)
+        {
+            Debug.Log("Shield absorbed damage!");
+            return;
+        }
+        // 데미지 적용
+        GameOver();
+    }
+
+
 
 //이하 시간정지
-     public void StopTime()
+    public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
         

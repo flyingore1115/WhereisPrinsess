@@ -3,35 +3,36 @@ using System.Collections;
 
 public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
 {
-    public float detectionRadius = 5f; // 감지 반경
-    public float explosionRadius = 1f; // 폭발 반경
-    public float moveSpeed = 3f; // 이동 속도
-    private Transform target; // 추적 대상
-    private Transform princess; // 공주
-    private Transform player; // 플레이어
+    public float detectionRadius = 5f;
+    public float explosionRadius = 1f;
+    public float moveSpeed = 3f;
+    private Transform target;
+    private Transform princess;
+    private Transform player;
     private bool isActivated = false;
     private bool isExploding = false;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
 
-    private bool isAggroOnPlayer = false; // 플레이어에게 어그로 여부
-    public float aggroDuration = 5f; // 플레이어 어그로 지속 시간
+    private bool isAggroOnPlayer = false;
+    public float aggroDuration = 5f;
 
-    private bool isTimeStopped = false; // 시간정지 상태
+    private bool isTimeStopped = false;
     private Color originalColor;
 
-    public Material grayscaleMaterial;
+    public Material grayscaleMaterial; // 기본 그레이스케일 Material (프리팹 또는 에셋)
     private Material originalMaterial;
 
-    void Start()
+    void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        originalMaterial = spriteRenderer.material;
+        // 원본 Material은 인스턴스화하지 않은 상태로 저장합니다.
+        originalMaterial = spriteRenderer.sharedMaterial;
         animator = GetComponent<Animator>();
         originalColor = spriteRenderer.color;
         princess = GameObject.FindGameObjectWithTag("Princess").transform;
         player = GameObject.FindGameObjectWithTag("Player").transform;
-        target = princess; // 기본 타겟은 공주
+        target = princess;
     }
 
     void Update()
@@ -79,18 +80,11 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
         else
         {
             Vector2 direction = target.position - transform.position;
-            // 매 프레임 목표 방향을 계산하여 적이 올바르게 바라보도록 함.
-            // NOTE: 아래 flipX 조건은 스프라이트의 기본 방향에 따라 조정해야 함.
-            // 만약 스프라이트가 기본적으로 왼쪽을 바라보고 있다면, 아래처럼 설정.
-            bool defaultFacingRight = false; // set true if enemy sprite is drawn facing right by default.
+            bool defaultFacingRight = false;
             if (defaultFacingRight)
-            {
                 spriteRenderer.flipX = (direction.x < 0);
-            }
             else
-            {
                 spriteRenderer.flipX = (direction.x > 0);
-            }
 
             transform.position = Vector2.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
         }
@@ -134,17 +128,12 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
         target = player;
         animator.SetTrigger("Walk");
 
-        // 초기 방향 설정 (한 번만 설정함; 이후에는 MoveTowardsTarget()에서 계속 업데이트)
         Vector2 direction = player.position - transform.position;
-        bool defaultFacingRight = false; // adjust based on sprite default direction.
+        bool defaultFacingRight = false;
         if (defaultFacingRight)
-        {
             spriteRenderer.flipX = (direction.x < 0);
-        }
         else
-        {
             spriteRenderer.flipX = (direction.x > 0);
-        }
 
         SoundManager.Instance.PlaySFX("utteranceSound");
         SoundManager.Instance.PlaySFX("activationSound");
@@ -165,19 +154,25 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
     {
         if (!isTimeStopped)
         {
-            moveSpeed /= 2; // 이동 속도를 절반으로 감소
+            moveSpeed /= 2;
             Invoke("RestoreSpeed", duration);
         }
     }
 
     private void RestoreSpeed()
     {
-        moveSpeed *= 2; // 원래 속도로 복구
+        moveSpeed *= 2;
     }
 
+    public void TakeDamage()
+    {
+        Debug.Log("[Enemy] Took Damage!");
+        Destroy(gameObject);
+    }
     public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
+        
         isTimeStopped = true;
         if (grayscaleMaterial != null)
         {
@@ -189,9 +184,11 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
         }
     }
 
+
     public void ResumeTime()
     {
         if (this == null || spriteRenderer == null) return;
+        
         isTimeStopped = false;
         if (animator != null)
         {
@@ -199,6 +196,7 @@ public class ExplosiveEnemy : MonoBehaviour, ITimeAffectable
         }
         RestoreColor();
     }
+
 
     public void RestoreColor()
     {

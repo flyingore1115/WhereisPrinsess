@@ -10,16 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: aggro
+  m_Name: "\uBC18\uACA9"
   m_EditorClassIdentifier: 
-  skillName: aggro
+  skillName: "\uBC18\uACA9"
   skillIcon: {fileID: 0}
   skillType: 0
   maxLevel: 6
   levelEffects:
-  - 1
-  - 2
-  - 3
-  - 4
-  - 5
-  - 6
+  - 0

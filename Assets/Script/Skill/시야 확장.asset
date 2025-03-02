@@ -10,11 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: max_energy_increase
+  m_Name: "\uC2DC\uC57C \uD655\uC7A5"
   m_EditorClassIdentifier: 
-  skillName: max_energy_increase
+  skillName: "\uC2DC\uC57C \uD655\uC7A5"
   skillIcon: {fileID: 0}
-  skillType: 1
+  skillType: 0
   maxLevel: 6
   levelEffects:
-  - 0
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
