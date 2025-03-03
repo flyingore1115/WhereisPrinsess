@@ -6,9 +6,12 @@ using System.Collections.Generic;
 public class SkillUI : MonoBehaviour
 {
     public SkillManager skillManager;
+    public SkillDescription skillDescription;
     public GameObject skillPanel;
-    public RectTransform skillUIRoot; // UI 전체를 감싸는 부모 오브젝트 (RectTransform)
-    public GameObject skillDetailPanel; // 스킬 설명 패널
+
+    public List<SkillData> skillDataList; // 모든 스킬 데이터 리스트
+    public RectTransform skillUIRoot; // UI 부모 오브젝트
+    public GameObject skillDetail; // 스킬 설명
     public Transform clockCenter; // 시계 중심
     public Transform skillHandHour; // 시침 역할
     public Transform skillHandMinute; // 분침 역할
@@ -16,6 +19,8 @@ public class SkillUI : MonoBehaviour
     public Text skillNameText;
     public Text skillLevelText;
     public Button upgradeButton;
+
+    public List<Image> skillIconImage;
 
     [Header("Zoom Settings")]
     public float zoomMultiplier = 1.5f; // 인스펙터에서 조절 가능한 확대 배율
@@ -31,7 +36,7 @@ public class SkillUI : MonoBehaviour
     void Start()
     {
         skillPanel.SetActive(false);
-        skillDetailPanel.SetActive(false); // 상세 패널 비활성화
+        skillDetail.SetActive(false); // 상세 패널 비활성화
         defaultScale = skillUIRoot.localScale; // 기본 scale 저장 (예: (1,1,1))
         defaultPosition = skillUIRoot.anchoredPosition; // 기본 위치 저장 (예: (0,0))
         UpdateSkillUI();
@@ -110,8 +115,7 @@ public class SkillUI : MonoBehaviour
             Debug.Log("아직 해금 X");
             return;
         }
-        SkillData skill = skillManager.allSkills[selectedSkillIndex];
-        //skillManager.UpgradeSkill(skill);
+        skillManager.UpgradeSkill();
         UpdateSkillUI();
     }
 
@@ -123,17 +127,37 @@ public class SkillUI : MonoBehaviour
 
     void UpdateSkillUI()
     {
-        SkillData skill = skillManager.allSkills[selectedSkillIndex];
-        skillNameText.text = skill.skillName;
-        skillLevelText.text = "Level: " + skillManager.GetSkillLevel(skill);
+        for (int i = 0; i < skillIcons.Count; i++)
+        {
+            if (i < skillDataList.Count && skillDataList[i].skillIcon != null)
+            {
+                skillIcons[i].sprite = skillDataList[i].skillIcon; // 🔹 각 스킬 아이콘 적용
+                skillIcons[i].enabled = true; // 🔹 아이콘 활성화
+            }
+            else
+            {
+                skillIcons[i].sprite = null; // 🔹 아이콘 없으면 None으로 설정
+                skillIcons[i].enabled = false; // 🔹 비활성화
+            }
+        }
+
+        // 🔹 선택된 스킬의 아이콘을 개별적으로 업데이트 (예: 패널 UI)
+        SkillData selectedSkill = skillDataList[selectedSkillIndex];
+        skillNameText.text = selectedSkill.skillName;
+        skillLevelText.text = "Level: " + skillManager.GetSkillLevel(selectedSkill);
+
         bool isUnlocked = selectedSkillIndex <= unlockedSkillIndex;
-        upgradeButton.interactable = isUnlocked && skillManager.GetSkillLevel(skill) < skill.maxLevel;
+        upgradeButton.interactable = isUnlocked && skillManager.GetSkillLevel(selectedSkill) < selectedSkill.maxLevel;
+
         for (int i = 0; i < skillIcons.Count; i++)
         {
             skillIcons[i].color = (i <= unlockedSkillIndex) ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
         }
+
         RotateClockHands();
+        skillDescription.UpdateSkillDescription(selectedSkill);
     }
+
 
     void RotateClockHands()
     {
@@ -154,12 +178,12 @@ public class SkillUI : MonoBehaviour
     {
         if (isSkillDetailOpen)
         {
-            skillDetailPanel.SetActive(false);
+            skillDetail.SetActive(false);
             StartCoroutine(ZoomAndRepositionUI(skillUIRoot, defaultScale, defaultPosition));
         }
         else
         {
-            skillDetailPanel.SetActive(true);
+            skillDetail.SetActive(true);
             Vector2 iconPos = skillIcons[selectedSkillIndex].rectTransform.anchoredPosition;
             Vector3 targetScale = defaultScale * zoomMultiplier;
             // 목표 anchoredPosition = - (targetScale * iconPos)

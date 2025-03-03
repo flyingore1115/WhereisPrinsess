@@ -13,8 +13,14 @@ MonoBehaviour:
   m_Name: "\uC774\uB3D9 \uC18D\uB3C4 \uC99D\uAC00"
   m_EditorClassIdentifier: 
   skillName: "\uC774\uB3D9 \uC18D\uB3C4 \uC99D\uAC00"
-  skillIcon: {fileID: 0}
+  description: "\uC18C\uB2C9\uC774 \uB418\uC5B4\uBCF4\uC138\uC694!"
+  skillIcon: {fileID: 21300000, guid: 8a513ecc3cf4cb94f9b17ee97b917f83, type: 3}
   skillType: 1
   maxLevel: 6
   levelEffects:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
   - 0

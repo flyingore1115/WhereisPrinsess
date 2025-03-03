@@ -4,11 +4,14 @@ using System.Linq;
 
 public class SkillManager : MonoBehaviour
 {
+
+    
     public List<SkillData> allSkills; // 모든 스킬 목록
     private Dictionary<SkillData, int> acquiredSkills = new Dictionary<SkillData, int>(); // 습득한 스킬과 레벨
 
     public int maxSkillUnlock = 12; // 시침 위치 (최대 습득 가능 스킬)
     private int selectedSkillIndex = 0; // 현재 선택한 스킬 (분침)
+
 
     void Awake()
     {
@@ -53,7 +56,7 @@ public class SkillManager : MonoBehaviour
         UpdateSkillSelection();
     }
 
-    void UpgradeSkill()
+    public void UpgradeSkill()
     {
         SkillData skill = allSkills[selectedSkillIndex];
         if (!acquiredSkills.ContainsKey(skill))
