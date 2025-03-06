@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: "\uC801 \uC2DC\uAC04 \uAC10\uC18D"
+  m_Name: "\uCCB4\uB825 \uD68C\uBCF5"
   m_EditorClassIdentifier: 
-  skillName: slow_enemies
+  skillName: "\uCCB4\uB825 \uD68C\uBCF5"
   description: 
   skillIcon: {fileID: 21300000, guid: 47ea2abda7aa0d0459fb595b83b499a7, type: 3}
   skillType: 0
   maxLevel: 6
   levelEffects:
-  - 0
-  - 0
-  - 0
-  - 0
-  - 0
-  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6

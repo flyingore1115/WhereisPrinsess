@@ -1,8 +1,9 @@
 using UnityEngine;
+using System.Collections;
 
 public class P_Movement : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float moveSpeed = 8f;
     public float jumpForce = 10f;
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
@@ -29,7 +30,7 @@ public class P_Movement : MonoBehaviour
     {
         if (isAttacking) return;
 
-        float moveInput = Input.GetAxis("Horizontal");
+        float moveInput = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
 
         if (moveInput != 0)
@@ -79,5 +80,4 @@ public class P_Movement : MonoBehaviour
         }
         return false;
     }
-
 }

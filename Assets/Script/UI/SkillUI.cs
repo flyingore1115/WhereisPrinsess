@@ -115,9 +115,12 @@ public class SkillUI : MonoBehaviour
             Debug.Log("아직 해금 X");
             return;
         }
-        skillManager.UpgradeSkill();
+        // UI에서 선택한 스킬을 사용하여 업그레이드 호출
+        SkillData selectedSkill = skillDataList[selectedSkillIndex];
+        skillManager.UpgradeSkill(selectedSkill);
         UpdateSkillUI();
     }
+
 
     void UnlockSkills(int count)
     {

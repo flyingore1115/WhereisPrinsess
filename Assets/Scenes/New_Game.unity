@@ -329,6 +329,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sn_Enemy
       objectReference: {fileID: 0}
+    - target: {fileID: 7200021815836974548, guid: 4fd2e29b75d29b841a5cbdc0c79787bc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7339816906877541190, guid: 4fd2e29b75d29b841a5cbdc0c79787bc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -16.11
@@ -566,10 +570,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1503884686}
     m_Modifications:
-    - target: {fileID: 1498945184384735324, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
-      propertyPath: m_FlipX
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -23.1
@@ -2385,7 +2385,7 @@ GameObject:
   m_Component:
   - component: {fileID: 663349660}
   m_Layer: 0
-  m_Name: UIRoot
+  m_Name: SkillUIRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3392,7 +3392,7 @@ GameObject:
   m_Component:
   - component: {fileID: 868239485}
   m_Layer: 5
-  m_Name: Skil_Des
+  m_Name: Skil_Discription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4155,7 +4155,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6.5700035
+      value: -13.17
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4950,7 +4950,7 @@ GameObject:
   - component: {fileID: 1434251942}
   - component: {fileID: 1434251943}
   m_Layer: 5
-  m_Name: Time_E
+  m_Name: TimeGauge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

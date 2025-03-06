@@ -77,18 +77,18 @@ public class ActiveSkillHandler : MonoBehaviour
                 break;
 
 
-            case "공주 보호막": // 공주 보호막
-                if (princess != null)
-                {
-                    Princess princessScript = princess.GetComponent<Princess>();
-                    if (princessScript != null)
+                case "공주 보호막": 
+                    if (princess != null)
                     {
-                        bool maxLevel = (level == skill.maxLevel);
-                        princessScript.EnableShield(effectDuration, maxLevel);
+                        Princess princessScript = princess.GetComponent<Princess>();
+                        if (princessScript != null)
+                        {
+                            bool maxLevel = (level == skill.maxLevel);
+                            princessScript.EnableShield(effectDuration, maxLevel);
+                        }
                     }
-                }
-                yield return new WaitForSeconds(effectDuration);
-                break;
+                    break;
+
 
             case "어그로": // 어그로 끌기
                 Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, 10f);
@@ -118,19 +118,6 @@ public class ActiveSkillHandler : MonoBehaviour
                         }
                     }
                 }
-                break;
-
-            case "적 시간 감속": // 적 시간 감속
-                Collider2D[] slowedEnemies = FindObjectsOfType<Collider2D>();
-                foreach (var enemy in slowedEnemies)
-                {
-                    ExplosiveEnemy enemyAI = enemy.GetComponent<ExplosiveEnemy>();
-                    if (enemyAI != null)
-                    {
-                        enemyAI.SlowDown(effectDuration);
-                    }
-                }
-                yield return new WaitForSeconds(effectDuration);
                 break;
         }
 

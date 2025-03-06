@@ -58,11 +58,17 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!isShieldActive && other.CompareTag("Enemy"))
+        if (isShieldActive) // 보호막이 활성화된 경우 적의 공격을 무시
+        {
+            Debug.Log("Shield absorbed damage! Princess is safe.");
+            return;
+        }
+
+        if (other.CompareTag("Enemy"))
         {
             if (extraLives > 0)
             {
-                extraLives--; // 여벌 목숨이 있으면 죽지 않음
+                extraLives--; // 여벌 목숨 사용
                 Debug.Log("Princess survived using extra life!");
                 return;
             }
@@ -70,6 +76,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
             GameOver();
         }
     }
+
 
     public void GameOver()
     {
@@ -124,24 +131,29 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void EnableShield(float duration, bool maxLevel)
     {
-        if (shieldActive) return;
-        shieldActive = true;
-        // 보호막 효과: 색상 변경, 애니메이션, 무적 상태 적용 등
+        if (isShieldActive) return; // 보호막이 이미 활성화된 경우 중복 적용 방지
+        isShieldActive = true;
+
+        // 보호막 활성화 (색상 변경)
         spriteRenderer.color = Color.cyan;
-        // MAX 레벨이면 여벌 목숨 추가 (여기서도 적용 가능)
-        if(maxLevel)
+
+        // MAX 레벨이면 여벌 목숨 추가
+        if (maxLevel)
         {
-            // 예를 들어, extraLives++ 등
+            extraLives++;
+            Debug.Log("MAX Level Shield: Extra life granted!");
         }
+
         StartCoroutine(DisableShieldAfterTime(duration));
     }
 
     private IEnumerator DisableShieldAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
-        shieldActive = false;
+        isShieldActive = false;
         spriteRenderer.color = originalColor;
     }
+
 
     // 데미지 처리 함수에서 shieldActive 확인
     public void TakeDamage(int damage)

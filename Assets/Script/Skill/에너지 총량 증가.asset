@@ -18,9 +18,9 @@ MonoBehaviour:
   skillType: 1
   maxLevel: 6
   levelEffects:
-  - 0
-  - 0
-  - 0
-  - 0
-  - 0
-  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
