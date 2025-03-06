@@ -4,6 +4,9 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
 {
     protected Transform princess;
     protected Transform player;
+
+    public string prefabName = "Self_Enemy";
+    
     protected bool isTimeStopped = false;
     protected bool isAggroOnPlayer = false;
 

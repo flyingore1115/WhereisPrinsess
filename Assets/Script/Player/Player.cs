@@ -30,4 +30,10 @@ public class Player : MonoBehaviour
         attack.HandleAttack();
         shooting.HandleShooting();
     }
+
+    //기존 TimePointData 참조를 제거하고, 되감기 시 RewindManager에서 위치를 가져오도록 변경
+    public void RestoreFromRewind(Vector2 rewindPosition)
+    {
+        transform.position = rewindPosition;
+    }
 }
