@@ -9,12 +9,10 @@ public class PauseManager : MonoBehaviour
 
     void Start()
     {
+        Time.timeScale = 1f; // 씬이 시작될 때 반드시 게임 속도 복구
         isPaused = false;
-
         if (pauseMenuUI != null)
-        {
             pauseMenuUI.SetActive(false);
-        }
     }
 
     // Update is called once per frame

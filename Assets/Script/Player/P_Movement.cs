@@ -35,7 +35,6 @@ public class P_Movement : MonoBehaviour
 
         if (moveInput != 0)
         {
-            Debug.Log("키 입력");
             animator.SetBool("isRun", true);
             spriteRenderer.flipX = moveInput < 0;
             firePoint.localPosition = new Vector3(

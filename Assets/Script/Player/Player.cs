@@ -31,9 +31,20 @@ public class Player : MonoBehaviour
         shooting.HandleShooting();
     }
 
-    //기존 TimePointData 참조를 제거하고, 되감기 시 RewindManager에서 위치를 가져오도록 변경
+    // 기존: 되감기 시 위치 복원
     public void RestoreFromRewind(Vector2 rewindPosition)
     {
         transform.position = rewindPosition;
+    }
+
+    // 추가: 저장된 상태(예: 탄약 수 등)를 복원하는 메서드
+    public void RestoreState(GameStateData gameState)
+    {
+        if (shooting != null)
+        {
+            shooting.currentAmmo = gameState.playerBulletCount;
+            // 필요하면 UI 업데이트 함수 호출 (예: shooting.UpdateAmmoUI();)
+        }
+        // 플레이어의 다른 상태(예: 체력, 스킬 등)도 복원할 수 있습니다.
     }
 }

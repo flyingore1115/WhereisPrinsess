@@ -28,7 +28,7 @@ public class RewindManager : MonoBehaviour
     }
 
     // 타임 포인트 저장 시 호출
-    public void SaveCheckpoint(Vector2 princessPos, Vector2 playerPos)
+    public void PointSave(Vector2 princessPos, Vector2 playerPos)
     {
         savedPrincessPosition = princessPos;
         savedPlayerPosition = playerPos;
