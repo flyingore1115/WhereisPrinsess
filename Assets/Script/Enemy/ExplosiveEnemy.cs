@@ -9,6 +9,9 @@ public class ExplosiveEnemy : BaseEnemy
     private bool isActivated = false;
     private bool isExploding = false;
 
+    // 추가: public 프로퍼티로 활성화 상태 확인
+    public bool IsActivated { get { return isActivated; } }
+
     protected override void Awake()
     {
         base.Awake();
@@ -18,6 +21,7 @@ public class ExplosiveEnemy : BaseEnemy
     {
         if (isTimeStopped || isExploding) return;
 
+        // 활성화되지 않았으면 타겟 감지
         if (!isActivated && !isAggroOnPlayer)
         {
             DetectTarget();
@@ -34,7 +38,14 @@ public class ExplosiveEnemy : BaseEnemy
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
         foreach (Collider2D hit in hits)
         {
+            // 공주가 감지되면 활성화
             if (hit.CompareTag("Princess"))
+            {
+                isActivated = true;
+                break;
+            }
+            // 플레이어 어그로가 걸린 경우, 플레이어도 감지되면 활성화
+            else if (hit.CompareTag("Player") && isAggroOnPlayer)
             {
                 isActivated = true;
                 break;
@@ -44,6 +55,7 @@ public class ExplosiveEnemy : BaseEnemy
 
     void MoveTowardsTarget()
     {
+        // 대상: 어그로 상태면 플레이어, 아니면 공주
         Transform target = isAggroOnPlayer ? player : princess;
 
         if (Vector2.Distance(transform.position, target.position) <= explosionRadius)
@@ -53,7 +65,6 @@ public class ExplosiveEnemy : BaseEnemy
         else
         {
             transform.position = Vector2.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
-            
             if (animator != null)
             {
                 animator.SetBool("isWalking", true);
@@ -64,13 +75,27 @@ public class ExplosiveEnemy : BaseEnemy
     private IEnumerator Explode()
     {
         isExploding = true;
-
         if (animator != null)
         {
             animator.SetTrigger("Explode");
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1f); // 폭발 애니메이션 재생 시간
+
+        // 폭발 범위 내의 모든 오브젝트에 대해 데미지 처리 (예시: 플레이어에게 데미지 1)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.CompareTag("Player"))
+            {
+                PlayerOver player = hit.GetComponent<PlayerOver>();
+                if (player != null)
+                {
+                    player.TakeDamage(1);  // 플레이어에게 데미지 1 적용
+                }
+            }
+        }
+
         Destroy(gameObject);
     }
 
@@ -79,7 +104,7 @@ public class ExplosiveEnemy : BaseEnemy
         base.StopTime();
         if (animator != null)
         {
-            animator.SetBool("isWalking", false); // 정지 상태에서 걷기 멈춤
+            animator.SetBool("isWalking", false);
         }
     }
 
@@ -88,7 +113,7 @@ public class ExplosiveEnemy : BaseEnemy
         base.ResumeTime();
         if (animator != null && isActivated)
         {
-            animator.SetBool("isWalking", true); // 시간 정지 해제 후 걷기 재개
+            animator.SetBool("isWalking", true);
         }
     }
 }

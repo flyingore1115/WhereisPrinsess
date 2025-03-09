@@ -12,6 +12,9 @@ public class Player : MonoBehaviour
     public P_Attack attack;
     public P_Shooting shooting;
 
+    // 입력 무시 플래그: true일 경우 입력을 무시하고, 플레이어를 Idle 상태로 유지합니다.
+    public bool ignoreInput = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -26,25 +29,32 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        // 조종 모드 활성 시, ignoreInput이 true로 설정되어 있다면
+        if (ignoreInput)
+        {
+            // 강제로 플레이어의 이동과 애니메이션을 Idle 상태로 만듭니다.
+            rb.velocity = Vector2.zero;
+            animator.SetBool("isRun", false);
+            Debug.Log("Player forced to idle due to princess control mode.");
+            return;
+        }
+
+        // 평소에는 정상적으로 입력 처리
         movement.HandleMovement(attack.IsAttacking);
         attack.HandleAttack();
         shooting.HandleShooting();
     }
 
-    // 기존: 되감기 시 위치 복원
     public void RestoreFromRewind(Vector2 rewindPosition)
     {
         transform.position = rewindPosition;
     }
 
-    // 추가: 저장된 상태(예: 탄약 수 등)를 복원하는 메서드
     public void RestoreState(GameStateData gameState)
     {
         if (shooting != null)
         {
             shooting.currentAmmo = gameState.playerBulletCount;
-            // 필요하면 UI 업데이트 함수 호출 (예: shooting.UpdateAmmoUI();)
         }
-        // 플레이어의 다른 상태(예: 체력, 스킬 등)도 복원할 수 있습니다.
     }
 }

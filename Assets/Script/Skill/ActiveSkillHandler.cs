@@ -6,7 +6,7 @@ public class ActiveSkillHandler : MonoBehaviour
 {
     public SkillManager skillManager;
     public Camera mainCamera;
-    public Transform princess;
+    public Transform princess;  // 공주 오브젝트 참조 (PrincessControlHandler에서 사용 가능)
     private Dictionary<string, Coroutine> activeSkillCoroutines = new Dictionary<string, Coroutine>();
 
     void Update()
@@ -15,6 +15,8 @@ public class ActiveSkillHandler : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E)) ActivateSkill("공주 보호막");
         if (Input.GetKeyDown(KeyCode.F)) ActivateSkill("어그로");
         if (Input.GetKeyDown(KeyCode.T)) ActivateSkill("적 시간 감속");
+        if (Input.GetKeyDown(KeyCode.H)) ActivateSkill("체력 되감기");
+        if (Input.GetKeyDown(KeyCode.P)) ActivateSkill("공주 조종"); // 기존 P키 입력을 스킬 핸들러에서 제어
     }
 
     void ActivateSkill(string skillName)
@@ -41,7 +43,25 @@ public class ActiveSkillHandler : MonoBehaviour
 
         switch (skill.skillName)
         {
-            case "시야 확장": // 시야 확장
+            case "공주 조종":
+                {
+                    // 조종 모드는 PrincessControlHandler에서 직접 실행되도록 변경
+                    if (PrincessControlHandler.Instance != null)
+                    {
+                        PrincessControlHandler.Instance.ToggleControlMode();
+                        Debug.Log("[Active Skill] 공주 조종 mode toggled.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[Active Skill] PrincessControlHandler instance not found.");
+                    }
+                    // 효과 지속 시간 동안 대기 (조종 지속 시간은 내부에서 관리)
+                    yield return new WaitForSeconds(effectDuration);
+                }
+                break;
+
+            // 기존 스킬 로직들은 그대로 유지
+            case "시야 확장":
                 if (mainCamera != null)
                 {
                     float originalSize = mainCamera.orthographicSize;
@@ -49,10 +69,8 @@ public class ActiveSkillHandler : MonoBehaviour
                     float expandTime = 0.3f;
                     float shrinkTime = 0.3f;
                     float holdTime = effectDuration - expandTime - shrinkTime;
-                    if (holdTime < 0) holdTime = 0f; // 효과 지속시간이 너무 짧은 경우
-
+                    if (holdTime < 0) holdTime = 0f;
                     float t = 0f;
-                    // 0.5초간 확장
                     while (t < expandTime)
                     {
                         t += Time.deltaTime;
@@ -60,12 +78,8 @@ public class ActiveSkillHandler : MonoBehaviour
                         yield return null;
                     }
                     mainCamera.orthographicSize = expandedSize;
-
-                    // holdTime 동안 확장 상태 유지
                     yield return new WaitForSeconds(holdTime);
-
                     t = 0f;
-                    // 마지막 0.5초간 원래 크기로 축소
                     while (t < shrinkTime)
                     {
                         t += Time.deltaTime;
@@ -76,21 +90,20 @@ public class ActiveSkillHandler : MonoBehaviour
                 }
                 break;
 
-
-                case "공주 보호막": 
-                    if (princess != null)
+            case "공주 보호막":
+                if (princess != null)
+                {
+                    Princess princessScript = princess.GetComponent<Princess>();
+                    if (princessScript != null)
                     {
-                        Princess princessScript = princess.GetComponent<Princess>();
-                        if (princessScript != null)
-                        {
-                            bool maxLevel = (level == skill.maxLevel);
-                            princessScript.EnableShield(effectDuration, maxLevel);
-                        }
+                        bool maxLevel = (level >= skill.maxLevel);
+                        Debug.Log($"[ActiveSkillHandler] 공주 보호막 호출: level = {level}, skill.maxLevel = {skill.maxLevel}, maxLevel = {maxLevel}");
+                        princessScript.EnableShield(effectDuration, maxLevel);
                     }
-                    break;
+                }
+                break;
 
-
-            case "어그로": // 어그로 끌기
+            case "어그로":
                 Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, 10f);
                 foreach (var enemy in nearbyEnemies)
                 {
@@ -103,7 +116,27 @@ public class ActiveSkillHandler : MonoBehaviour
                 yield return new WaitForSeconds(effectDuration);
                 break;
 
-            case "반격 시스템": // 반격 기능
+            case "체력 되감기":
+                float energyCost = 20f;
+                TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
+                if (timeStopController != null && timeStopController.currentTimeGauge >= energyCost)
+                {
+                    timeStopController.currentTimeGauge -= energyCost;
+                    PlayerOver maid = FindObjectOfType<PlayerOver>();
+                    if (maid != null)
+                    {
+                        maid.RestoreHealth(1);
+                        Debug.Log("[Active Skill] 메이드 체력 되감기 activated: 체력 +1");
+                    }
+                }
+                else
+                {
+                    Debug.Log("시간 에너지가 부족합니다. 메이드 체력 회복 실패");
+                }
+                yield return new WaitForSeconds(effectDuration);
+                break;
+
+            case "반격 시스템":
                 TimeStopController timeStop = FindObjectOfType<TimeStopController>();
                 if (timeStop != null && timeStop.IsTimeStopped)
                 {
@@ -114,7 +147,7 @@ public class ActiveSkillHandler : MonoBehaviour
                         ExplosiveEnemy enemyAI = enemy.GetComponent<ExplosiveEnemy>();
                         if (enemyAI != null)
                         {
-                            enemyAI.TakeDamage(); // 반격 피해 적용
+                            enemyAI.TakeDamage();
                         }
                     }
                 }

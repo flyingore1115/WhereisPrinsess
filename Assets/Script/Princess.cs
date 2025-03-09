@@ -18,8 +18,16 @@ public class Princess : MonoBehaviour, ITimeAffectable
     private bool isTimeStopped = false; // 시간 정지 상태
 
     private bool isShieldActive = false;
-    private int extraLives = 0; // 여벌 목숨
-    // shieldActive 변수는 사용하지 않음
+    // extraLives를 static 변수로 관리하여 씬 재시작 후에도 유지
+    public static int persistentExtraLives = 0;
+    public int extraLives = 0; // 여벌 목숨
+
+    // 무적 상태
+    private bool isInvincible = false;
+    public float invincibilityDuration = 2f; // 무적 타임 지속 시간
+
+    [HideInInspector]
+    public bool isControlled = false; //공주 조종당하는지
 
     // 흑백 효과 관련
     private Color originalColor;
@@ -33,12 +41,18 @@ public class Princess : MonoBehaviour, ITimeAffectable
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         originalColor = spriteRenderer.color;
+
+        // 기존 persistentExtraLives 값 적용
+        extraLives = persistentExtraLives;
     }
 
     void FixedUpdate()
     {
         if (isTimeStopped) return;
         isGrounded = CheckGrounded();
+
+        // 공주 조종 모드일 때는, 외부(PrincessControlHandler)에서 이동 처리하므로 기본 이동 실행하지 않음.
+        if (isControlled) return;
 
         if (!isGameOver && isGrounded)
         {
@@ -58,12 +72,35 @@ public class Princess : MonoBehaviour, ITimeAffectable
             return;
         }
 
+        TimeStopController tsc = FindObjectOfType<TimeStopController>();
+        if (tsc != null && tsc.IsTimeStopped)
+        {
+            return;
+        }
+
         if (other.CompareTag("Enemy"))
         {
+            ExplosiveEnemy explosive = other.GetComponent<ExplosiveEnemy>();
+            if (explosive != null && !explosive.IsActivated)
+            {
+                Debug.Log("Explosive enemy not activated. Collision with Princess ignored.");
+                return;
+            }
+
+            // 만약 이미 무적 상태라면 데미지 무시
+            if (isInvincible)
+            {
+                Debug.Log("Princess is invincible, damage ignored.");
+                return;
+            }
+
+            // 여벌 목숨이 있으면 소비하고 무적 타임 부여
             if (extraLives > 0)
             {
-                extraLives--; // 여벌 목숨 사용
+                extraLives--;
+                persistentExtraLives = extraLives; // static 변수 갱신
                 Debug.Log("Princess survived using extra life!");
+                StartCoroutine(InvincibilityCoroutine());
                 return;
             }
             Debug.Log("Princess was defeated!");
@@ -73,10 +110,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void GameOver()
     {
-        // 죽는 순간 게임 흐름이 계속되지 않도록 즉시 정지
         Time.timeScale = 0f;
 
-        // 되감기 포인트가 있는 경우 되감기 실행, 없으면 기존 게임오버
         if (TimePointManager.Instance != null && TimePointManager.Instance.HasCheckpoint())
         {
             StartCoroutine(DelayedRewind());
@@ -89,19 +124,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     private IEnumerator DelayedRewind()
     {
-        // “죽는 순간” 즉시 게임 정지했으므로, 시간이 흐르지 않음 => WaitForSecondsRealtime로 대기
-        yield return new WaitForSecondsRealtime(0.2f); // 약간의 딜레이 후
-
-        // 되감기 시작 전, 혹시 움직이는 것을 막기 위해 공주 / 플레이어 속도를 0으로
+        yield return new WaitForSecondsRealtime(0.2f);
         rb.velocity = Vector2.zero;
-
-        // “되감기” 실제 실행
-        Time.timeScale = 1f; // 되감기 코루틴은 real-time으로 동작(= unscaled?),
-                            // 여기서는 Time.timeScale=1로 잠깐 돌린 후
+        Time.timeScale = 1f;
         TimePointManager.Instance.RewindToCheckpoint();
     }
 
-    // 체크포인트가 없을 경우 기존 게임오버 로직 실행
     private void TriggerGameOverSequence()
     {
         isGameOver = true;
@@ -129,32 +157,34 @@ public class Princess : MonoBehaviour, ITimeAffectable
         return false;
     }
 
-    // 보호막 활성화: 일정 시간 동안 보호막 효과 적용 (색상 변경 + 여벌 목숨 부여 가능)
+    // 보호막 활성화: 일정 시간 동안 보호막 효과 적용 (색상 변경)
     public void EnableShield(float duration, bool maxLevel)
     {
-        if (isShieldActive) return;
+        Debug.Log($"[Princess] EnableShield called. isShieldActive={isShieldActive}, maxLevel={maxLevel}");
+        // 여기서는 shield 사용과 여벌 목숨 추가를 분리합니다.
+        if (isShieldActive)
+        {
+            return;
+        }
+
         isShieldActive = true;
         spriteRenderer.color = Color.cyan;
 
-        if (maxLevel)
-        {
-            extraLives++;
-            Debug.Log("MAX Level Shield: Extra life granted!");
-        }
+        // 여벌 목숨 추가는 스킬 업그레이드 시 GameManager나 SkillManager에서 처리하므로 여기서는 추가하지 않음.
+
         StartCoroutine(DisableShieldAfterTime(duration));
     }
 
     private IEnumerator DisableShieldAfterTime(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        yield return new WaitForSecondsRealtime(duration);
         isShieldActive = false;
         spriteRenderer.color = originalColor;
+        Debug.Log("[Princess] Shield disabled.");
     }
 
-    // 데미지 처리 함수: 보호막 활성화 중이면 데미지 무시
     public void TakeDamage(int damage)
     {
-        // shieldActive는 사용하지 않고 isShieldActive로 판단
         if (isShieldActive)
         {
             Debug.Log("Shield absorbed damage!");
@@ -163,7 +193,16 @@ public class Princess : MonoBehaviour, ITimeAffectable
         GameOver();
     }
 
-    // 시간 정지 관련
+    // 무적 타임 코루틴: 일정 시간 동안 무적 상태로 전환
+    private IEnumerator InvincibilityCoroutine()
+    {
+        isInvincible = true;
+        Debug.Log("Princess is now invincible.");
+        yield return new WaitForSecondsRealtime(invincibilityDuration);
+        isInvincible = false;
+        Debug.Log("Princess invincibility ended.");
+    }
+
     public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
@@ -193,5 +232,13 @@ public class Princess : MonoBehaviour, ITimeAffectable
     {
         if (this == null || spriteRenderer == null) return;
         spriteRenderer.material = originalMaterial;
+    }
+
+    // 추가: 여벌 목숨을 외부에서 바로 추가할 수 있는 메서드
+    public void AddExtraLife()
+    {
+        extraLives++;
+        persistentExtraLives = extraLives; // static 업데이트
+        Debug.Log("MAX Level Shield: Extra life granted!");
     }
 }

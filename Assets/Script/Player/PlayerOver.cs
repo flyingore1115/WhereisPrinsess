@@ -1,74 +1,131 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerOver : MonoBehaviour
 {
-    public int maxHealth = 3; // 최대 체력
+    public int maxHealth = 3;
     private int currentHealth;
-    public Camera mainCamera; // 메인 카메라
-    public Transform princess; // 공주의 Transform
-    public float cameraMoveSpeed = 5f; // 카메라 이동 속도
+    public HeartUI heartUI;
 
-    private bool isDisabled = false; // 행동 불능 상태
+    // 반드시 인스펙터에 할당: 공주 Transform, 플레이어 Transform(자신)
+    public Transform princess;
+    public Transform playerTransform;
+
+    private bool isDisabled = false;
+    public bool IsDisabled { get { return isDisabled; } }
+
     private Rigidbody2D rb;
     private Animator animator;
+    private Player player;
+    private float originalGravityScale;
 
     void Start()
     {
         currentHealth = maxHealth;
+        if (heartUI != null)
+            heartUI.UpdateHearts(currentHealth, maxHealth);
+
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        player = GetComponent<Player>();
+        originalGravityScale = rb.gravityScale;
     }
-
-    public void TakeDamage()
+    
+    public void RestoreHealth(int amount)
     {
-        if (isDisabled) return;
+        currentHealth = maxHealth;
+        Debug.Log($"[PlayerOver] 체력 복원: {currentHealth}/{maxHealth}");
+        if (heartUI != null)
+            heartUI.UpdateHearts(currentHealth, maxHealth);
+    }
+    
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        if (heartUI != null)
+            heartUI.UpdateHearts(currentHealth, maxHealth);
 
-        currentHealth--;
-        Debug.Log($"Player Health: {currentHealth}");
-        StatusTextManager.Instance.ShowMessage($"메이드의 남은 체력: {currentHealth}");
-
-
-        // 체력이 0 이하가 되면 행동 불능
         if (currentHealth <= 0)
         {
             DisablePlayer();
         }
     }
-
-    void OnTriggerEnter2D(Collider2D other)
+    
+    public void DisablePlayer()
     {
-        if (other.CompareTag("fall")) // 구멍과 충돌
-        {
-            DisablePlayer();
-        }
-    }
-
-    private void DisablePlayer()
-    {
-        if (isDisabled) return; // 이미 행동 불능 상태라면 실행하지 않음
-
+        if (isDisabled) return;
         isDisabled = true;
         StatusTextManager.Instance.ShowMessage("메이드가 행동불능이 되었습니다!");
 
-        // 이동 및 조작 중지
-        rb.velocity = Vector2.zero; // 움직임 정지
-        rb.gravityScale = 0; // 중력 해제
-        GetComponent<Player>().enabled = false; // 이동 및 공격 스크립트 비활성화
+        rb.velocity = Vector2.zero;
+        rb.gravityScale = 0;
 
-        // 카메라를 공주에게 이동
-        StartCoroutine(MoveCameraToPrincess());
-    }
-
-    private System.Collections.IEnumerator MoveCameraToPrincess()
-    {
-        Vector3 targetPosition = princess.position + new Vector3(0, 0, -10);
-
-        while (Vector3.Distance(mainCamera.transform.position, targetPosition) > 0.1f)
+        if (player != null)
         {
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, cameraMoveSpeed * Time.unscaledDeltaTime);
-            yield return null;
+            player.ignoreInput = true;
+            Debug.Log("[PlayerOver] Player input ignored.");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerOver] Player script not found.");
         }
 
-        Debug.Log("Camera moved to Princess.");
+        // 카메라 타겟을 공주로 전환
+        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        if (cf != null)
+        {
+            if (princess != null)
+            {
+                cf.SetTarget(princess.gameObject);
+                Debug.Log("[PlayerOver] Camera target set to princess.");
+            }
+            else
+            {
+                Debug.LogWarning("[PlayerOver] Princess reference not assigned.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerOver] CameraFollow not found.");
+        }
+    }
+    
+    public void OnRewindComplete(Vector2 restoredPosition)
+    {
+        transform.position = restoredPosition;
+        RestoreHealth(0);
+        Debug.Log("[PlayerOver] OnRewindComplete: Player restored.");
+
+        rb.gravityScale = originalGravityScale;
+        Debug.Log($"[PlayerOver] GravityScale restored to {originalGravityScale}.");
+
+        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        if (cf != null)
+        {
+            cf.SetTarget(gameObject);
+            Debug.Log("[PlayerOver] Camera target reset to player.");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerOver] CameraFollow not found on rewind complete.");
+        }
+    }
+    
+    public void ResumeAfterRewind()
+    {
+        if (player != null)
+        {
+            player.ignoreInput = false;
+            Debug.Log("[PlayerOver] Player input re-enabled.");
+        }
+        // 공주 재작동: 공주 조종 플래그 해제
+        Princess princessScript = princess.GetComponent<Princess>();
+        if (princessScript != null)
+        {
+            princessScript.isControlled = false;
+            Debug.Log("[PlayerOver] Princess control flag set to false.");
+        }
+        isDisabled = false;
     }
 }

@@ -29,23 +29,6 @@ public class SkillManager : MonoBehaviour
         // 추가 초기화가 필요한 경우 Start()에서 처리
     }
 
-    void Update()
-    {
-        // 디버깅용 입력 처리 (UI에서 별도로 선택 시 이 부분은 사용하지 않아도 됨)
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            // 예시: UI와 연동 시 삭제 가능
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            // 예시: UI와 연동 시 삭제 가능
-        }
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            // 예시: UI와 연동 시 삭제 가능
-        }
-    }
-
     void UpdateSkillSelection()
     {
         // 디버그 로그: 현재 선택한 스킬(예: 0번 스킬)을 출력 (UI와 연동 시 해당 값은 UI에서 관리)
@@ -65,17 +48,29 @@ public class SkillManager : MonoBehaviour
             acquiredSkills[skill]++;
             Debug.Log($"Skill Upgraded: {skill.skillName} (Level {acquiredSkills[skill]})");
 
-            // 🔹 패시브 스킬일 경우, 특정 패시브만 다시 적용하도록 변경
+            // 만약 공주 보호막 스킬이고, 이제 maxLevel에 도달했다면 여벌 목숨 추가
+            if (skill.skillName == "공주 보호막" && acquiredSkills[skill] >= skill.maxLevel)
+            {
+                // Princess 인스턴스 찾기
+                Princess princess = FindObjectOfType<Princess>();
+                if (princess != null)
+                {
+                    princess.AddExtraLife();
+                }
+            }
+
+            // 패시브 스킬일 경우, 특정 패시브만 다시 적용
             if (skill.skillType == SkillData.SkillType.Passive)
             {
-                skillEffectHandler.ApplyPassiveSkill(skill); // 🔹 특정 패시브만 업데이트
+                skillEffectHandler.ApplyPassiveSkill(skill);
             }
         }
         else
         {
-            Debug.Log($"Skill {skill.skillName} is already at max level.");
+            Debug.Log($"{skill.skillName} 이미 만렙임");
         }
     }
+
 
     public bool HasSkill(SkillData skill)
     {

@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b4fe65130ce4f04b92664c570f879eb, type: 3}
-  m_Name: "\uCCB4\uB825 \uD68C\uBCF5"
+  m_Name: "\uACF5\uC8FC \uC870\uC885"
   m_EditorClassIdentifier: 
-  skillName: "\uCCB4\uB825 \uD68C\uBCF5"
-  description: 
-  skillIcon: {fileID: 21300000, guid: 47ea2abda7aa0d0459fb595b83b499a7, type: 3}
+  skillName: "\uACF5\uC8FC \uC870\uC885"
+  description: "\uACF5\uC8FC\uB2D8\uC744 \uC870\uC885\uD574\uBCF4\uC138\uC694!"
+  skillIcon: {fileID: 21300000, guid: 751cb7f0fc3000b468e9525551669796, type: 3}
   skillType: 0
   maxLevel: 6
   levelEffects:

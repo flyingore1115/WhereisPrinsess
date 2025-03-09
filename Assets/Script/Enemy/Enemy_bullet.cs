@@ -18,7 +18,7 @@ public class Enemy_bullet : MonoBehaviour
             if (player != null)
             {
                 Debug.Log("Player found. Dealing damage."); // 데미지 처리 확인
-                player.TakeDamage();
+                player.TakeDamage(1);
             }
 
             Destroy(gameObject); // 총알 제거
