@@ -35,7 +35,6 @@ public class Player : MonoBehaviour
             // 강제로 플레이어의 이동과 애니메이션을 Idle 상태로 만듭니다.
             rb.velocity = Vector2.zero;
             animator.SetBool("isRun", false);
-            Debug.Log("Player forced to idle due to princess control mode.");
             return;
         }
 

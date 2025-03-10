@@ -11,11 +11,9 @@ public class CameraFollow : MonoBehaviour
     {
         if (defaultTarget == null)
         {
-            Debug.LogError("Default target is not assigned in CameraFollow.");
             return;
         }
         currentTarget = defaultTarget;
-        Debug.Log("[CameraFollow] Start: currentTarget set to " + defaultTarget.name);
     }
 
     void LateUpdate () 
@@ -26,7 +24,6 @@ public class CameraFollow : MonoBehaviour
             Debug.LogWarning("[CameraFollow] currentTarget was null, resetting to defaultTarget: " + defaultTarget.name);
         }
         // 로그로 현재 타겟 확인
-        Debug.Log("[CameraFollow] Following: " + currentTarget.name);
         transform.position = new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z);
     }
 
@@ -35,7 +32,6 @@ public class CameraFollow : MonoBehaviour
         if (newTarget != null)
         {
             currentTarget = newTarget;
-            Debug.Log("[CameraFollow] SetTarget: currentTarget set to " + newTarget.name);
         }
         else
         {
