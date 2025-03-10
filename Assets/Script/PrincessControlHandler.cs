@@ -43,14 +43,6 @@ public class PrincessControlHandler : MonoBehaviour
         if (Camera.main != null)
         {
             cameraFollow = Camera.main.GetComponent<CameraFollow>();
-            if (cameraFollow != null)
-                Debug.Log("[PrincessControlHandler] CameraFollow found.");
-            else
-                Debug.LogWarning("[PrincessControlHandler] CameraFollow not found on main camera.");
-        }
-        else
-        {
-            Debug.LogWarning("[PrincessControlHandler] Main camera not found!");
         }
 
         if (princessTransform != null)

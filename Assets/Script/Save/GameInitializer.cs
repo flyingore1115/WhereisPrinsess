@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using MyGame;
 
 public class GameInitializer : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class GameInitializer : MonoBehaviour
         if (GameManager.LoadedCheckpoint != null)
         {
             StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(GameManager.LoadedCheckpoint, false));
-            GameManager.LoadedCheckpoint = null; // 중복 적용 방지
+            GameManager.LoadedCheckpoint = null;
         }
     }
 }

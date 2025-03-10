@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using MyGame;
 
 public class GameManager : MonoBehaviour
 {

@@ -48,20 +48,25 @@ public class P_Attack : MonoBehaviour
             StartCoroutine(cameraShake.Shake(0.05f, 0.2f));
         }
 
+        // 이동하여 적에게 접근
         while (Vector2.Distance(transform.position, enemy.transform.position) > 0.1f)
         {
             transform.position = Vector2.MoveTowards(transform.position, enemy.transform.position, attackMoveSpeed * Time.deltaTime);
             yield return null;
         }
+        
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX("PlayerAttackSound");
         }
-
+        
+        // 적 오브젝트를 제거하기 전에 위치를 저장합니다.
+        Vector3 enemyPosition = enemy.transform.position;
         Destroy(enemy);
         FindObjectOfType<TimeStopController>().AddTimeGauge(5f);
 
-        Vector2 escapeDirection = (transform.position - enemy.transform.position).normalized;
+        // 저장된 적 위치를 이용하여 탈출 방향 계산
+        Vector2 escapeDirection = (transform.position - enemyPosition).normalized;
         transform.position += (Vector3)escapeDirection * 0.5f;
 
         playerCollider.enabled = true;

@@ -1,13 +1,14 @@
 using UnityEngine;
 using System.Collections;
+using MyGame;  // MyGame 네임스페이스에 정의된 데이터 클래스(TimePointData 등) 사용
 
 public class Princess : MonoBehaviour, ITimeAffectable
 {
-    public float moveSpeed = 3f; // 공주 이동 속도
-    public Transform groundCheck; // 발 아래 확인 위치
+    public float moveSpeed = 3f;              // 공주 이동 속도
+    public Transform groundCheck;             // 발 아래 확인 위치
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f); // 박스 크기
-    public LayerMask groundLayer; // 땅 레이어
-    public float fallThreshold = 0.2f; // 구멍에서 떨어지기 전 허용 거리
+    public LayerMask groundLayer;             // 땅 레이어
+    public float fallThreshold = 0.2f;        // 구멍에서 떨어지기 전 허용 거리
 
     private Rigidbody2D rb;
     private Animator animator;
@@ -15,19 +16,19 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     private bool isGrounded = false;
     private bool isGameOver = false;
-    private bool isTimeStopped = false; // 시간 정지 상태
+    private bool isTimeStopped = false;       // 시간 정지 상태
 
     private bool isShieldActive = false;
-    // extraLives를 static 변수로 관리하여 씬 재시작 후에도 유지
+    // extraLives는 static 변수로 관리하여 씬 재시작 후에도 유지
     public static int persistentExtraLives = 0;
-    public int extraLives = 0; // 여벌 목숨
+    public int extraLives = 0;                // 여벌 목숨
 
     // 무적 상태
     private bool isInvincible = false;
-    public float invincibilityDuration = 2f; // 무적 타임 지속 시간
+    public float invincibilityDuration = 2f;  // 무적 타임 지속 시간
 
     [HideInInspector]
-    public bool isControlled = false; //공주 조종당하는지
+    public bool isControlled = false;         // 공주 조종 여부
 
     // 흑백 효과 관련
     private Color originalColor;
@@ -51,9 +52,14 @@ public class Princess : MonoBehaviour, ITimeAffectable
         if (isTimeStopped) return;
         isGrounded = CheckGrounded();
 
-        // 공주 조종 모드일 때는, 외부(PrincessControlHandler)에서 이동 처리하므로 기본 이동 실행하지 않음.
-        if (isControlled) return;
+        // 조종 모드일 경우, 외부(PrincessControlHandler)에서 이동 처리하므로 기본 이동하지 않음.
+        if (isControlled)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
 
+        // 기본적으로 공주는 우측으로 이동 (땅에 닿아 있을 때)
         if (!isGameOver && isGrounded)
         {
             rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
@@ -66,61 +72,105 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        // 보호막 활성 상태면 데미지 무시
         if (isShieldActive)
         {
             Debug.Log("Shield absorbed damage! Princess is safe.");
             return;
         }
 
+        // 시간 정지 중이면 충돌 무시
         TimeStopController tsc = FindObjectOfType<TimeStopController>();
         if (tsc != null && tsc.IsTimeStopped)
         {
             return;
         }
 
+        // "Enemy" 태그와 충돌 시 처리
         if (other.CompareTag("Enemy"))
         {
             ExplosiveEnemy explosive = other.GetComponent<ExplosiveEnemy>();
             if (explosive != null && !explosive.IsActivated)
             {
-                Debug.Log("Explosive enemy not activated. Collision with Princess ignored.");
+                Debug.Log("적 개체 활동 안해서 무시");
                 return;
             }
 
-            // 만약 이미 무적 상태라면 데미지 무시
+            // 이미 무적 상태면 데미지 무시
             if (isInvincible)
             {
-                Debug.Log("Princess is invincible, damage ignored.");
+                Debug.Log("무적상태에서 맞음!");
                 return;
             }
 
-            // 여벌 목숨이 있으면 소비하고 무적 타임 부여
-            if (extraLives > 0)
+            // 여기서 중요한 점: 플레이어가 행동불능 상태라면,
+            // GameOver() 대신 즉시 부활 로직(ImmediateRevive)을 실행하도록 합니다.
+            PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+            if (playerOver != null && playerOver.IsDisabled)
             {
-                extraLives--;
-                persistentExtraLives = extraLives; // static 변수 갱신
-                Debug.Log("Princess survived using extra life!");
-                StartCoroutine(InvincibilityCoroutine());
+                Debug.Log("플레이어가 행동불능 상태입니다. 체크포인트 부활 로직 실행.");
+                // 체크포인트에 도달한 상태이므로, 즉시 부활 처리 (공주가 멈춘 상태에서)
+                TimePointManager.Instance.ImmediateRevive();
                 return;
             }
-            Debug.Log("Princess was defeated!");
-            GameOver();
+            else
+            {
+                // 행동불능 상태가 아니라면 일반 GameOver 처리
+                Debug.Log("일반 게임오버");
+                GameOver();
+            }
         }
     }
 
     public void GameOver()
     {
-        Time.timeScale = 0f;
+        // (선택) 죽자마자 약간의 연출을 위해 시간정지를 잠깐 줄 수도 있지만,
+        // Katana Zero식 역재생 자체도 시간이 걸릴 것이므로, 여기서는 즉시 0f로 만들지 않는 방법 예시:
+        // Time.timeScale = 0f; // 제거 혹은 주석
 
         if (TimePointManager.Instance != null && TimePointManager.Instance.HasCheckpoint())
         {
-            StartCoroutine(DelayedRewind());
+            // Katana Zero 스타일 되감기 + 체크포인트 복원을 한 번에 처리하는 코루틴
+            StartCoroutine(CoRewindThenCheckpoint());
         }
         else
         {
+            // 체크포인트가 없다면 기존처럼 바로 게임오버 처리
             TriggerGameOverSequence();
         }
     }
+
+    private IEnumerator CoRewindThenCheckpoint() // 함수명 변경
+    {
+        Time.timeScale = 1f;
+
+        // RewindManager가 존재하는지 확인
+        if (RewindManager.Instance == null)
+        {
+            Debug.LogError("[Princess] RewindManager.Instance is NULL! 되감기를 실행할 수 없습니다.");
+            yield break;
+        }
+
+        // RewindManager 내부 객체도 확인
+        if (RewindManager.Instance.player == null || RewindManager.Instance.princess == null)
+        {
+            Debug.LogError("[Princess] RewindManager 내부의 player 또는 princess가 NULL 상태입니다.");
+            yield break;
+        }
+
+        // 1) 되감기 실행
+        RewindManager.Instance.StartRewind();
+
+        // 2) 되감기가 끝날 때까지 대기
+        while (RewindManager.Instance.IsRewinding)
+        {
+            yield return null;
+        }
+
+        // 3) 체크포인트를 통해 적/위치 재설정
+        TimePointManager.Instance.RewindToCheckpoint();
+    }
+
 
     private IEnumerator DelayedRewind()
     {
@@ -161,17 +211,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public void EnableShield(float duration, bool maxLevel)
     {
         Debug.Log($"[Princess] EnableShield called. isShieldActive={isShieldActive}, maxLevel={maxLevel}");
-        // 여기서는 shield 사용과 여벌 목숨 추가를 분리합니다.
-        if (isShieldActive)
-        {
-            return;
-        }
+        if (isShieldActive) return;
 
         isShieldActive = true;
         spriteRenderer.color = Color.cyan;
 
-        // 여벌 목숨 추가는 스킬 업그레이드 시 GameManager나 SkillManager에서 처리하므로 여기서는 추가하지 않음.
-
+        // 여벌 목숨 추가는 스킬 업그레이드 시 처리하므로 여기서는 추가하지 않음.
         StartCoroutine(DisableShieldAfterTime(duration));
     }
 

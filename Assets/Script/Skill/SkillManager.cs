@@ -75,7 +75,7 @@ public class SkillManager : MonoBehaviour
     public bool HasSkill(SkillData skill)
     {
         bool hasSkill = acquiredSkills.ContainsKey(skill);
-        Debug.Log($"HasSkill Check - {skill.skillName}: {hasSkill}");
+        //Debug.Log($"HasSkill Check - {skill.skillName}: {hasSkill}");
         return hasSkill;
     }
 
@@ -89,7 +89,7 @@ public class SkillManager : MonoBehaviour
         if (!acquiredSkills.ContainsKey(skill))
         {
             acquiredSkills[skill] = 1;
-            Debug.Log($"Skill Acquired: {skill.skillName} (Level 1)");
+            //Debug.Log($"Skill Acquired: {skill.skillName} (Level 1)");
         }
     }
     public SkillData GetSkillByName(string skillName)

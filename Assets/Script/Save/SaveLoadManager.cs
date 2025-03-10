@@ -1,22 +1,24 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
+using MyGame;
 
 public static class SaveLoadManager
 {
-    private static string filePath = Path.Combine(Application.persistentDataPath, "checkpoint.json");
+    private static string filePath = System.IO.Path.Combine(Application.persistentDataPath, "checkpoint.json");
 
     public static void PointCheck(TimePointData data)
     {
         string json = JsonUtility.ToJson(data);
-        File.WriteAllText(filePath, json);
+        System.IO.File.WriteAllText(filePath, json);
         Debug.Log($"[SaveLoadManager] 체크포인트 저장: {filePath}");
     }
 
     public static bool LoadCheckpoint(out TimePointData data)
     {
-        if (File.Exists(filePath))
+        if (System.IO.File.Exists(filePath))
         {
-            string json = File.ReadAllText(filePath);
+            string json = System.IO.File.ReadAllText(filePath);
             data = JsonUtility.FromJson<TimePointData>(json);
             Debug.Log("[SaveLoadManager] 체크포인트 불러오기 성공");
             return true;
@@ -28,9 +30,9 @@ public static class SaveLoadManager
 
     public static void DeleteCheckpoint()
     {
-        if (File.Exists(filePath))
+        if (System.IO.File.Exists(filePath))
         {
-            File.Delete(filePath);
+            System.IO.File.Delete(filePath);
             Debug.Log("[SaveLoadManager] 체크포인트 삭제");
         }
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using MyGame;
 
 public class TimePoint : MonoBehaviour
 {
@@ -15,8 +16,7 @@ public class TimePoint : MonoBehaviour
             if (playerOver.IsDisabled)
             {
                 // 1) 공주를 멈추고, 플레이어를 공주 위치로 이동 & 체력 복원
-                TimePointManager.Instance.ImmediateReviveNoGameOver();
-
+                TimePointManager.Instance.ImmediateRevive();
                 // 2) (선택) 공주와 플레이어의 새 좌표를 체크포인트로 저장
                 //    만약 "위치 변환 후"에 새 좌표를 저장하고 싶다면:
                 Princess actualPrincess = FindObjectOfType<Princess>();

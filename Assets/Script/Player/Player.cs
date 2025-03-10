@@ -1,6 +1,7 @@
 using UnityEngine;
+using MyGame;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, ITimeAffectable
 {
     private Rigidbody2D rb;
     private Animator animator;
@@ -12,8 +13,15 @@ public class Player : MonoBehaviour
     public P_Attack attack;
     public P_Shooting shooting;
 
-    // 입력 무시 플래그: true일 경우 입력을 무시하고, 플레이어를 Idle 상태로 유지합니다.
+    // 입력 무시 플래그
     public bool ignoreInput = false;
+
+    // 흑백 효과를 위한 마테리얼 (Inspector에서 할당)
+    public Material grayscaleMaterial;
+    private Material originalMaterial;
+
+    // 되감기 모드일 때 흑백 효과 적용 여부 (시간정지 모드에서는 false)
+    public bool applyRewindGrayscale = false;
 
     void Start()
     {
@@ -25,20 +33,21 @@ public class Player : MonoBehaviour
 
         movement.Init(rb, animator, spriteRenderer, shooting.firePoint);
         attack.Init(rb, playerCollider, cameraShake);
+
+        if (spriteRenderer != null)
+        {
+            originalMaterial = spriteRenderer.sharedMaterial;
+        }
     }
 
     void Update()
     {
-        // 조종 모드 활성 시, ignoreInput이 true로 설정되어 있다면
         if (ignoreInput)
         {
-            // 강제로 플레이어의 이동과 애니메이션을 Idle 상태로 만듭니다.
             rb.velocity = Vector2.zero;
             animator.SetBool("isRun", false);
             return;
         }
-
-        // 평소에는 정상적으로 입력 처리
         movement.HandleMovement(attack.IsAttacking);
         attack.HandleAttack();
         shooting.HandleShooting();
@@ -54,6 +63,31 @@ public class Player : MonoBehaviour
         if (shooting != null)
         {
             shooting.currentAmmo = gameState.playerBulletCount;
+        }
+    }
+
+    // ITimeAffectable 구현
+    // 되감기 모드일 때만 applyRewindGrayscale가 true이면 흑백 효과 적용
+    public void StopTime()
+    {
+        if (applyRewindGrayscale && spriteRenderer != null && grayscaleMaterial != null)
+        {
+            // 새로운 인스턴스로 생성해서 재질 문제 방지
+            spriteRenderer.material = new Material(grayscaleMaterial);
+            spriteRenderer.color = Color.white;
+        }
+    }
+
+    public void ResumeTime()
+    {
+        RestoreColor();
+    }
+
+    public void RestoreColor()
+    {
+        if (spriteRenderer != null && originalMaterial != null)
+        {
+            spriteRenderer.material = originalMaterial;
         }
     }
 }
