@@ -96,13 +96,11 @@ public class RewindManager : MonoBehaviour
     {
         if (!isRewinding)
         {
-            // ✅ 체크포인트 이후의 데이터만 남기도록 필터링 (체크포인트 포함)
             if (TimePointManager.Instance.HasCheckpoint())
             {
                 Vector3 checkpointPos = TimePointManager.Instance.GetLastCheckpointData().playerPosition;
                 snapshots = snapshots.FindAll(snap => snap.playerPosition.x >= checkpointPos.x);
             }
-
             StartCoroutine(RewindCoroutine());
         }
     }
@@ -144,16 +142,13 @@ public class RewindManager : MonoBehaviour
             if (pRb != null) pRb.velocity = Vector2.Lerp(snap1.playerVelocity, snap2.playerVelocity, 0.5f);
             if (cRb != null) cRb.velocity = Vector2.Lerp(snap1.princessVelocity, snap2.princessVelocity, 0.5f);
 
-            // ✅ 애니메이션 역재생 (speed = -1 대신, 직접 normalizedTime 조정)
             if (playerAnimator != null)
             {
-                AnimatorStateInfo stateInfo = playerAnimator.GetCurrentAnimatorStateInfo(0);
                 playerAnimator.Play(int.Parse(snap1.playerAnimationState), 0, snap1.playerNormalizedTime);
             }
 
             if (princessAnimator != null)
             {
-                AnimatorStateInfo stateInfo = princessAnimator.GetCurrentAnimatorStateInfo(0);
                 princessAnimator.Play(int.Parse(snap1.princessAnimationState), 0, snap1.princessNormalizedTime);
             }
 

@@ -124,21 +124,19 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void GameOver()
     {
-        // (선택) 죽자마자 약간의 연출을 위해 시간정지를 잠깐 줄 수도 있지만,
-        // Katana Zero식 역재생 자체도 시간이 걸릴 것이므로, 여기서는 즉시 0f로 만들지 않는 방법 예시:
-        // Time.timeScale = 0f; // 제거 혹은 주석
-
-        if (TimePointManager.Instance != null && TimePointManager.Instance.HasCheckpoint())
+        // 기존에는 바로 TimePointManager.RewindToCheckpoint() 또는 ImmediateRevive()를 호출했을 수 있음.
+        // 이제 GameOverManager를 찾아서 게임오버 루틴을 실행하도록 수정합니다.
+        GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
+        if (gameOverManager != null)
         {
-            // Katana Zero 스타일 되감기 + 체크포인트 복원을 한 번에 처리하는 코루틴
-            StartCoroutine(CoRewindThenCheckpoint());
+            gameOverManager.TriggerGameOver();
         }
         else
         {
-            // 체크포인트가 없다면 기존처럼 바로 게임오버 처리
-            TriggerGameOverSequence();
+            Debug.LogError("GameOverManager를 찾을 수 없습니다!");
         }
     }
+
 
     private IEnumerator CoRewindThenCheckpoint() // 함수명 변경
     {
@@ -191,7 +189,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
         GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
         if (gameOverManager != null)
         {
-            StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
+            //StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
         }
     }
 
