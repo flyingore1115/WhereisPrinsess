@@ -16,7 +16,15 @@ public class PlayerOver : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private Player player;
+    // ★수정: 원래 중력을 Awake()에서 저장 (Inspector의 값 유지)
     private float originalGravityScale;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        // ★ Awake()에서 원래 gravityScale 값을 저장
+        originalGravityScale = rb.gravityScale;
+    }
 
     void Start()
     {
@@ -24,10 +32,9 @@ public class PlayerOver : MonoBehaviour
         if (heartUI != null)
             heartUI.UpdateHearts(currentHealth, maxHealth);
 
-        rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
-        originalGravityScale = rb.gravityScale;
+        // 원래 중력은 이미 Awake()에서 저장되었음
     }
     
     public void RestoreHealth(int amount)
@@ -60,7 +67,6 @@ public class PlayerOver : MonoBehaviour
             StatusTextManager.Instance.ShowMessage("메이드가 행동불능이 되었습니다!");
 
         rb.velocity = Vector2.zero;
-        rb.gravityScale = 0;
 
         if (player != null)
         {
@@ -87,6 +93,7 @@ public class PlayerOver : MonoBehaviour
         Debug.Log($"[PlayerOver] OnRewindComplete: 위치 => {restoredPosition}");
 
         RestoreHealth(0);
+        // ★ 복원 시, 원래 중력으로 복원
         rb.gravityScale = originalGravityScale;
 
         CameraFollow cf = FindObjectOfType<CameraFollow>();

@@ -36,7 +36,7 @@ public class P_Attack : MonoBehaviour
         }
     }
 
-    private IEnumerator MoveToEnemyAndAttack(GameObject enemy)
+    private IEnumerator MoveToEnemyAndAttack(GameObject enemyObj)
     {
         isAttacking = true;
         rb.gravityScale = 0;
@@ -48,10 +48,10 @@ public class P_Attack : MonoBehaviour
             StartCoroutine(cameraShake.Shake(0.05f, 0.2f));
         }
 
-        // 이동하여 적에게 접근
-        while (Vector2.Distance(transform.position, enemy.transform.position) > 0.1f)
+        // 플레이어가 적에게 접근
+        while (Vector2.Distance(transform.position, enemyObj.transform.position) > 0.1f)
         {
-            transform.position = Vector2.MoveTowards(transform.position, enemy.transform.position, attackMoveSpeed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(transform.position, enemyObj.transform.position, attackMoveSpeed * Time.deltaTime);
             yield return null;
         }
         
@@ -60,14 +60,16 @@ public class P_Attack : MonoBehaviour
             SoundManager.Instance.PlaySFX("PlayerAttackSound");
         }
         
-        // 적 오브젝트를 제거하기 전에 위치를 저장합니다.
-        Vector3 enemyPosition = enemy.transform.position;
-        Destroy(enemy);
-        FindObjectOfType<TimeStopController>().AddTimeGauge(5f);
-
-        // 저장된 적 위치를 이용하여 탈출 방향 계산
-        Vector2 escapeDirection = (transform.position - enemyPosition).normalized;
-        transform.position += (Vector3)escapeDirection * 0.5f;
+        // 기존 Destroy 대신 적의 TakeDamage() 호출
+        BaseEnemy enemyScript = enemyObj.GetComponent<BaseEnemy>();
+        if (enemyScript != null)
+        {
+            enemyScript.TakeDamage();
+        }
+        else
+        {
+            Debug.LogWarning($"[P_Attack] 공격 대상에 BaseEnemy 컴포넌트가 없습니다: {enemyObj.name}");
+        }
 
         playerCollider.enabled = true;
         rb.gravityScale = 3;

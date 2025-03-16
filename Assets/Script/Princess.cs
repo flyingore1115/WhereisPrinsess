@@ -103,19 +103,16 @@ public class Princess : MonoBehaviour, ITimeAffectable
                 return;
             }
 
-            // 여기서 중요한 점: 플레이어가 행동불능 상태라면,
-            // GameOver() 대신 즉시 부활 로직(ImmediateRevive)을 실행하도록 합니다.
             PlayerOver playerOver = FindObjectOfType<PlayerOver>();
             if (playerOver != null && playerOver.IsDisabled)
             {
-                Debug.Log("플레이어가 행동불능 상태입니다. 체크포인트 부활 로직 실행.");
-                // 체크포인트에 도달한 상태이므로, 즉시 부활 처리 (공주가 멈춘 상태에서)
-                TimePointManager.Instance.ImmediateRevive();
-                return;
+                // "플레이어가 행동불능 상태이지만, 공주가 적에게 맞음" => 게임오버
+                Debug.Log("플레이어 죽었고, 공주도 공격받음 => GameOver");
+                GameOver();
             }
             else
             {
-                // 행동불능 상태가 아니라면 일반 GameOver 처리
+                // 플레이어 살아있든 말든, 공주 맞으면 GameOver
                 Debug.Log("일반 게임오버");
                 GameOver();
             }
@@ -124,8 +121,6 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void GameOver()
     {
-        // 기존에는 바로 TimePointManager.RewindToCheckpoint() 또는 ImmediateRevive()를 호출했을 수 있음.
-        // 이제 GameOverManager를 찾아서 게임오버 루틴을 실행하도록 수정합니다.
         GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
         if (gameOverManager != null)
         {
@@ -138,7 +133,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
     }
 
 
-    private IEnumerator CoRewindThenCheckpoint() // 함수명 변경
+    private IEnumerator CoRewindThenCheckpoint()
     {
         Time.timeScale = 1f;
 
@@ -245,7 +240,6 @@ public class Princess : MonoBehaviour, ITimeAffectable
         isInvincible = false;
         Debug.Log("Princess invincibility ended.");
     }
-
     public void StopTime()
     {
         if (this == null || spriteRenderer == null) return;
@@ -258,6 +252,13 @@ public class Princess : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 0;
         }
+        // ★ Rigidbody 물리 중단
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true;
+        }
     }
 
     public void ResumeTime()
@@ -269,6 +270,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
             animator.speed = 1;
         }
         RestoreColor();
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+        }
     }
 
     public void RestoreColor()

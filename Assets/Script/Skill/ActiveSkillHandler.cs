@@ -137,19 +137,8 @@ public class ActiveSkillHandler : MonoBehaviour
                 break;
 
             case "반격 시스템":
-                TimeStopController timeStop = FindObjectOfType<TimeStopController>();
-                if (timeStop != null && timeStop.IsTimeStopped)
                 {
-                    Debug.Log("[Skill] Counterattack Activated!");
-                    Collider2D[] counterAttackEnemies = Physics2D.OverlapCircleAll(transform.position, 5f);
-                    foreach (var enemy in counterAttackEnemies)
-                    {
-                        ExplosiveEnemy enemyAI = enemy.GetComponent<ExplosiveEnemy>();
-                        if (enemyAI != null)
-                        {
-                            enemyAI.TakeDamage();
-                        }
-                    }
+                    //구현안함
                 }
                 break;
         }

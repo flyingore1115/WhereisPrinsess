@@ -6,13 +6,15 @@ public class P_Shooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
     public Transform firePoint;
+    public Transform player; // 플레이어 중심, FirePoint의 기준
+    public float firePointRadius = 1.0f; // 플레이어 중심에서 FirePoint까지의 거리
+
     public int currentAmmo = 6;
     public int maxAmmo = 6;
     public TMP_Text ammoText;
 
     public float reloadEnergyCost = 10f; // 재장전 시 소모량
 
-    // 총알 UI 관련 변수
     [Tooltip("총알 UI가 보여지는 시간 (초)")]
     public float bulletUIDisplayDuration = 0.5f;
     [Tooltip("총알 UI 오브젝트 (평소에는 비활성화)")]
@@ -22,16 +24,34 @@ public class P_Shooting : MonoBehaviour
 
     void Update()
     {
-        HandleShooting();
+        // FirePoint의 위치와 회전 업데이트
+        UpdateFirePointPosition();
 
+        // 재장전 입력 처리
         if (Input.GetKeyDown(KeyCode.R))
         {
             Reload();
         }
     }
 
-    public void HandleShooting()
+    /// <summary>
+    /// 플레이어 중심으로 마우스 방향에 따라 FirePoint 위치와 회전을 업데이트합니다.
+    /// </summary>
+    private void UpdateFirePointPosition()
     {
+        if (player == null || firePoint == null) return;
+
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // Z축은 0으로 고정
+        mousePosition.z = 0;
+        Vector2 direction = (mousePosition - player.position).normalized;
+        firePoint.position = player.position + (Vector3)direction * firePointRadius;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        firePoint.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    public void HandleShooting(){
         if (Input.GetMouseButtonDown(1))
         {
             ShootBullet();
@@ -43,24 +63,24 @@ public class P_Shooting : MonoBehaviour
         if (currentAmmo <= 0)
         {
             if (SoundManager.Instance != null)
-            {
                 SoundManager.Instance.PlaySFX("EmptyGunSound");
-            }
             return;
         }
 
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePosition.z = 0;
         Vector2 shootDirection = (mousePosition - firePoint.position).normalized;
 
         GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-        bulletScript.SetDirection(shootDirection);
+        if (bulletScript != null)
+        {
+            bulletScript.SetDirection(shootDirection);
+        }
 
-        // 총알 UI 활성화
         if (bulletUI != null)
         {
             bulletUI.SetActive(true);
-            // 기존 코루틴이 있다면 중지 후 새 코루틴 시작
             if (hideBulletUICoroutine != null)
             {
                 StopCoroutine(hideBulletUICoroutine);
@@ -69,9 +89,7 @@ public class P_Shooting : MonoBehaviour
         }
 
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlaySFX("PlayerGunSound");
-        }
 
         currentAmmo--;
         UpdateAmmoUI();
@@ -81,23 +99,7 @@ public class P_Shooting : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(bulletUIDisplayDuration);
         if (bulletUI != null)
-        {
             bulletUI.SetActive(false);
-        }
-    }
-
-    // 게임오버나 되감기 시 외부에서 호출할 수 있는 총알 UI 숨기기 함수
-    public void HideBulletUI()
-    {
-        if (hideBulletUICoroutine != null)
-        {
-            StopCoroutine(hideBulletUICoroutine);
-            hideBulletUICoroutine = null;
-        }
-        if (bulletUI != null)
-        {
-            bulletUI.SetActive(false);
-        }
     }
 
     private void Reload()
@@ -115,16 +117,12 @@ public class P_Shooting : MonoBehaviour
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlaySFX("RevolverSpin");
-        }
     }
 
     private void UpdateAmmoUI()
     {
         if (ammoText != null)
-        {
             ammoText.text = $"{currentAmmo} / {maxAmmo}";
-        }
     }
 }

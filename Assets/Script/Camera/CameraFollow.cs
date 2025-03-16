@@ -15,6 +15,9 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("카메라 이동 속도")]
     public float cameraMoveSpeed = 2f;
 
+    [Tooltip("스토리 모드 여부 (스토리에서는 부드럽게 이동)")]
+    public bool isStoryMode = false;
+
     void Start()
     {
         cam = GetComponent<Camera>();
@@ -33,8 +36,17 @@ public class CameraFollow : MonoBehaviour
             currentTarget = defaultTarget;
             Debug.LogWarning("[CameraFollow] currentTarget was null, resetting to defaultTarget: " + defaultTarget.name);
         }
-        // 부드럽게 이동
-        transform.position = Vector3.Lerp(transform.position, new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z), Time.deltaTime * cameraMoveSpeed);
+
+        if (isStoryMode)
+        {
+            // 스토리 모드에서는 부드럽게 이동
+            transform.position = Vector3.Lerp(transform.position, new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z), Time.deltaTime * cameraMoveSpeed);
+        }
+        else
+        {
+            // 인게임 모드에서는 즉각 이동 (이전 방식 유지)
+            transform.position = new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z);
+        }
     }
 
     public void SetTarget(GameObject newTarget)
@@ -56,5 +68,11 @@ public class CameraFollow : MonoBehaviour
         {
             cam.orthographicSize = newSize;
         }
+    }
+
+    // **스토리 모드 활성화/비활성화 함수 추가**
+    public void EnableStoryMode(bool enable)
+    {
+        isStoryMode = enable;
     }
 }

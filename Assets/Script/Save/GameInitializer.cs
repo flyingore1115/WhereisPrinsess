@@ -1,16 +1,17 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Collections;
-using MyGame;
 
 public class GameInitializer : MonoBehaviour
 {
     void Start()
     {
-        if (GameManager.LoadedCheckpoint != null)
+        if (TimePointManager.Instance.HasCheckpoint())
         {
-            StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(GameManager.LoadedCheckpoint, false));
-            GameManager.LoadedCheckpoint = null;
+            StartCoroutine(
+                TimePointManager.Instance.ApplyCheckpoint(
+                    TimePointManager.Instance.GetLastCheckpointData(),
+                    false // 체크포인트 적용 후 대기 입력 없이 바로 시작
+                )
+            );
         }
     }
 }

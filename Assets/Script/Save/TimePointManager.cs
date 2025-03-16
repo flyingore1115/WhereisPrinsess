@@ -1,285 +1,290 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;              // ★ LINQ 사용
+using MyGame;
 
-namespace MyGame
+public class TimePointManager : MonoBehaviour
 {
-    public class TimePointManager : MonoBehaviour
+    private static TimePointManager instance;
+    public static TimePointManager Instance
     {
-        private static TimePointManager instance;
-        public static TimePointManager Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    GameObject obj = new GameObject("TimePointManager");
-                    instance = obj.AddComponent<TimePointManager>();
-                    DontDestroyOnLoad(obj);
-                }
-                return instance;
-            }
-        }
-
-        private TimePointData lastCheckpointData = null;
-        private bool hasCheckpoint = false;
-
-        public float rewindDuration = 0.5f;  // 되감기 연출 시간
-        public GameObject restartPrompt;     // "아무 키나 누르면 시작" UI
-        public AudioClip rewindSfx;          // 되감기 효과음
-        private AudioSource audioSource;
-
-        private void Awake()
+        get
         {
             if (instance == null)
             {
-                instance = this;
-                DontDestroyOnLoad(gameObject);
+                GameObject obj = new GameObject("TimePointManager");
+                instance = obj.AddComponent<TimePointManager>();
+                DontDestroyOnLoad(obj);
+            }
+            return instance;
+        }
+    }
+
+    private TimePointData lastCheckpointData = null;
+    private bool hasCheckpoint = false;
+
+    public float rewindDuration = 0.5f;
+    public GameObject restartPrompt;
+    public AudioClip rewindSfx;
+    private AudioSource audioSource;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (restartPrompt != null)
+            restartPrompt.SetActive(false);
+    }
+
+    /// <summary>
+    /// 체크포인트가 존재하는가?
+    /// </summary>
+    public bool HasCheckpoint()
+    {
+        return hasCheckpoint;
+    }
+
+    /// <summary>
+    /// 마지막 체크포인트 데이터 가져오기
+    /// </summary>
+    public TimePointData GetLastCheckpointData()
+    {
+        return lastCheckpointData;
+    }
+
+    /// <summary>
+    /// 체크포인트 저장:
+    /// 체크포인트 시점의 공주/플레이어 위치, 그리고 살아있는 적들만 ID와 위치, 스케일을 기록
+    /// </summary>
+    public void SaveCheckpoint(Vector2 princessPos, Vector2 playerPos)
+    {
+        TimePointData data = new TimePointData();
+        data.princessPosition = princessPos;
+        data.playerPosition   = playerPos;
+
+        // 씬 내의 모든 적 중, 죽지 않은(isDead=false) + activeInHierarchy=true 만 기록
+        BaseEnemy[] enemies = FindObjectsOfType<BaseEnemy>();
+        foreach (BaseEnemy enemy in enemies)
+        {
+            if (!enemy.isDead && enemy.gameObject.activeInHierarchy)
+            {
+                EnemyStateData esd = new EnemyStateData();
+                esd.enemyType  = enemy.prefabName; 
+                esd.enemyID    = enemy.enemyID;    
+                esd.position   = enemy.transform.position;
+                esd.localScale = enemy.transform.localScale;
+
+                data.enemyStates.Add(esd);
             }
         }
 
-        private void Start()
+        lastCheckpointData = data;
+        hasCheckpoint = true;
+
+        Debug.Log($"[TimePointManager] 체크포인트 저장 완료: 공주({princessPos}), 플레이어({playerPos}), 적 {data.enemyStates.Count}마리");
+        // 필요시 SaveLoadManager.PointCheck(data) 등
+
+    if (RewindManager.Instance != null)
+    {
+        RewindManager.Instance.ClearSnapshotsAndRecordOne(); 
+        // 혹은 ClearSnapshots()만 쓰고 싶다면 그걸로 변경
+    }
+    }
+
+    public void SetCheckpointData(TimePointData data)
+    {
+        lastCheckpointData = data;
+        hasCheckpoint = true;
+    }
+
+    /// <summary>
+    /// 체크포인트 적용: 공주/플레이어 위치를 복원하고, 
+    ///  [기존 Destroy+Instantiate] 대신, 이미 씬에 있는 죽은 적을 되살린다
+    /// </summary>
+    public IEnumerator ApplyCheckpoint(TimePointData checkpointData, bool waitForInput)
+    {
+        lastCheckpointData = checkpointData;
+        hasCheckpoint = true;
+
+        // 공주 / 플레이어 위치 복원
+        Princess princess = FindObjectOfType<Princess>();
+        Player   player   = FindObjectOfType<Player>();
+        if (princess != null)
+            princess.transform.position = checkpointData.princessPosition;
+        if (player != null)
+            player.RestoreFromRewind(checkpointData.playerPosition);
+
+        // ★ 수정: 이미 씬에 있는 죽은 적들 중, checkpointData에 기록된 것만 재활성화
+        ReactivateDeadEnemies(checkpointData);
+
+        Debug.Log("[TimePointManager] 체크포인트 적용 완료.");
+
+        if (waitForInput)
         {
-            audioSource = GetComponent<AudioSource>();
-            if (audioSource == null)
-                audioSource = gameObject.AddComponent<AudioSource>();
-
-            if (restartPrompt != null)
-                restartPrompt.SetActive(false);
-        }
-
-        // 체크포인트 저장: 현재 공주와 플레이어의 위치 및 적 상태를 저장합니다.
-        public void SaveCheckpoint(Vector2 princessPos, Vector2 playerPos)
-        {
-            TimePointData data = new TimePointData();
-            data.princessPosition = princessPos;
-            data.playerPosition = playerPos;
-
-            BaseEnemy[] enemies = FindObjectsOfType<BaseEnemy>();
-            foreach (BaseEnemy enemy in enemies)
-            {
-                if (enemy.gameObject.activeInHierarchy)
-                {
-                    EnemyStateData esd = new EnemyStateData();
-                    esd.enemyType = enemy.gameObject.name.Split('(')[0].Trim();
-                    esd.position = enemy.transform.position;
-                    data.enemyStates.Add(esd);
-                }
-            }
-
-            lastCheckpointData = data;
-            hasCheckpoint = true;
-
-            SaveLoadManager.PointCheck(data);
-
-            Debug.Log($"[TimePointManager] 체크포인트 저장 완료: 공주 {princessPos}, 플레이어 {playerPos}, 적 {data.enemyStates.Count}마리");
-            if (StatusTextManager.Instance != null)
-                StatusTextManager.Instance.ShowMessage("되감기 포인트 지정됨");
-        }
-
-        public void SetCheckpointData(TimePointData data)
-        {
-            lastCheckpointData = data;
-            hasCheckpoint = true;
-        }
-
-        public bool HasCheckpoint()
-        {
-            return hasCheckpoint;
-        }
-
-        // ApplyCheckpoint: 체크포인트 데이터를 적용하는 코루틴 (외부 호출용)
-        public IEnumerator ApplyCheckpoint(TimePointData checkpointData, bool waitForInput)
-        {
-            lastCheckpointData = checkpointData;
-            hasCheckpoint = true;
-
-            Princess princess = FindObjectOfType<Princess>();
-            Player player = FindObjectOfType<Player>();
-
-            if (princess != null)
-                princess.transform.position = checkpointData.princessPosition;
-            if (player != null)
-                player.RestoreFromRewind(checkpointData.playerPosition);
-
-            BaseEnemy[] currentEnemies = FindObjectsOfType<BaseEnemy>();
-            foreach (var e in currentEnemies)
-                Destroy(e.gameObject);
-
-            foreach (EnemyStateData esd in checkpointData.enemyStates)
-            {
-                GameObject enemyPrefab = Resources.Load<GameObject>($"Prefab/Enemies/{esd.enemyType}");
-                if (enemyPrefab != null)
-                {
-                    Vector2 spawnPosition = GetGroundPosition(esd.position);
-                    GameObject newEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-                    Rigidbody2D rb = newEnemy.GetComponent<Rigidbody2D>();
-                    if (rb != null)
-                    {
-                        rb.simulated = false;
-                        yield return new WaitForSeconds(0.1f);
-                        rb.simulated = true;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"적 프리팹({esd.enemyType})을 찾을 수 없음");
-                }
-            }
-
-            Debug.Log("[TimePointManager] 체크포인트 적용 완료.");
-
-            if (waitForInput)
-            {
-                if (StatusTextManager.Instance != null)
-                    StatusTextManager.Instance.ShowMessage("아무 키나 누르면 시작");
-
-                Time.timeScale = 0f;
-                while (!Input.anyKeyDown)
-                {
-                    yield return null;
-                }
-                Time.timeScale = 1f;
-                if (StatusTextManager.Instance != null)
-                    StatusTextManager.Instance.ShowMessage("");
-            }
-        }
-
-        // ImmediateRevive: 세이브 포인트 도착 시, 즉시 플레이어 부활 처리 (체력 복원 및 위치 강제 보정)
-        public void ImmediateRevive()
-        {
-            if (!hasCheckpoint || lastCheckpointData == null)
-            {
-                Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
-                return;
-            }
-
-            Princess princess = FindObjectOfType<Princess>();
-            Player player = FindObjectOfType<Player>();
-            if (princess == null || player == null)
-            {
-                Debug.LogWarning("[TimePointManager] 부활 대상(공주 또는 플레이어)을 찾을 수 없음!");
-                return;
-            }
-
-            // 플레이어 입력 차단
-            player.ignoreInput = true;
-
-            // 플레이어를 공주의 현재 위치로 강제 이동
-            Vector2 targetPos = princess.transform.position;
-            player.transform.position = targetPos;
-            Debug.Log($"[TimePointManager] Force position => 공주 위치: {princess.transform.position}, 플레이어를 {targetPos}로 설정");
-
-            // 부활 처리: PlayerOver.OnRewindComplete() 호출 (체력 복원 등)
-            PlayerOver playerOver = FindObjectOfType<PlayerOver>();
-            if (playerOver != null && playerOver.IsDisabled)
-            {
-                playerOver.OnRewindComplete(targetPos);
-                Debug.Log("[TimePointManager] ImmediateRevive: 플레이어 부활 처리 완료.");
-            }
-
-            // 공주 정지 처리: 공주가 움직이지 않도록 isControlled = true
-            princess.isControlled = true;
-            Rigidbody2D prb = princess.GetComponent<Rigidbody2D>();
-            if (prb != null)
-            {
-                prb.velocity = Vector2.zero;
-                Debug.Log("[TimePointManager] 공주 정지 처리 완료.");
-            }
-
-            // 카메라 타겟 전환: 부활 후 카메라가 플레이어를 따라가도록
-            CameraFollow cf = FindObjectOfType<CameraFollow>();
-            if (cf != null)
-            {
-                cf.SetTarget(player.gameObject);
-                Debug.Log("[TimePointManager] 카메라 타겟을 플레이어로 전환.");
-            }
-
-            // 부활 후 새 체크포인트 저장 (현재 위치 기준)
-            SaveCheckpoint(princess.transform.position, player.transform.position);
-        }
-
-        // RewindToCheckpoint: 기존 되감기 로직을 실행합니다.
-        public void RewindToCheckpoint()
-        {
-            if (!hasCheckpoint || lastCheckpointData == null)
-            {
-                Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
-                return;
-            }
-            StartCoroutine(RewindCoroutine());
-        }
-
-        // RewindCoroutine: 전체 되감기 프로세스를 수행합니다.
-        private IEnumerator RewindCoroutine()
-        {
-            Debug.Log("[TimePointManager] 되감기 시작...");
-            Princess princess = FindObjectOfType<Princess>();
-            Player player = FindObjectOfType<Player>();
-            if (princess == null || player == null)
-            {
-                Debug.LogWarning("[TimePointManager] 공주 또는 플레이어를 찾을 수 없음!");
-                yield break;
-            }
-
-            princess.transform.position = lastCheckpointData.princessPosition;
-            player.transform.position = lastCheckpointData.playerPosition;
-            Debug.Log($"[TimePointManager] 위치 보정 완료: 공주 {lastCheckpointData.princessPosition}, 플레이어 {lastCheckpointData.playerPosition}");
-
-            BaseEnemy[] currentEnemies = FindObjectsOfType<BaseEnemy>();
-            foreach (var e in currentEnemies)
-                Destroy(e.gameObject);
-            foreach (EnemyStateData esd in lastCheckpointData.enemyStates)
-            {
-                GameObject enemyPrefab = Resources.Load<GameObject>($"Prefab/Enemies/{esd.enemyType}");
-                if (enemyPrefab != null)
-                {
-                    Vector2 spawnPosition = GetGroundPosition(esd.position);
-                    Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-                }
-                else
-                {
-                    Debug.LogWarning($"적 프리팹({esd.enemyType})을 찾을 수 없음");
-                }
-            }
-
-            Debug.Log("[TimePointManager] 되감기 완료.");
-
-            ImmediateRevive();
-
-            if (StatusTextManager.Instance != null)
-                StatusTextManager.Instance.ShowMessage("아무 키나 누르면 시작");
             Time.timeScale = 0f;
             while (!Input.anyKeyDown)
             {
                 yield return null;
             }
             Time.timeScale = 1f;
-            if (StatusTextManager.Instance != null)
-                StatusTextManager.Instance.ShowMessage("");
+        }
+    }
 
-            PlayerOver playerOver = FindObjectOfType<PlayerOver>();
-            if (playerOver != null)
+    /// <summary>
+    /// 죽은 적을 다시 활성화하는 함수
+    /// 체크포인트 데이터(enemyStates)에 기록된 ID, prefabName과 일치하는 isDead=true 적만 되살림
+    /// → 체크포인트 이전에 이미 죽어 있던 적은 데이터에 없으므로 부활 X
+    /// </summary>
+
+    private void ReactivateDeadEnemies(TimePointData checkpointData)
+    {
+        if (checkpointData == null) return;
+        BaseEnemy[] allEnemies = Resources.FindObjectsOfTypeAll<BaseEnemy>()
+            .Where(e => e.gameObject.scene.isLoaded)
+            .ToArray();
+
+        List<BaseEnemy> matched = new List<BaseEnemy>();
+
+        foreach (EnemyStateData esd in checkpointData.enemyStates)
+        {
+            BaseEnemy candidate = allEnemies.FirstOrDefault(e =>
+                e.enemyID == esd.enemyID &&
+                e.prefabName == esd.enemyType
+            );
+            if (candidate != null && !matched.Contains(candidate))
             {
-                playerOver.ResumeAfterRewind();
-                Debug.Log("[TimePointManager] 부활 후 상태 복구 완료.");
+                // 위치/스케일 복원
+                candidate.transform.position = esd.position;
+                candidate.transform.localScale = esd.localScale;
+
+                // ExplosiveEnemy라면 isActivated, isExploding 초기화
+                ExplosiveEnemy ex = candidate as ExplosiveEnemy;
+                if (ex != null) ex.ResetOnRewind();
+
+                // 지금이 "죽어있던" 적이면 isDead=false + SetActive(true)
+                if (candidate.isDead && !candidate.gameObject.activeInHierarchy)
+                {
+                    candidate.isDead = false;
+                    candidate.gameObject.SetActive(true);
+                }
+
+                matched.Add(candidate);
             }
         }
+    }
 
-        // 적의 바닥 위치 보정 함수
-        private Vector2 GetGroundPosition(Vector2 originalPosition)
+
+    /// <summary>
+    /// 즉시 플레이어 부활
+    /// </summary>
+    public void ImmediateRevive()
+    {
+        if (!hasCheckpoint || lastCheckpointData == null)
         {
-            RaycastHit2D hit = Physics2D.Raycast(originalPosition, Vector2.down, 5f, LayerMask.GetMask("Ground"));
-            if (hit.collider != null)
-            {
-                return new Vector2(originalPosition.x, hit.point.y + 0.1f);
-            }
-            return originalPosition;
+            Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
+            return;
         }
 
-        public TimePointData GetLastCheckpointData()
+        Princess princess = FindObjectOfType<Princess>();
+        Player   player   = FindObjectOfType<Player>();
+        if (princess == null || player == null)
         {
-            return lastCheckpointData;
+            Debug.LogWarning("[TimePointManager] 부활 대상(공주/플레이어) 찾지 못함!");
+            return;
+        }
+
+        player.ignoreInput = true;
+        Vector2 targetPos = princess.transform.position;
+        player.transform.position = targetPos;
+
+        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        if (playerOver != null && playerOver.IsDisabled)
+        {
+            playerOver.OnRewindComplete(targetPos);
+        }
+
+        princess.isControlled = true;
+        Rigidbody2D prb = princess.GetComponent<Rigidbody2D>();
+        if (prb != null)
+        {
+            prb.velocity = Vector2.zero;
+        }
+
+        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        if (cf != null)
+        {
+            cf.SetTarget(player.gameObject);
+        }
+
+        // 체크포인트 갱신
+        SaveCheckpoint(princess.transform.position, player.transform.position);
+    }
+
+    /// <summary>
+    /// 체크포인트가 있으면 되감기
+    /// </summary>
+    public void RewindToCheckpoint()
+    {
+        if (!hasCheckpoint || lastCheckpointData == null)
+        {
+            Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
+            return;
+        }
+        StartCoroutine(RewindCoroutine());
+    }
+
+    /// <summary>
+    /// 기존 되감기 코루틴(원본)
+    /// </summary>
+    private IEnumerator RewindCoroutine()
+    {
+        Debug.Log("[TimePointManager] 되감기 시작...");
+
+        Princess princess = FindObjectOfType<Princess>();
+        Player   player   = FindObjectOfType<Player>();
+        if (princess == null || player == null)
+        {
+            Debug.LogWarning("[TimePointManager] 공주/플레이어 찾기 실패!");
+            yield break;
+        }
+
+        // 위치 보정
+        princess.transform.position = lastCheckpointData.princessPosition;
+        player.transform.position   = lastCheckpointData.playerPosition;
+        Debug.Log($"[TimePointManager] 위치 보정 완료: 공주({lastCheckpointData.princessPosition}), 플레이어({lastCheckpointData.playerPosition})");
+
+        // ★ 수정: 죽은 적만 다시 활성화
+        ReactivateDeadEnemies(lastCheckpointData);
+
+        Debug.Log("[TimePointManager] 되감기 완료.");
+
+        // 플레이어 ImmediateRevive
+        ImmediateRevive();
+
+        // 대기
+        Time.timeScale = 0f;
+        while (!Input.anyKeyDown)
+        {
+            yield return null;
+        }
+        Time.timeScale = 1f;
+
+        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        if (playerOver != null)
+        {
+            playerOver.ResumeAfterRewind();
         }
     }
 }

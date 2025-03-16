@@ -13,6 +13,9 @@ public class StorySceneManager : MonoBehaviour
     [Header("Camera")]
     public CameraFollow cameraFollow; // 카메라 팔로우 스크립트
 
+    [Header("Character Manager")]
+    public CharacterManager characterManager; // 캐릭터 정보 관리
+
     [Header("Dialogue Data")]
     public List<DialogueData> dialogues; // 대사 목록
     private int currentDialogueIndex = 0;
@@ -54,13 +57,16 @@ public class StorySceneManager : MonoBehaviour
         DialogueData dialogue = dialogues[index];
 
         // 캐릭터 이름과 대사 UI 적용
-        characterNameText.text = dialogue.character.characterName;
+        characterNameText.text = dialogue.characterName;
         dialogueText.text = ""; // 타이핑 효과를 위해 초기화
 
+        // 캐릭터 트랜스폼 찾기
+        Transform characterTransform = characterManager.GetCharacterTransform(dialogue.characterName);
+
         // 카메라를 현재 대사 중인 캐릭터로 이동
-        if (cameraFollow != null && dialogue.character.characterPosition != null)
+        if (cameraFollow != null && characterTransform != null)
         {
-            cameraFollow.SetTarget(dialogue.character.characterPosition.gameObject);
+            cameraFollow.SetTarget(characterTransform.gameObject);
         }
 
         // 타이핑 효과 실행

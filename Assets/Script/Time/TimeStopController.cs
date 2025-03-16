@@ -14,36 +14,45 @@ public class TimeStopController : MonoBehaviour
     public float timeStopDrainRate = 1f;
     public float enemyKillGain = 5f;
 
+    // ★추가: 외부(RewindManager)에서 접근 가능하도록 프로퍼티
     public bool IsTimeStopped => isTimeStopped;
 
-
     //================================================================슬라이더
-    public Slider timeGaugeSlider; // UI Slider 연결
-    public Image fillImage; // 슬라이더 Fill 이미지 참조 추가
-    public Color normalColor = Color.green; // 평소 색깔
-    public Color warningColor = Color.red; // 부족할 때 색깔
-
-    public float warningThreshold = 20f; // 부족 기준 (20 이하)
+    public Slider timeGaugeSlider; 
+    public Image fillImage; 
+    public Color normalColor = Color.green; 
+    public Color warningColor = Color.red; 
+    public float warningThreshold = 20f; 
     private bool isBlinking = false;
     private float blinkTimer = 0f;
-    public float blinkInterval = 0.5f; // 깜빡이는 주기 (초)
+    public float blinkInterval = 0.5f; 
 
     void Start()
     {
         FindTimeAffectedObjects();
         currentTimeGauge = maxTimeGauge;
-
-        // 시작할 때 게이지 UI 업데이트
         UpdateTimeGaugeUI();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space)) //시간 멈추는거
+        // (1) "게임오버 중" 또는 "되감기 중"이면 플레이어가 시간정지 입력 못하게
+        //     RewindManager.Instance가 null일 수도 있으니 체크
+        bool isRewinding = (RewindManager.Instance != null && RewindManager.Instance.IsRewinding);
+        bool isGameOver  = (RewindManager.Instance != null && RewindManager.Instance.IsGameOver()); 
+        // ↑ isGameOver 메서드를 새로 만든다고 가정 (아래 RewindManager 수정 예시 참고)
+
+        // => 둘 중 하나라도 true면 시간정지 입력 무시
+        if (!isGameOver && !isRewinding) 
         {
-            ToggleTimeStop();
+            // 기존 시간정지 토글 로직
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                ToggleTimeStop();
+            }
         }
 
+        // 시간정지 상태일 때 게이지 소모 / 시간정지 아닐 때 패시브 충전
         if (isTimeStopped)
         {
             currentTimeGauge -= timeStopDrainRate * Time.deltaTime;
@@ -56,17 +65,14 @@ public class TimeStopController : MonoBehaviour
         else
         {
             //패시브 자동 충전
-            if (!isTimeStopped)
-            {
-                currentTimeGauge += passiveChargeRate * Time.deltaTime;
-                currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
-            }
+            currentTimeGauge += passiveChargeRate * Time.deltaTime;
+            currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
         }
 
-        if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl)) //대상 정지 해제
+        // (2) 좌클릭 + Ctrl로 대상 해제
+        if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl))
         {
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-
             if (hit.collider != null)
             {
                 var affectable = hit.collider.GetComponent<ITimeAffectable>();
@@ -78,15 +84,16 @@ public class TimeStopController : MonoBehaviour
             }
         }
 
-        UpdateTimeGaugeUI(); // 매 프레임 UI 업데이트
+        UpdateTimeGaugeUI(); 
 
+        // (UI 깜빡임 로직)
         if (isBlinking)
         {
             blinkTimer += Time.deltaTime;
             if (blinkTimer >= blinkInterval)
             {
                 blinkTimer = 0f;
-                fillImage.color = fillImage.color == normalColor ? warningColor : normalColor;
+                fillImage.color = (fillImage.color == normalColor) ? warningColor : normalColor;
             }
         }
     }
@@ -95,7 +102,6 @@ public class TimeStopController : MonoBehaviour
     {
         timeAffectedObjects.Remove(obj);
     }
-
 
     void ToggleTimeStop()
     {
@@ -114,10 +120,10 @@ public class TimeStopController : MonoBehaviour
 
     void StopTime()
     {
+        // 사운드
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlaySFX("TimeStopSound");
-        }
+
         isTimeStopped = true;
         foreach (var obj in timeAffectedObjects)
         {
@@ -127,10 +133,10 @@ public class TimeStopController : MonoBehaviour
 
     void ResumeTime()
     {
+        // 사운드
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlaySFX("TimeStopRelease");
-        }
+
         isTimeStopped = false;
         foreach (var obj in timeAffectedObjects)
         {
@@ -151,8 +157,7 @@ public class TimeStopController : MonoBehaviour
     {
         currentTimeGauge += amount;
         currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
-
-        UpdateTimeGaugeUI(); // 충전될 때도 UI 업데이트
+        UpdateTimeGaugeUI();
     }
 
     void UpdateTimeGaugeUI()
@@ -161,7 +166,6 @@ public class TimeStopController : MonoBehaviour
         {
             timeGaugeSlider.value = currentTimeGauge;
 
-            // 게이지 부족 여부 확인
             if (currentTimeGauge <= warningThreshold)
             {
                 if (!isBlinking)
@@ -175,11 +179,12 @@ public class TimeStopController : MonoBehaviour
                 if (isBlinking)
                 {
                     isBlinking = false;
-                    fillImage.color = normalColor; // 원래 색상 복구
+                    fillImage.color = normalColor; 
                 }
             }
         }
     }
+
     public void RegisterTimeAffectedObject(ITimeAffectable obj)
     {
         timeAffectedObjects.Add(obj);
@@ -187,6 +192,7 @@ public class TimeStopController : MonoBehaviour
 
     void ReverseTime(float duration)
     {
+        // 예제만
         Debug.Log("[Skill] Time Reversal Activated!");
         Vector3 previousPosition = GetPlayerPreviousPosition(duration);
         transform.position = previousPosition;
@@ -194,8 +200,7 @@ public class TimeStopController : MonoBehaviour
 
     Vector3 GetPlayerPreviousPosition(float duration)
     {
-        return transform.position - (Vector3.right * 5f); // 예제: 5유닛 뒤로 이동
+        // 임의 예시
+        return transform.position - (Vector3.right * 5f); 
     }
-
-
 }

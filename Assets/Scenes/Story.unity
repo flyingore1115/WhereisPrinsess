@@ -369,14 +369,6 @@ GameObject:
   - component: {fileID: 186933918}
   - component: {fileID: 186933917}
   - component: {fileID: 186933921}
-  - component: {fileID: 186933925}
-  - component: {fileID: 186933924}
-  - component: {fileID: 186933916}
-  - component: {fileID: 186933928}
-  - component: {fileID: 186933927}
-  - component: {fileID: 186933926}
-  - component: {fileID: 186933930}
-  - component: {fileID: 186933929}
   m_Layer: 11
   m_Name: Player
   m_TagString: Player
@@ -384,24 +376,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &186933916
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f559291f2191124f89a0bde8cc7c466, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  movement: {fileID: 186933927}
-  attack: {fileID: 186933926}
-  shooting: {fileID: 186933928}
-  ignoreInput: 0
-  grayscaleMaterial: {fileID: 2100000, guid: d6245728b4e0552489113de175c4b71d, type: 2}
-  applyRewindGrayscale: 0
 --- !u!50 &186933917
 Rigidbody2D:
   serializedVersion: 4
@@ -525,7 +499,7 @@ Transform:
   m_GameObject: {fileID: 186933915}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -40.99, y: 7.44, z: 0}
+  m_LocalPosition: {x: -36.03, y: 8.06, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -554,130 +528,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &186933924
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d9d19ed721b5994f8d3634c46dd8fd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 1
-  heartUI: {fileID: 0}
-  princess: {fileID: 1751854975}
-  playerTransform: {fileID: 186933920}
---- !u!114 &186933925
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d1c93580110371439d4da29d0591f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxTimeGauge: 100
-  currentTimeGauge: 0
-  passiveChargeRate: 0
-  timeStopDrainRate: 0.1
-  enemyKillGain: 30
-  timeGaugeSlider: {fileID: 0}
-  fillImage: {fileID: 0}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  warningColor: {r: 1, g: 0, b: 0, a: 1}
-  warningThreshold: 40
-  blinkInterval: 0.5
---- !u!114 &186933926
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03cd668e63c2d454ba4a139b5e9d69fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attackRange: 12
-  attackMoveSpeed: 150
---- !u!114 &186933927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46a4ae38a810636489025cf858791a69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 8
-  jumpForce: 5
-  groundCheck: {fileID: 1080160637}
-  groundCheckRadius: 0.2
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  dashDistance: 6
-  dashDuration: 0.05
-  dashCooldown: 1.5
-  invincibilityTime: 0.3
---- !u!114 &186933928
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0de3b9a5aa9703848ba2386ad5e9471d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 4058868085175983168, guid: e9f830939902cb1428aae01a332d7cfb, type: 3}
-  firePoint: {fileID: 1513006763}
-  currentAmmo: 6
-  maxAmmo: 6
-  ammoText: {fileID: 0}
-  reloadEnergyCost: 30
-  bulletUIDisplayDuration: 0.5
-  bulletUI: {fileID: 0}
---- !u!114 &186933929
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cbb9ab4d00d45b408075122c5681a8b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  skillManager: {fileID: 0}
-  mainCamera: {fileID: 519420031}
-  princess: {fileID: 1751854975}
---- !u!114 &186933930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 186933915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a2973de8833402e418432d22c5daaac8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  skillManager: {fileID: 0}
 --- !u!1 &276646015
 GameObject:
   m_ObjectHideFlags: 0
@@ -1037,6 +887,55 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &633998914
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 633998916}
+  - component: {fileID: 633998915}
+  m_Layer: 0
+  m_Name: Char
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &633998915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 633998914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1edfc27724eb4c48a12f99f58c6e4d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characters:
+  - characterName: "\uBA54\uC774"
+    characterTransform: {fileID: 186933920}
+  - characterName: "\uD504\uB9B4"
+    characterTransform: {fileID: 1751854975}
+--- !u!4 &633998916
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 633998914}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 987.47943, y: 424.82404, z: 5.7419906}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &641532145
 GameObject:
   m_ObjectHideFlags: 0
@@ -1249,6 +1148,51 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "\uC774\uB984"
+--- !u!1 &689564128
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 689564130}
+  - component: {fileID: 689564129}
+  m_Layer: 0
+  m_Name: Pause
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &689564129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689564128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31f204a0774dd8b4188cd079f7b96b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pauseMenuUI: {fileID: 1857454555}
+--- !u!4 &689564130
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689564128}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 987.47943, y: 424.82404, z: 5.7419906}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &741200649
 GameObject:
   m_ObjectHideFlags: 0
@@ -2187,15 +2131,16 @@ MonoBehaviour:
   dialogueText: {fileID: 1931956558}
   dialoguePanel: {fileID: 1650044489}
   cameraFollow: {fileID: 519420034}
+  characterManager: {fileID: 633998915}
   dialogues:
-  - character:
-      characterName: 
-      characterPosition: {fileID: 0}
+  - characterName: "\uBA54\uC774"
     dialogueText: "\uB07C\uC694\uC637"
-  - character:
-      characterName: 
-      characterPosition: {fileID: 0}
-    dialogueText: "\uB07C\uC694\uC637"
+  - characterName: "\uD504\uB9B4"
+    dialogueText: "\uC58F\uD638"
+  - characterName: "\uBA54\uC774"
+    dialogueText: "\uC5D0\uBCA0\uBCB1"
+  - characterName: "\uBA54\uC774"
+    dialogueText: "\uD14C\uC2A4\uD2B8\uC778\uB370\uC218"
   typingSpeed: 0.05
 --- !u!4 &1734044602
 Transform:
@@ -2205,7 +2150,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1734044600}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 960, y: 540, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2224,9 +2169,7 @@ GameObject:
   - component: {fileID: 1751854974}
   - component: {fileID: 1751854973}
   - component: {fileID: 1751854972}
-  - component: {fileID: 1751854971}
   - component: {fileID: 1751854976}
-  - component: {fileID: 1751854977}
   m_Layer: 10
   m_Name: Princess
   m_TagString: Princess
@@ -2234,29 +2177,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1751854971
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1751854970}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74cd2db5d0a60b145a923a550a5b6af5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 7
-  groundCheck: {fileID: 1427679616}
-  groundCheckSize: {x: 0.5, y: 0.1}
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  fallThreshold: 0.2
-  extraLives: 0
-  invincibilityDuration: 2
-  isControlled: 0
-  grayscaleMaterial: {fileID: 2100000, guid: d6245728b4e0552489113de175c4b71d, type: 2}
 --- !u!50 &1751854972
 Rigidbody2D:
   serializedVersion: 4
@@ -2408,22 +2328,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &1751854977
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1751854970}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1bdc8f6ad65f0344993346e58006897, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  princessTransform: {fileID: 1751854975}
-  moveSpeed: 5
-  controlDuration: 5
-  toggleCooldownTime: 0.5
 --- !u!1 &1857454555
 GameObject:
   m_ObjectHideFlags: 0
@@ -2862,3 +2766,5 @@ SceneRoots:
   - {fileID: 73556776}
   - {fileID: 1038740351}
   - {fileID: 1734044602}
+  - {fileID: 633998916}
+  - {fileID: 689564130}

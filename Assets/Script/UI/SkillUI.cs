@@ -11,7 +11,7 @@ public class SkillUI : MonoBehaviour
 
     private List<SkillData> skillDataList = new List<SkillData>(); 
     public RectTransform skillUIRoot;
-    public GameObject skillDetail;  // ✅ 스킬 설명 패널
+    public GameObject skillDetail;  // 스킬 설명 패널
     public Transform clockCenter;
     public Transform skillHandHour;
     public Transform skillHandMinute;
@@ -79,7 +79,7 @@ public class SkillUI : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            ToggleSkillDetail();  // ✅ 스킬 상세 설명 토글
+            ToggleSkillDetail();  // 스킬 상세 설명 토글
         }
 
         for (int i = 1; i <= 9; i++)
@@ -171,6 +171,15 @@ public class SkillUI : MonoBehaviour
             {
                 skillIcons[i].sprite = skillDataList[i].skillIcon;
                 skillIcons[i].enabled = true;
+                // ★ 해금되지 않은 스킬(인덱스가 unlockedSkillIndex보다 큰 경우)은 어둡게 표시
+                if (i > unlockedSkillIndex)
+                {
+                    skillIcons[i].color = Color.gray;
+                }
+                else
+                {
+                    skillIcons[i].color = Color.white;
+                }
             }
             else
             {

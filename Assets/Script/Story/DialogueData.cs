@@ -3,6 +3,6 @@ using UnityEngine;
 [System.Serializable]
 public class DialogueData
 {
-    public CharacterData character; // 캐릭터 정보 (이름 + 위치)
-    public string dialogueText; // 대사 내용
+    public string characterName; // 캐릭터 이름 (트랜스폼은 CharacterDatabase에서 불러옴)
+    public string dialogueText;  // 대사 내용
 }
