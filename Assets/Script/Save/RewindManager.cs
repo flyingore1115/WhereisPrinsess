@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using MyGame;
+using UnityEngine.SceneManagement;
 
 public class RewindManager : MonoBehaviour
 {
@@ -24,15 +25,14 @@ public class RewindManager : MonoBehaviour
     private bool isRewinding = false;
     public bool IsRewinding { get { return isRewinding; } }
 
-    private float snapshotInterval = 0.033f;
+    // 예시) 기존 0.001f가 너무 빠를 수 있으므로 0.02~0.03으로 조정
+    private float snapshotInterval = 0.02f;
     private float lastSnapshotTime = 0f;
 
     private bool isGameOver = false; // 게임오버 상태
 
     private List<ITimeAffectable> timeAffectedObjects = new List<ITimeAffectable>();
 
-    // ★ TimeStopController 연결(필요시)
-    //    이 값이 null이 아니면, "시간정지 중"인지 가져다 쓸 수 있다.
     public TimeStopController timeStopController; 
 
     void Awake()
@@ -41,6 +41,7 @@ public class RewindManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[RewindManager] Awake -> Instance 할당");
         }
         else
         {
@@ -48,34 +49,54 @@ public class RewindManager : MonoBehaviour
         }
     }
 
-    void Start()
+    void OnEnable()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("[RewindManager] OnSceneLoaded -> " + scene.name);
+        AssignSceneObjects();
+    }
+
+    void AssignSceneObjects()
+    {
+        Debug.Log("[RewindManager] AssignSceneObjects 호출");
+
+        var foundPlayer = GameObject.FindGameObjectWithTag("Player");
+        if (foundPlayer == null)
+            Debug.LogWarning("[RewindManager] Player 태그를 가진 오브젝트가 없음");
+        else
+            Debug.Log("[RewindManager] Found Player = " + foundPlayer.name);
+
+        var foundPrincess = GameObject.FindGameObjectWithTag("Princess");
+        if (foundPrincess == null)
+            Debug.LogWarning("[RewindManager] Princess 태그를 가진 오브젝트가 없음");
+        else
+            Debug.Log("[RewindManager] Found Princess = " + foundPrincess.name);
+
+        player = foundPlayer;
+        princess = foundPrincess;
+
         if (player != null)
             playerAnimator = player.GetComponent<Animator>();
         if (princess != null)
             princessAnimator = princess.GetComponent<Animator>();
-
-        // 필요하다면 수동 연결
-        timeStopController = FindObjectOfType<TimeStopController>();
 
         FindTimeAffectedObjects();
     }
 
     void FixedUpdate()
     {
-        // (1) "게임오버 중"이면 스냅샷 기록 안 함
         if (isGameOver) return;
-
-        // (2) "시간정지 중"이면 스냅샷 기록 안 함
-        if (timeStopController != null && timeStopController.IsTimeStopped)
-        {
-            return;
-        }
-
-        // (3) "되감기 중"이면 스냅샷 기록 안 함 (선택)
+        if (timeStopController != null && timeStopController.IsTimeStopped) return;
         if (isRewinding) return;
 
-        // 그 외에만 스냅샷 기록
         if (Time.time - lastSnapshotTime >= snapshotInterval)
         {
             RecordSnapshot();
@@ -83,17 +104,8 @@ public class RewindManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// "게임오버인지" 외부가 확인할 때 쓸 수 있는 메서드
-    /// </summary>
-    public bool IsGameOver()
-    {
-        return isGameOver;
-    }
+    public bool IsGameOver() { return isGameOver; }
 
-    /// <summary>
-    /// 스냅샷 하나 기록
-    /// </summary>
     void RecordSnapshot()
     {
         if (player == null || princess == null) return;
@@ -121,7 +133,6 @@ public class RewindManager : MonoBehaviour
         }
 
         snapshots.Add(snap);
-
         float maxCount = recordTime / snapshotInterval;
         if (snapshots.Count > maxCount)
             snapshots.RemoveAt(0);
@@ -140,9 +151,6 @@ public class RewindManager : MonoBehaviour
         RecordSnapshot();
     }
 
-    /// <summary>
-    /// 게임오버 -> 스냅샷 기록 막기
-    /// </summary>
     public void SetGameOver(bool val)
     {
         isGameOver = val;
@@ -179,7 +187,7 @@ public class RewindManager : MonoBehaviour
         if (TimePointManager.Instance.HasCheckpoint())
         {
             yield return StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(
-                TimePointManager.Instance.GetLastCheckpointData(),
+                TimePointManager.Instance.GetLastCheckpointData(), 
                 false
             ));
         }
@@ -187,7 +195,6 @@ public class RewindManager : MonoBehaviour
 
     IEnumerator RewindCoroutine()
     {
-        // 로컬 복사
         List<TimeSnapshot> localSnapshots = new List<TimeSnapshot>(snapshots);
         if (localSnapshots.Count < 2)
         {
@@ -210,23 +217,19 @@ public class RewindManager : MonoBehaviour
         if (pRb != null) pRb.isKinematic = true;
         if (cRb != null) cRb.isKinematic = true;
 
-        // 플레이어(시간정지도 불가) 
-        Player pScript = player.GetComponent<Player>();
+        Player pScript = player ? player.GetComponent<Player>() : null;
         if (pScript != null)
         {
             pScript.ignoreInput = true;
             pScript.applyRewindGrayscale = true;
         }
-        // ★추가: TimeStopController도 잠금
         if (timeStopController != null && timeStopController.IsTimeStopped)
         {
-            // 되감기 시작 시 시간정지 자동 해제
             timeStopController.SendMessage("ResumeTime", SendMessageOptions.DontRequireReceiver);
         }
 
         ApplyGrayscaleEffect(true);
 
-        // 역재생 루프
         for (int i = localSnapshots.Count - 1; i > 0; i--)
         {
             TimeSnapshot snap1 = localSnapshots[i];
@@ -241,22 +244,19 @@ public class RewindManager : MonoBehaviour
                 cRb.velocity = Vector2.Lerp(snap1.princessVelocity, snap2.princessVelocity, 0.5f);
 
             if (playerAnimator != null)
-            {
                 playerAnimator.Play(int.Parse(snap1.playerAnimationState), 0, snap1.playerNormalizedTime);
-            }
             if (princessAnimator != null)
-            {
                 princessAnimator.Play(int.Parse(snap1.princessAnimationState), 0, snap1.princessNormalizedTime);
-            }
 
             yield return new WaitForSecondsRealtime(rewindFrameDelay);
         }
 
-        // 루프 끝 -> 체크포인트 복원
+        // 되감기 끝 -> 체크포인트 복원
         if (TimePointManager.Instance.HasCheckpoint())
         {
             yield return StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(
-                TimePointManager.Instance.GetLastCheckpointData(), false
+                TimePointManager.Instance.GetLastCheckpointData(), 
+                false
             ));
         }
 
@@ -289,10 +289,8 @@ public class RewindManager : MonoBehaviour
     {
         foreach (var obj in timeAffectedObjects)
         {
-            if (isGrayscale)
-                obj.StopTime();
-            else
-                obj.ResumeTime();
+            if (isGrayscale) obj.StopTime();
+            else obj.ResumeTime();
         }
     }
 }

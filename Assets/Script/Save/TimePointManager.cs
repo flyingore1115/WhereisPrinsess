@@ -72,7 +72,7 @@ public class TimePointManager : MonoBehaviour
     {
         TimePointData data = new TimePointData();
         data.princessPosition = princessPos;
-        data.playerPosition   = playerPos;
+        data.playerPosition = playerPos;
 
         // 씬 내의 모든 적 중, 죽지 않은(isDead=false) + activeInHierarchy=true 만 기록
         BaseEnemy[] enemies = FindObjectsOfType<BaseEnemy>();
@@ -81,9 +81,9 @@ public class TimePointManager : MonoBehaviour
             if (!enemy.isDead && enemy.gameObject.activeInHierarchy)
             {
                 EnemyStateData esd = new EnemyStateData();
-                esd.enemyType  = enemy.prefabName; 
-                esd.enemyID    = enemy.enemyID;    
-                esd.position   = enemy.transform.position;
+                esd.enemyType = enemy.prefabName;
+                esd.enemyID = enemy.enemyID;
+                esd.position = enemy.transform.position;
                 esd.localScale = enemy.transform.localScale;
 
                 data.enemyStates.Add(esd);
@@ -96,37 +96,69 @@ public class TimePointManager : MonoBehaviour
         Debug.Log($"[TimePointManager] 체크포인트 저장 완료: 공주({princessPos}), 플레이어({playerPos}), 적 {data.enemyStates.Count}마리");
         // 필요시 SaveLoadManager.PointCheck(data) 등
 
-    if (RewindManager.Instance != null)
-    {
-        RewindManager.Instance.ClearSnapshotsAndRecordOne(); 
-        // 혹은 ClearSnapshots()만 쓰고 싶다면 그걸로 변경
-    }
+        if (RewindManager.Instance != null)
+        {
+            RewindManager.Instance.ClearSnapshotsAndRecordOne();
+            // 혹은 ClearSnapshots()만 쓰고 싶다면 그걸로 변경
+        }
+
+        // ★ SaveLoadManager.PointCheck(data)를 호출해서 파일에 저장
+        SaveLoadManager.PointCheck(data);
+
+        if (RewindManager.Instance != null)
+            RewindManager.Instance.ClearSnapshotsAndRecordOne();
     }
 
     public void SetCheckpointData(TimePointData data)
     {
         lastCheckpointData = data;
-        hasCheckpoint = true;
+        hasCheckpoint = (data != null);
+    }
+    public void ClearCheckpointFlag()
+    {
+        lastCheckpointData = null;
+        hasCheckpoint = false;
     }
 
-    /// <summary>
+
+
+
     /// 체크포인트 적용: 공주/플레이어 위치를 복원하고, 
     ///  [기존 Destroy+Instantiate] 대신, 이미 씬에 있는 죽은 적을 되살린다
-    /// </summary>
     public IEnumerator ApplyCheckpoint(TimePointData checkpointData, bool waitForInput)
     {
+        if (checkpointData == null)
+        {
+            Debug.LogError("[TimePointManager] ApplyCheckpoint: checkpointData가 null입니다.");
+            yield break;
+        }
+
         lastCheckpointData = checkpointData;
         hasCheckpoint = true;
 
-        // 공주 / 플레이어 위치 복원
-        Princess princess = FindObjectOfType<Princess>();
-        Player   player   = FindObjectOfType<Player>();
-        if (princess != null)
-            princess.transform.position = checkpointData.princessPosition;
-        if (player != null)
-            player.RestoreFromRewind(checkpointData.playerPosition);
+        // 필요한 오브젝트가 완전히 로드될 때까지 대기
+        Princess princess = null;
+        Player player = null;
+        float waitTimer = 0f;
+        while (princess == null || player == null)
+        {
+            princess = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
+            player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
+            waitTimer += Time.deltaTime;
+            if (waitTimer > 5f)
+            {
+                Debug.LogError("[TimePointManager] ApplyCheckpoint: 5초 내에 Princess 또는 Player를 찾지 못했습니다.");
+                yield break;
+            }
+            yield return null;
+        }
 
-        // ★ 수정: 이미 씬에 있는 죽은 적들 중, checkpointData에 기록된 것만 재활성화
+        // 둘 다 새로 생성된 오브젝트로 확인되었으므로, 체크포인트 데이터에 저장된 위치로 강제 재설정
+        princess.transform.position = checkpointData.princessPosition;
+        player.RestoreFromRewind(checkpointData.playerPosition);
+        Debug.Log($"[TimePointManager] 체크포인트 적용: 공주 위치 {checkpointData.princessPosition}, 플레이어 위치 {checkpointData.playerPosition}");
+
+        // 씬 내의 죽은 적들을 체크포인트 데이터에 따라 재활성화
         ReactivateDeadEnemies(checkpointData);
 
         Debug.Log("[TimePointManager] 체크포인트 적용 완료.");
@@ -141,6 +173,9 @@ public class TimePointManager : MonoBehaviour
             Time.timeScale = 1f;
         }
     }
+
+
+
 
     /// <summary>
     /// 죽은 적을 다시 활성화하는 함수
@@ -198,7 +233,7 @@ public class TimePointManager : MonoBehaviour
         }
 
         Princess princess = FindObjectOfType<Princess>();
-        Player   player   = FindObjectOfType<Player>();
+        Player player = FindObjectOfType<Player>();
         if (princess == null || player == null)
         {
             Debug.LogWarning("[TimePointManager] 부활 대상(공주/플레이어) 찾지 못함!");
@@ -253,7 +288,7 @@ public class TimePointManager : MonoBehaviour
         Debug.Log("[TimePointManager] 되감기 시작...");
 
         Princess princess = FindObjectOfType<Princess>();
-        Player   player   = FindObjectOfType<Player>();
+        Player player = FindObjectOfType<Player>();
         if (princess == null || player == null)
         {
             Debug.LogWarning("[TimePointManager] 공주/플레이어 찾기 실패!");
@@ -262,7 +297,7 @@ public class TimePointManager : MonoBehaviour
 
         // 위치 보정
         princess.transform.position = lastCheckpointData.princessPosition;
-        player.transform.position   = lastCheckpointData.playerPosition;
+        player.transform.position = lastCheckpointData.playerPosition;
         Debug.Log($"[TimePointManager] 위치 보정 완료: 공주({lastCheckpointData.princessPosition}), 플레이어({lastCheckpointData.playerPosition})");
 
         // ★ 수정: 죽은 적만 다시 활성화

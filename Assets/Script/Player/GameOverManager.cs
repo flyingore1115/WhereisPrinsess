@@ -10,7 +10,7 @@ public class GameOverManager : MonoBehaviour
     public GameObject princess;          // 공주 오브젝트 (카메라 이동 기준)
     public GameObject player;            // 플레이어 오브젝트
     public Camera mainCamera;            // 메인 카메라
-    public RewindManager rewindManager;  // 되감기 매니저
+    // RewindManager는 인스펙터 할당 대신 싱글톤 RewindManager.Instance를 사용합니다.
     public CameraFollow cameraFollow;    // 카메라 팔로우 스크립트
 
     private List<ITimeAffectable> timeAffectedObjects;
@@ -18,7 +18,6 @@ public class GameOverManager : MonoBehaviour
     public void TriggerGameOver()
     {
         StartCoroutine(GameOverRoutine());
-        
     }
 
     IEnumerator GameOverRoutine()
@@ -31,11 +30,11 @@ public class GameOverManager : MonoBehaviour
         }
 
         // 총알 UI 숨김
-        //P_Shooting shooting = FindObjectOfType<P_Shooting>();
-        //if (shooting != null)
-        //{
-        //    shooting.HideBulletUI();
-        //}
+        P_Shooting shooting = FindObjectOfType<P_Shooting>();
+        if (shooting != null)
+        {
+            shooting.HideBulletUI();
+        }
 
         // 모든 ITimeAffectable 오브젝트에 흑백 효과 적용
         FindTimeAffectedObjects();
@@ -75,15 +74,18 @@ public class GameOverManager : MonoBehaviour
             yield return StartCoroutine(SmoothCameraTransition(mainCamera, player.transform.position, 6f, 1f));
         }
 
-        // 씬 재시작 대신 되감기 연출 실행
-        if (rewindManager != null)
+        // 되감기 로직: 인스펙터에 할당된 rewindManager 대신 싱글톤 RewindManager.Instance 사용
+        if (RewindManager.Instance != null)
         {
-            // 체크포인트 스냅샷 기록
-            rewindManager.StartRewind();
-            while (rewindManager.IsRewinding)
+            RewindManager.Instance.StartRewind();
+            while (RewindManager.Instance.IsRewinding)
             {
                 yield return null;
             }
+        }
+        else
+        {
+            Debug.LogError("RewindManager.Instance가 존재하지 않습니다!");
         }
 
         // 되감기 종료 후 모든 ITimeAffectable 오브젝트의 원래 색상 복구

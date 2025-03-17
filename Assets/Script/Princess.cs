@@ -10,6 +10,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public LayerMask groundLayer;             // 땅 레이어
     public float fallThreshold = 0.2f;        // 구멍에서 떨어지기 전 허용 거리
 
+    public Vector3 defaultStartPosition { get; private set; } //초기위치저장
+
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
@@ -37,6 +39,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void Start()
     {
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         originalMaterial = spriteRenderer.material;
         rb = GetComponent<Rigidbody2D>();
@@ -45,6 +48,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
+
+        Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
+
+        defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
+
+        Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }
 
     void FixedUpdate()
@@ -103,19 +112,11 @@ public class Princess : MonoBehaviour, ITimeAffectable
                 return;
             }
 
-            PlayerOver playerOver = FindObjectOfType<PlayerOver>();
-            if (playerOver != null && playerOver.IsDisabled)
-            {
-                // "플레이어가 행동불능 상태이지만, 공주가 적에게 맞음" => 게임오버
-                Debug.Log("플레이어 죽었고, 공주도 공격받음 => GameOver");
-                GameOver();
-            }
-            else
-            {
-                // 플레이어 살아있든 말든, 공주 맞으면 GameOver
-                Debug.Log("일반 게임오버");
-                GameOver();
-            }
+
+            // 플레이어 살아있든 말든, 공주 맞으면 GameOver
+            Debug.Log("일반 게임오버");
+            GameOver();
+
         }
     }
 
@@ -198,6 +199,11 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
         Debug.DrawRay(groundCheck.position, Vector2.down * fallThreshold, Color.red);
         return false;
+    }
+
+    public void ResetToDefaultPosition()
+    {
+        transform.position = defaultStartPosition;
     }
 
     // 보호막 활성화: 일정 시간 동안 보호막 효과 적용 (색상 변경)

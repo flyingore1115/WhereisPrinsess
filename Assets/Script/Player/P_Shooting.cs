@@ -102,6 +102,11 @@ public class P_Shooting : MonoBehaviour
             bulletUI.SetActive(false);
     }
 
+    public void HideBulletUI()
+    {
+        bulletUI.SetActive(false);
+    }
+
     private void Reload()
     {
         TimeStopController timeStopController = FindObjectOfType<TimeStopController>();

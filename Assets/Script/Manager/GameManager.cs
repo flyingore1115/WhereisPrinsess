@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[GameManager] Instance가 할당되었습니다.");
         }
         else
         {
@@ -22,19 +23,36 @@ public class GameManager : MonoBehaviour
 
     public void NewGame()
     {
+        // 1) 체크포인트 파일 삭제 및 이전 체크포인트 데이터 클리어
+
+        Debug.Log("[GameInitializer] Start, hasCheckpoint=" + TimePointManager.Instance.HasCheckpoint());
+        
         SaveLoadManager.DeleteCheckpoint();
         LoadedCheckpoint = null;
-        MySceneManager.Instance.LoadScene("GameScene"); // 씬매니저를 통해 씬 이동
+        TimePointManager.Instance.SetCheckpointData(null);
+        TimePointManager.Instance.ClearCheckpointFlag();
+
+        // 2) Rewind 스냅샷 전부 삭제
+        if (RewindManager.Instance != null)
+            RewindManager.Instance.ClearSnapshots();
+
+        // 3) 메인 게임 씬 로드
+        SceneManager.LoadScene("New_Game", LoadSceneMode.Single);
     }
 
     public void ContinueGame()
     {
         TimePointData data;
+        
+        // 파일에서 체크포인트 로드
         if (SaveLoadManager.LoadCheckpoint(out data))
         {
             Debug.Log("[GameManager] 체크포인트 불러오기 성공");
             LoadedCheckpoint = data;
-            MySceneManager.Instance.LoadScene("New_Game");  // 이어하기 씬 이동
+            TimePointManager.Instance.SetCheckpointData(data);
+
+            // 메인 게임 씬 로드
+            MySceneManager.Instance.LoadScene("New_Game");
         }
         else
         {
