@@ -42,14 +42,12 @@ public class GameManager : MonoBehaviour
 
     public void ContinueGame()
     {
-        TimePointData data;
-        
-        // 파일에서 체크포인트 로드
-        if (SaveLoadManager.LoadCheckpoint(out data))
+        GameStateData gameStateData;
+        if (SaveLoadManager.LoadCheckpoint(out gameStateData))
         {
             Debug.Log("[GameManager] 체크포인트 불러오기 성공");
-            LoadedCheckpoint = data;
-            TimePointManager.Instance.SetCheckpointData(data);
+            LoadedCheckpoint = gameStateData.checkpointData; // 수정된 부분
+            TimePointData checkpointData = gameStateData.checkpointData;
 
             // 메인 게임 씬 로드
             MySceneManager.Instance.LoadScene("New_Game");
@@ -60,4 +58,5 @@ public class GameManager : MonoBehaviour
             NewGame();
         }
     }
+
 }
