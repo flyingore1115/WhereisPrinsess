@@ -7,12 +7,14 @@ public static class SaveLoadManager
 {
     private static string filePath = System.IO.Path.Combine(Application.persistentDataPath, "checkpoint.json");
 
-    public static void PointCheck(TimePointData data)
+// SaveLoadManager.cs 예시
+    public static void PointCheck(GameStateData data)
     {
         string json = JsonUtility.ToJson(data);
         System.IO.File.WriteAllText(filePath, json);
         Debug.Log($"[SaveLoadManager] 체크포인트 저장: {filePath}");
     }
+
 
     public static bool LoadCheckpoint(out TimePointData data)
     {

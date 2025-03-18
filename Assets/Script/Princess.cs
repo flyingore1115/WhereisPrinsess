@@ -37,6 +37,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public Material grayscaleMaterial;
     private Material originalMaterial;
 
+    void Awake()
+    {
+        Debug.Log($"[Princess] Awake() => transform.position = {transform.position}");
+        defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
+    }
+
     void Start()
     {
 
@@ -49,9 +55,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
 
-        Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
-
-        defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
+        
 
         Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }

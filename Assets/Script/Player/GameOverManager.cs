@@ -10,7 +10,6 @@ public class GameOverManager : MonoBehaviour
     public GameObject princess;          // 공주 오브젝트 (카메라 이동 기준)
     public GameObject player;            // 플레이어 오브젝트
     public Camera mainCamera;            // 메인 카메라
-    // RewindManager는 인스펙터 할당 대신 싱글톤 RewindManager.Instance를 사용합니다.
     public CameraFollow cameraFollow;    // 카메라 팔로우 스크립트
 
     private List<ITimeAffectable> timeAffectedObjects;
@@ -22,11 +21,13 @@ public class GameOverManager : MonoBehaviour
 
     IEnumerator GameOverRoutine()
     {
-        // 게임오버 시 플레이어 입력 완전 무시
+        // 게임오버 시 플레이어 입력 무시 및 게임오버 상태 설정
         Player playerScript = player.GetComponent<Player>();
         if (playerScript != null)
         {
             playerScript.ignoreInput = true;
+            playerScript.isGameOver = true;               // 애니메이션 정지를 위한 플래그
+            playerScript.applyRewindGrayscale = true;       // 강제로 그레이스케일 적용
         }
 
         // 총알 UI 숨김
@@ -36,7 +37,7 @@ public class GameOverManager : MonoBehaviour
             shooting.HideBulletUI();
         }
 
-        // 모든 ITimeAffectable 오브젝트에 흑백 효과 적용
+        // 모든 ITimeAffectable 오브젝트에 흑백 효과 적용 (게임오버 모드에서는 플레이어 애니메이션도 멈춤)
         FindTimeAffectedObjects();
         foreach (var obj in timeAffectedObjects)
         {
@@ -74,7 +75,7 @@ public class GameOverManager : MonoBehaviour
             yield return StartCoroutine(SmoothCameraTransition(mainCamera, player.transform.position, 6f, 1f));
         }
 
-        // 되감기 로직: 인스펙터에 할당된 rewindManager 대신 싱글톤 RewindManager.Instance 사용
+        // 되감기 실행
         if (RewindManager.Instance != null)
         {
             RewindManager.Instance.StartRewind();
@@ -88,14 +89,14 @@ public class GameOverManager : MonoBehaviour
             Debug.LogError("RewindManager.Instance가 존재하지 않습니다!");
         }
 
-        // 되감기 종료 후 모든 ITimeAffectable 오브젝트의 원래 색상 복구
+        // 되감기 종료 후 모든 ITimeAffectable 오브젝트 원래 상태 복구
         foreach (var obj in timeAffectedObjects)
         {
             obj.ResumeTime();
         }
         Debug.Log("되감기 종료: 흑백 효과 복구됨.");
 
-        // 카메라를 기본 타겟 및 기본 줌으로 부드럽게 복구
+        // 카메라 기본 상태 복귀
         if (cameraFollow != null)
         {
             cameraFollow.SetTarget(cameraFollow.defaultTarget);

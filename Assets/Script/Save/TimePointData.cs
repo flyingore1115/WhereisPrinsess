@@ -28,6 +28,9 @@ namespace MyGame
         public int playerBulletCount;
         public float playerGauge;
         public List<string> unlockedSkills;
+        public int playerHealth;
+        public float playerTimeEnergy;
+
     }
 
     [Serializable]
@@ -38,10 +41,14 @@ namespace MyGame
         public Vector2 playerVelocity;
         public Vector2 princessVelocity;
 
+        public List<string> unlockedSkills;
+
         // 애니메이션 상태
         public string playerAnimationState;
         public float playerNormalizedTime;
         public string princessAnimationState;
         public float princessNormalizedTime;
+
+        
     }
 }
