@@ -260,7 +260,16 @@ public class RewindManager : MonoBehaviour
             ));
         }
 
+        // 이제 플레이어가 여전히 Disable 상태이면 OnRewindComplete() 호출
+        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        if (playerOver != null && playerOver.IsDisabled)
+        {
+            Debug.Log("[RewindManager] 되감기 후에도 플레이어가 Disable -> OnRewindComplete 호출");
+            playerOver.OnRewindComplete(playerOver.transform.position);
+        }
+
         snapshots.Clear();
+        Debug.Log("[RewindManager] Rewind End");
 
         if (pRb != null) pRb.isKinematic = false;
         if (cRb != null) cRb.isKinematic = false;

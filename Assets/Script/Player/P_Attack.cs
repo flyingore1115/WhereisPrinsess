@@ -6,6 +6,8 @@ public class P_Attack : MonoBehaviour
     public float attackRange = 10f;
     public float attackMoveSpeed = 150f;
 
+    public int damageAmount = 2;
+
     private Rigidbody2D rb;
     private Collider2D playerCollider;
     private bool isAttacking;
@@ -61,10 +63,10 @@ public class P_Attack : MonoBehaviour
         }
         
         // 기존 Destroy 대신 적의 TakeDamage() 호출
-        BaseEnemy enemyScript = enemyObj.GetComponent<BaseEnemy>();
-        if (enemyScript != null)
+        BaseEnemy enemy = enemyObj.GetComponent<BaseEnemy>();
+        if (enemy != null)
         {
-            enemyScript.TakeDamage();
+            enemy.TakeDamage(damageAmount);
         }
         else
         {

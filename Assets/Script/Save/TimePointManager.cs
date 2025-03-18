@@ -69,6 +69,8 @@ public class TimePointManager : MonoBehaviour
                 esd.enemyID = enemy.enemyID;
                 esd.position = enemy.transform.position;
                 esd.localScale = enemy.transform.localScale;
+                esd.health = enemy.currentHealth;
+                
                 data.enemyStates.Add(esd);
             }
         }
@@ -182,25 +184,32 @@ public class TimePointManager : MonoBehaviour
             );
             if (candidate != null && !matched.Contains(candidate))
             {
-                // 위치/스케일 복원
                 candidate.transform.position = esd.position;
                 candidate.transform.localScale = esd.localScale;
 
-                // ExplosiveEnemy라면 isActivated, isExploding 초기화
+                // ExplosiveEnemy라면 추가 상태 초기화
                 ExplosiveEnemy ex = candidate as ExplosiveEnemy;
                 if (ex != null) ex.ResetOnRewind();
 
-                // 지금이 "죽어있던" 적이면 isDead=false + SetActive(true)
+                // 죽은 적이라면 활성화
                 if (candidate.isDead && !candidate.gameObject.activeInHierarchy)
                 {
                     candidate.isDead = false;
                     candidate.gameObject.SetActive(true);
                 }
 
+                candidate.SetHealth(esd.health);
+                
+                // **피격 상태 리셋 호출**
+                candidate.ResetDamageState();
+                // 그리고 일반 상태로 복원 (ResumeTime() 호출)
+                candidate.ResumeTime();
+
                 matched.Add(candidate);
             }
         }
     }
+
 
 
     /// <summary>

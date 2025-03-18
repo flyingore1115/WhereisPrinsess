@@ -6,6 +6,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     private Rigidbody2D rb;
     private bool isTimeStopped = false;
     private Vector2 direction;
+    public int damageAmount = 1;
 
     void Awake()
     {
@@ -45,7 +46,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
             var enemy = collision.GetComponent<BaseEnemy>();
             if (enemy != null)
             {
-                enemy.TakeDamage();
+                enemy.TakeDamage(damageAmount);
             }
             else
             {

@@ -703,7 +703,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1 &167005524
 GameObject:
@@ -843,8 +846,11 @@ MonoBehaviour:
   attack: {fileID: 186933926}
   shooting: {fileID: 186933928}
   ignoreInput: 0
+  isGameOver: 0
   grayscaleMaterial: {fileID: 2100000, guid: d6245728b4e0552489113de175c4b71d, type: 2}
   applyRewindGrayscale: 0
+  health: 100
+  timeEnergy: 100
 --- !u!50 &186933917
 Rigidbody2D:
   serializedVersion: 4
@@ -1027,6 +1033,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackRange: 12
   attackMoveSpeed: 150
+  damageAmount: 1
 --- !u!114 &186933927
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1039,8 +1046,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a4ae38a810636489025cf858791a69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
-  jumpForce: 5
+  moveSpeed: 8
+  jumpForce: 8
   groundCheck: {fileID: 1080160637}
   groundCheckRadius: 0.2
   groundLayer:
@@ -1768,7 +1775,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 922.26
+      value: 970.38
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1813,7 +1820,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1 &515887506
 GameObject:
@@ -3868,10 +3878,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1503884686}
     m_Modifications:
-    - target: {fileID: 736015699955842977, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
-      propertyPath: m_Mass
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 881.35004
@@ -3919,7 +3925,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1 &1180779384
 GameObject:
@@ -5060,7 +5069,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1 &1588282577
 GameObject:
@@ -5300,7 +5312,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1 &1679911375
 GameObject:
@@ -5415,7 +5430,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74cd2db5d0a60b145a923a550a5b6af5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
+  moveSpeed: 5
   groundCheck: {fileID: 1427679616}
   groundCheckSize: {x: 0.5, y: 0.1}
   groundLayer:
@@ -6915,7 +6930,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3853711683808895757, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

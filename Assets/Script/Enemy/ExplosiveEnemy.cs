@@ -15,12 +15,16 @@ public class ExplosiveEnemy : BaseEnemy
     protected override void Awake()
     {
         base.Awake();
+        maxHealth = 2;
+        currentHealth = maxHealth;
+        UpdateHealthDisplay();
     }
 
     void Update()
     {
         // 시간 정지나 폭발 중이면 업데이트하지 않음
         if (isTimeStopped || isExploding) return;
+        if (isStunned) return;
 
         // 감지 전이면 타겟 감지 진행
         if (!isActivated && !isAggroOnPlayer)
@@ -56,24 +60,36 @@ public class ExplosiveEnemy : BaseEnemy
 
     void MoveTowardsTarget()
     {
-        // 어그로 상태이면 플레이어, 아니면 공주를 대상으로 함
         Transform target = isAggroOnPlayer ? player : princess;
+        if (target == null) return;
 
+        Vector2 direction = target.position - transform.position;
+
+        float dx = target.position.x - transform.position.x;
+        // if dx < 0 → 왼쪽, 오른쪽 바라보게 하려면 flipX=false
+        spriteRenderer.flipX = (dx > 0);
+        // or if (dx < 0) spriteRenderer.flipX=false; else true;
+
+
+        // 2) 폭발 범위 체크
         if (Vector2.Distance(transform.position, target.position) <= explosionRadius)
         {
-            // 폭발 조건에 도달하면 폭발 코루틴 시작
             StartCoroutine(Explode());
         }
         else
         {
-            // 목표 지점을 향해 이동
-            transform.position = Vector2.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(
+                transform.position, 
+                target.position, 
+                moveSpeed * Time.deltaTime
+            );
             if (animator != null)
             {
                 animator.SetBool("isWalking", true);
             }
         }
     }
+
 
     private IEnumerator Explode()
     {
@@ -101,7 +117,7 @@ public class ExplosiveEnemy : BaseEnemy
 
         // 폭발 후 적을 파괴하는 대신, 죽음 상태 표시 및 비활성화 처리
         isDead = true;
-        gameObject.SetActive(false);
+        Die();
     }
 
     public override void StopTime()

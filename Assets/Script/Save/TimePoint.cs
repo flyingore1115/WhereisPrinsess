@@ -1,49 +1,75 @@
 using UnityEngine;
-using MyGame;
 
 public class TimePoint : MonoBehaviour
 {
-    private bool isUsed = false;  // ★ 추가: 이미 사용된 체크포인트인가?
+    private bool isUsed = false;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 공주가 체크포인트에 닿았을 때만 작동
-        if (collision.CompareTag("Princess"))
+        // 공주 태그에만 반응
+        if (!collision.CompareTag("Princess")) return;
+        if (isUsed) return;
+        isUsed = true;
+
+        Princess princess = collision.GetComponent<Princess>();
+        if (princess == null) return;
+
+        // 플레이어 / PlayerOver
+        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        Player player = FindObjectOfType<Player>();
+        if (player == null || playerOver == null) return;
+
+        // ★ 플레이어가 '행동불능' 상태인 경우 => 부활 절차
+        if (playerOver.IsDisabled)
         {
-            // 이미 이 체크포인트 사용됨
-            if (isUsed) return;
+            Debug.Log("[TimePoint] 플레이어가 Disable 상태이므로 '부활' 시퀀스 실행");
 
-            Princess princess = collision.GetComponent<Princess>();
-            PlayerOver playerOver = FindObjectOfType<PlayerOver>();
-            if (princess == null || playerOver == null) return;
+            // 1) 체크포인트 저장
+            TimePointManager.Instance.SaveCheckpoint(
+                princess.transform.position,
+                player.transform.position
+            );
 
-            // 실제 공주/플레이어 참조
-            Princess actualPrincess = FindObjectOfType<Princess>();
-            Player actualPlayer = FindObjectOfType<Player>();
-            if (actualPrincess == null || actualPlayer == null) return;
+            // 2) 플레이어를 체크포인트 위치(=공주 위치)로 이동 + 부활(체력 복원)
+            //    - ImmediateRevive() 쓰거나, 직접 OnRewindComplete() 호출 등 원하는 방식
+            TimePointManager.Instance.ImmediateRevive();
 
-            // 일단 체크포인트 사용 처리
-            isUsed = true;
-
-            // (원하는 경우) 콜라이더 제거
-            // Destroy(GetComponent<Collider2D>());
-            // or GetComponent<Collider2D>().enabled = false;
-
-            // 플레이어가 행동불능 상태라면 즉시 부활 로직
-            if (playerOver.IsDisabled)
-            {
-                TimePointManager.Instance.SaveCheckpoint(actualPrincess.transform.position,
-                                                         actualPlayer.transform.position);
-            }
-            else
-            {
-                // 플레이어 정상 상태 -> 기존대로 체크포인트 저장
-                TimePointManager.Instance.SaveCheckpoint(princess.transform.position,
-                                                         actualPlayer.transform.position);
-            }
-
-            // 사운드 추가
-            // SoundManager.Instance.PlaySFX("");
+            // 3) 공주를 멈추고, 일정 흐름 후 재개
+            StartCoroutine(CoStopPrincessAndResume(princess));
         }
+        else
+        {
+            // ★ 평소대로 체크포인트 저장만
+            Debug.Log("[TimePoint] 일반 체크포인트 저장");
+            TimePointManager.Instance.SaveCheckpoint(
+                princess.transform.position,
+                player.transform.position
+            );
+        }
+    }
+
+    /// <summary>
+    /// 공주를 잠시 멈추고, 사용자 입력이 들어오면 재개시키는 흐름
+    /// </summary>
+    private System.Collections.IEnumerator CoStopPrincessAndResume(Princess princess)
+    {
+        // (선택) 공주 이동 정지
+        Rigidbody2D rb = princess.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.velocity = Vector2.zero;
+        // Princess.cs에 public bool stopMovement 추가 가능
+        princess.isControlled = true; 
+        // → FixedUpdate()에서 isControlled면 이동 안 함
+
+        Debug.Log("[TimePoint] 공주 일시 정지. 아무 키(또는 마우스)를 눌러 재개");
+
+        // 사용자 입력 대기
+        while (!Input.anyKeyDown) 
+        {
+            yield return null;
+        }
+
+        // 공주 재개
+        princess.isControlled = false;
+        Debug.Log("[TimePoint] 공주 이동 재개 완료");
     }
 }

@@ -11,6 +11,8 @@ namespace MyGame
         public int enemyID;         // 고유 ID
         public Vector2 position;    // 위치
         public Vector2 localScale;  // 로컬 스케일
+
+        public int health; //체력
     }
 
     [Serializable]
