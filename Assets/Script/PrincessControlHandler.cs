@@ -38,7 +38,7 @@ public class PrincessControlHandler : MonoBehaviour
 
     void Start()
     {
-        player = FindObjectOfType<Player>();
+        player = FindFirstObjectByType<Player>();
 
         if (Camera.main != null)
         {

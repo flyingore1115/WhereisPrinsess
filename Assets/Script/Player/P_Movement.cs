@@ -45,7 +45,7 @@ public class P_Movement : MonoBehaviour
         // 입력 무시 플래그가 true이면, 이동 입력을 아예 무시하고 Idle 상태 유지
         if (player != null && player.ignoreInput)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("isRun", false);
             // 옵션: FirePoint 위치를 기본 위치로 복원할 수 있음
             return;
@@ -69,8 +69,8 @@ public class P_Movement : MonoBehaviour
         if (attackIsActive) return;
 
         float moveInput = Input.GetAxisRaw("Horizontal");
-        Vector2 movementVector = new Vector2(moveInput * moveSpeed, rb.velocity.y);
-        rb.velocity = movementVector;
+        Vector2 movementVector = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        rb.linearVelocity = movementVector;
 
         if (moveInput != 0)
         {

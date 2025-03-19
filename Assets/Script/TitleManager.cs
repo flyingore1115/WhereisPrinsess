@@ -17,7 +17,7 @@ public class TitleManager : MonoBehaviour
 
     public void TitleLoad()
     {
-        SceneManager.LoadScene("Start");
+        SceneManager.LoadScene("MainMenu");
         // 강제로 타임스케일을 1로 설정
         Time.timeScale = 1f;   
     }

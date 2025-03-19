@@ -7,7 +7,6 @@ public class Player : MonoBehaviour, ITimeAffectable
     private Animator animator;
     private Collider2D playerCollider;
     private SpriteRenderer spriteRenderer;
-    private CameraShake cameraShake;
 
     public P_Movement movement;
     public P_Attack attack;
@@ -34,10 +33,9 @@ public class Player : MonoBehaviour, ITimeAffectable
         animator = GetComponent<Animator>();
         playerCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        cameraShake = Camera.main.GetComponent<CameraShake>();
 
         movement.Init(rb, animator, spriteRenderer, shooting.firePoint);
-        attack.Init(rb, playerCollider, cameraShake);
+        attack.Init(rb, playerCollider);
 
         if (spriteRenderer != null)
         {
@@ -49,7 +47,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     {
         if (ignoreInput)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("isRun", false);
             return;
         }
@@ -79,11 +77,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     {
         // 되감기 모드에서는 applyRewindGrayscale 조건으로 처리하고,
         // 게임오버 시(isGameOver true)에는 강제로 그레이스케일 및 애니메이션 정지
-        if ((applyRewindGrayscale || isGameOver) && spriteRenderer != null && grayscaleMaterial != null)
-        {
-            spriteRenderer.material = new Material(grayscaleMaterial);
-            spriteRenderer.color = Color.white;
-        }
+        PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null && isGameOver)
         {
             animator.speed = 0;
@@ -96,14 +90,7 @@ public class Player : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        RestoreColor();
+        PostProcessingManager.Instance.SetDefaultEffects();
     }
 
-    public void RestoreColor()
-    {
-        if (spriteRenderer != null && originalMaterial != null)
-        {
-            spriteRenderer.material = originalMaterial;
-        }
-    }
 }

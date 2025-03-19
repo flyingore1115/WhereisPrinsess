@@ -116,8 +116,8 @@ public class RewindManager : MonoBehaviour
         TimeSnapshot snap = new TimeSnapshot();
         snap.playerPosition   = player.transform.position;
         snap.princessPosition = princess.transform.position;
-        snap.playerVelocity   = (pRb != null) ? pRb.velocity : Vector2.zero;
-        snap.princessVelocity = (cRb != null) ? cRb.velocity : Vector2.zero;
+        snap.playerVelocity   = (pRb != null) ? pRb.linearVelocity : Vector2.zero;
+        snap.princessVelocity = (cRb != null) ? cRb.linearVelocity : Vector2.zero;
 
         if (playerAnimator != null)
         {
@@ -212,10 +212,12 @@ public class RewindManager : MonoBehaviour
         float originalTimeScale = Time.timeScale;
         Time.timeScale = 0.3f;
 
+        PostProcessingManager.Instance.ApplyRewind();
+
         Rigidbody2D pRb = (player) ? player.GetComponent<Rigidbody2D>() : null;
         Rigidbody2D cRb = (princess) ? princess.GetComponent<Rigidbody2D>() : null;
-        if (pRb != null) pRb.isKinematic = true;
-        if (cRb != null) cRb.isKinematic = true;
+        if (pRb != null) pRb.bodyType = RigidbodyType2D.Kinematic;
+        if (cRb != null) cRb.bodyType = RigidbodyType2D.Kinematic;
 
         Player pScript = player ? player.GetComponent<Player>() : null;
         if (pScript != null)
@@ -239,9 +241,9 @@ public class RewindManager : MonoBehaviour
             princess.transform.position = Vector3.Lerp(snap1.princessPosition, snap2.princessPosition, 0.5f);
 
             if (pRb != null)
-                pRb.velocity = Vector2.Lerp(snap1.playerVelocity,   snap2.playerVelocity,   0.5f);
+                pRb.linearVelocity = Vector2.Lerp(snap1.playerVelocity,   snap2.playerVelocity,   0.5f);
             if (cRb != null)
-                cRb.velocity = Vector2.Lerp(snap1.princessVelocity, snap2.princessVelocity, 0.5f);
+                cRb.linearVelocity = Vector2.Lerp(snap1.princessVelocity, snap2.princessVelocity, 0.5f);
 
             if (playerAnimator != null)
                 playerAnimator.Play(int.Parse(snap1.playerAnimationState), 0, snap1.playerNormalizedTime);
@@ -261,7 +263,7 @@ public class RewindManager : MonoBehaviour
         }
 
         // 이제 플레이어가 여전히 Disable 상태이면 OnRewindComplete() 호출
-        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
         if (playerOver != null && playerOver.IsDisabled)
         {
             Debug.Log("[RewindManager] 되감기 후에도 플레이어가 Disable -> OnRewindComplete 호출");
@@ -271,8 +273,8 @@ public class RewindManager : MonoBehaviour
         snapshots.Clear();
         Debug.Log("[RewindManager] Rewind End");
 
-        if (pRb != null) pRb.isKinematic = false;
-        if (cRb != null) cRb.isKinematic = false;
+        if (pRb != null) pRb.bodyType = RigidbodyType2D.Dynamic;
+        if (cRb != null) cRb.bodyType = RigidbodyType2D.Dynamic;
 
         if (pScript != null)
         {
@@ -281,6 +283,7 @@ public class RewindManager : MonoBehaviour
         }
 
         ApplyGrayscaleEffect(false);
+        PostProcessingManager.Instance.SetDefaultEffects();
 
         Time.timeScale = originalTimeScale;
         isRewinding = false;
@@ -289,7 +292,7 @@ public class RewindManager : MonoBehaviour
 
     void FindTimeAffectedObjects()
     {
-        timeAffectedObjects = FindObjectsOfType<MonoBehaviour>()
+        timeAffectedObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
             .OfType<ITimeAffectable>()
             .ToList();
     }

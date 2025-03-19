@@ -11,13 +11,11 @@ public class P_Attack : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D playerCollider;
     private bool isAttacking;
-    private CameraShake cameraShake;
 
-    public void Init(Rigidbody2D rb, Collider2D playerCollider, CameraShake cameraShake)
+    public void Init(Rigidbody2D rb, Collider2D playerCollider)
     {
         this.rb = rb;
         this.playerCollider = playerCollider;
-        this.cameraShake = cameraShake;
     }
 
     public bool IsAttacking => isAttacking;
@@ -42,13 +40,8 @@ public class P_Attack : MonoBehaviour
     {
         isAttacking = true;
         rb.gravityScale = 0;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         playerCollider.enabled = false;
-
-        if (cameraShake != null)
-        {
-            StartCoroutine(cameraShake.Shake(0.05f, 0.2f));
-        }
 
         // 플레이어가 적에게 접근
         while (Vector2.Distance(transform.position, enemyObj.transform.position) > 0.1f)

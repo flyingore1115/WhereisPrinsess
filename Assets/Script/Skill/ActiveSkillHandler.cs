@@ -118,11 +118,11 @@ public class ActiveSkillHandler : MonoBehaviour
 
             case "체력 되감기":
                 float energyCost = 20f;
-                TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
+                TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
                 if (timeStopController != null && timeStopController.currentTimeGauge >= energyCost)
                 {
                     timeStopController.currentTimeGauge -= energyCost;
-                    PlayerOver maid = FindObjectOfType<PlayerOver>();
+                    PlayerOver maid = FindFirstObjectByType<PlayerOver>();
                     if (maid != null)
                     {
                         maid.RestoreHealth(1);

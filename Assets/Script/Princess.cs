@@ -68,18 +68,18 @@ public class Princess : MonoBehaviour, ITimeAffectable
         // 조종 모드일 경우, 외부(PrincessControlHandler)에서 이동 처리하므로 기본 이동하지 않음.
         if (isControlled)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             return;
         }
 
         // 기본적으로 공주는 우측으로 이동 (땅에 닿아 있을 때)
         if (!isGameOver && isGrounded)
         {
-            rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
         }
         else if (!isGrounded && !isGameOver)
         {
-            rb.velocity = new Vector2(0, rb.velocity.y);
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         }
     }
 
@@ -93,7 +93,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
 
         // 시간 정지 중이면 충돌 무시
-        TimeStopController tsc = FindObjectOfType<TimeStopController>();
+        TimeStopController tsc = FindFirstObjectByType<TimeStopController>();
         if (tsc != null && tsc.IsTimeStopped)
         {
             return;
@@ -126,7 +126,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public void GameOver()
     {
-        GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
+        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
         if (gameOverManager != null)
         {
             gameOverManager.TriggerGameOver();
@@ -173,7 +173,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
     private IEnumerator DelayedRewind()
     {
         yield return new WaitForSecondsRealtime(0.2f);
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         Time.timeScale = 1f;
         TimePointManager.Instance.RewindToCheckpoint();
     }
@@ -186,7 +186,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
             animator.SetTrigger("isDie");
         }
         Debug.Log("Game Over");
-        GameOverManager gameOverManager = FindObjectOfType<GameOverManager>();
+        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
         if (gameOverManager != null)
         {
             //StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
@@ -254,10 +254,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
     {
         if (this == null || spriteRenderer == null) return;
         isTimeStopped = true;
-        if (grayscaleMaterial != null)
-        {
-            spriteRenderer.material = grayscaleMaterial;
-        }
+        PostProcessingManager.Instance.SetDefaultEffects();
         if (animator != null)
         {
             animator.speed = 0;
@@ -266,8 +263,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-            rb.velocity = Vector2.zero;
-            rb.isKinematic = true;
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+
         }
     }
 
@@ -279,19 +277,13 @@ public class Princess : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        RestoreColor();
+        PostProcessingManager.Instance.SetDefaultEffects();
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-            rb.isKinematic = false;
+            rb.bodyType = RigidbodyType2D.Dynamic;
         }
-    }
-
-    public void RestoreColor()
-    {
-        if (this == null || spriteRenderer == null) return;
-        spriteRenderer.material = originalMaterial;
     }
 
     // 추가: 여벌 목숨을 외부에서 바로 추가할 수 있는 메서드

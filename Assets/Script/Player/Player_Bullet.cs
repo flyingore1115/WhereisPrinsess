@@ -12,7 +12,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     {
         rb = GetComponent<Rigidbody2D>();
         // 등록: TimeStopController에 자신을 등록
-        TimeStopController tsc = FindObjectOfType<TimeStopController>();
+        TimeStopController tsc = FindFirstObjectByType<TimeStopController>();
         if (tsc != null)
         {
             tsc.RegisterTimeAffectedObject(this);
@@ -35,7 +35,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     void FixedUpdate()
     {
         if (isTimeStopped) return;
-        rb.velocity = direction * speed;
+        rb.linearVelocity = direction * speed;
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -57,7 +57,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
             Destroy(gameObject);
 
             // 시간 게이지 충전
-            TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
+            TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
             if (timeStopController != null)
             {
                 timeStopController.AddTimeGauge(5f);
@@ -68,7 +68,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     void OnDestroy()
     {
         // 파괴될 때 TimeStopController 목록에서 제거
-        TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
+        TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
         if (timeStopController != null)
         {
             timeStopController.RemoveTimeAffectedObject(this);
@@ -78,7 +78,7 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     public void StopTime()
     {
         isTimeStopped = true;
-        rb.velocity = Vector2.zero; // 속도 0 설정
+        rb.linearVelocity = Vector2.zero; // 속도 0 설정
         rb.simulated = false;       // 물리 시뮬레이션 중단
     }
 

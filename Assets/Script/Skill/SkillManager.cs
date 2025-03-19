@@ -13,7 +13,7 @@ public class SkillManager : MonoBehaviour
 
     void Awake()
     {
-        skillEffectHandler = FindObjectOfType<SkillEffectHandler>();
+        skillEffectHandler = FindFirstObjectByType<SkillEffectHandler>();
 
 
         // 게임 시작 시 모든 스킬을 자동 획득
@@ -52,7 +52,7 @@ public class SkillManager : MonoBehaviour
             if (skill.skillName == "공주 보호막" && acquiredSkills[skill] >= skill.maxLevel)
             {
                 // Princess 인스턴스 찾기
-                Princess princess = FindObjectOfType<Princess>();
+                Princess princess = FindFirstObjectByType<Princess>();
                 if (princess != null)
                 {
                     princess.AddExtraLife();

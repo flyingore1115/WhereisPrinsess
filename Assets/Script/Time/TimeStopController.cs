@@ -79,7 +79,6 @@ public class TimeStopController : MonoBehaviour
                 if (affectable != null)
                 {
                     affectable.ResumeTime();
-                    affectable.RestoreColor();
                 }
             }
         }
@@ -149,7 +148,7 @@ public class TimeStopController : MonoBehaviour
 
     void FindTimeAffectedObjects()
     {
-        var affectables = FindObjectsOfType<MonoBehaviour>().OfType<ITimeAffectable>();
+        var affectables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ITimeAffectable>();
         timeAffectedObjects.AddRange(affectables);
     }
 

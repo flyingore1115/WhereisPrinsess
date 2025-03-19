@@ -2,37 +2,15 @@ using UnityEngine;
 
 public class TimeAffectable : MonoBehaviour, ITimeAffectable
 {
-    public Material grayscaleMaterial;
-    private Material originalMaterial;
-    private SpriteRenderer spriteRenderer;
-
-    void Start()
-    {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            originalMaterial = spriteRenderer.sharedMaterial;
-        }
-    }
-
     public void StopTime()
     {
-        if (spriteRenderer != null && grayscaleMaterial != null)
-        {
-            spriteRenderer.material = grayscaleMaterial;
-        }
+        // 시간 정지 시 포스트 프로세싱 효과 적용
+        PostProcessingManager.Instance.ApplyTimeStop();
     }
 
     public void ResumeTime()
     {
-        RestoreColor();
-    }
-
-    public void RestoreColor()
-    {
-        if (spriteRenderer != null && originalMaterial != null)
-        {
-            spriteRenderer.material = originalMaterial;
-        }
+        // 원래 색으로 복원
+        PostProcessingManager.Instance.SetDefaultEffects();
     }
 }

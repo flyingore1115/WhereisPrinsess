@@ -153,13 +153,7 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
         isTimeStopped = true;
         if (grayscaleMaterial != null)
         {
-            Material newGrayMat = new Material(grayscaleMaterial);
-            if (originalMaterial != null && originalMaterial.mainTexture != null)
-            {
-                newGrayMat.mainTexture = originalMaterial.mainTexture;
-            }
-            newGrayMat.color = spriteRenderer.color;
-            spriteRenderer.material = newGrayMat;
+            PostProcessingManager.Instance.ApplyTimeStop();
         }
         if (animator != null)
         {
@@ -175,15 +169,7 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        RestoreColor();
-    }
-
-    public void RestoreColor()
-    {
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.material = originalMaterial;
-        }
+        PostProcessingManager.Instance.SetDefaultEffects();
     }
 
     public virtual void AggroPlayer()

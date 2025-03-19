@@ -32,7 +32,7 @@ public class SniperEnemy : BaseEnemy
 
         if (rb != null)
         {
-            rb.velocity = (princess.position - firePoint.position).normalized * bulletSpeed;
+            rb.linearVelocity = (princess.position - firePoint.position).normalized * bulletSpeed;
         }
     }
 }

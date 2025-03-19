@@ -31,7 +31,7 @@ public class GameOverManager : MonoBehaviour
         }
 
         // 총알 UI 숨김
-        P_Shooting shooting = FindObjectOfType<P_Shooting>();
+        P_Shooting shooting = FindFirstObjectByType<P_Shooting>();
         if (shooting != null)
         {
             shooting.HideBulletUI();
@@ -43,7 +43,8 @@ public class GameOverManager : MonoBehaviour
         {
             obj.StopTime();
         }
-        Debug.Log("게임오버: 흑백 효과 적용됨.");
+        PostProcessingManager.Instance.ApplyGameOver();
+
 
         // 카메라를 공주 쪽으로 부드럽게 전환 (줌 인)
         if (cameraFollow != null && princess != null)
@@ -130,6 +131,6 @@ public class GameOverManager : MonoBehaviour
 
     void FindTimeAffectedObjects()
     {
-        timeAffectedObjects = FindObjectsOfType<MonoBehaviour>().OfType<ITimeAffectable>().ToList();
+        timeAffectedObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ITimeAffectable>().ToList();
     }
 }

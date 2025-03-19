@@ -15,8 +15,8 @@ public class TimePoint : MonoBehaviour
         if (princess == null) return;
 
         // 플레이어 / PlayerOver
-        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
-        Player player = FindObjectOfType<Player>();
+        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
+        Player player = FindFirstObjectByType<Player>();
         if (player == null || playerOver == null) return;
 
         // ★ 플레이어가 '행동불능' 상태인 경우 => 부활 절차
@@ -55,7 +55,7 @@ public class TimePoint : MonoBehaviour
     {
         // (선택) 공주 이동 정지
         Rigidbody2D rb = princess.GetComponent<Rigidbody2D>();
-        if (rb != null) rb.velocity = Vector2.zero;
+        if (rb != null) rb.linearVelocity = Vector2.zero;
         // Princess.cs에 public bool stopMovement 추가 가능
         princess.isControlled = true; 
         // → FixedUpdate()에서 isControlled면 이동 안 함

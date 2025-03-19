@@ -49,6 +49,8 @@ public class PlayerOver : MonoBehaviour
     {
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        PostProcessingManager.Instance.ApplyCharacterHitEffect(0.5f);
         if (heartUI != null)
             heartUI.UpdateHearts(currentHealth, maxHealth);
 
@@ -66,7 +68,7 @@ public class PlayerOver : MonoBehaviour
         if (StatusTextManager.Instance != null)
             StatusTextManager.Instance.ShowMessage("메이드가 행동불능이 되었습니다!");
 
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
 
         if (player != null)
         {
@@ -75,7 +77,7 @@ public class PlayerOver : MonoBehaviour
         }
 
         // 카메라 타겟을 공주로 전환
-        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
         if (cf != null && princess != null)
         {
             cf.SetTarget(princess.gameObject);
@@ -87,8 +89,8 @@ public class PlayerOver : MonoBehaviour
     {
         // 부활 과정: 플레이어를 즉시 부활시키기 위해, 일단 kinematic으로 고정했다면, 
         // 부활 완료 후 반드시 다시 일반 물리 상태로 전환해야 합니다.
-        rb.isKinematic = false; // 여기서 kinematic 상태를 해제합니다.
-        rb.velocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Kinematic; // 여기서 kinematic 상태를 해제합니다.
+        rb.linearVelocity = Vector2.zero;
         
         transform.position = restoredPosition;
         Debug.Log($"[PlayerOver] OnRewindComplete: 위치 => {restoredPosition}");
@@ -106,7 +108,7 @@ public class PlayerOver : MonoBehaviour
         }
         
         // 카메라 타겟 재설정
-        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
         if (cf != null)
         {
             cf.SetTarget(gameObject);
@@ -122,7 +124,8 @@ public class PlayerOver : MonoBehaviour
     public void ResumeAfterRewind()
     {
         isDisabled = false;
-        rb.isKinematic = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+
 
         if (player != null)
         {

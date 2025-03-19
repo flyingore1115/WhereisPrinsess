@@ -9,7 +9,7 @@ public class SkillEffectHandler : MonoBehaviour
     void Start()
     {
         player = GetComponent<Player>();
-        timeController = FindObjectOfType<TimeStopController>();
+        timeController = FindFirstObjectByType<TimeStopController>();
 
         ApplyPassiveSkills(); // 게임 시작 시 전체 패시브 적용
     }

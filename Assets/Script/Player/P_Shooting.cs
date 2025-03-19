@@ -109,7 +109,7 @@ public class P_Shooting : MonoBehaviour
 
     private void Reload()
     {
-        TimeStopController timeStopController = FindObjectOfType<TimeStopController>();
+        TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
         if (timeStopController.currentTimeGauge < reloadEnergyCost)
         {
             Debug.Log("에너지 부족! 재장전 불가");

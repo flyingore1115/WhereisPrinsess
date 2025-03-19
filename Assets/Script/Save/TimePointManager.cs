@@ -59,7 +59,7 @@ public class TimePointManager : MonoBehaviour
         data.playerPosition = playerPos;
 
         // 적 상태 저장 (기존 로직 유지)
-        BaseEnemy[] enemies = FindObjectsOfType<BaseEnemy>();
+        BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsSortMode.None);
         foreach (BaseEnemy enemy in enemies)
         {
             if (!enemy.isDead && enemy.gameObject.activeInHierarchy)
@@ -81,7 +81,7 @@ public class TimePointManager : MonoBehaviour
         // 플레이어 상태도 함께 저장 (예: 총알, 체력, 시간 에너지)
         GameStateData gameState = new GameStateData();
         gameState.checkpointData = data;
-        Player player = FindObjectOfType<Player>();
+        Player player = FindFirstObjectByType<Player>();
         if (player != null)
         {
             gameState.playerBulletCount = player.shooting.currentAmmo;
@@ -149,6 +149,7 @@ public class TimePointManager : MonoBehaviour
 
         ReactivateDeadEnemies(checkpointData);
         Debug.Log("[TimePointManager] 체크포인트 적용 완료.");
+        
 
         if (waitForInput)
         {
@@ -223,8 +224,8 @@ public class TimePointManager : MonoBehaviour
             return;
         }
 
-        Princess princess = FindObjectOfType<Princess>();
-        Player player = FindObjectOfType<Player>();
+        Princess princess = FindFirstObjectByType<Princess>();
+        Player player = FindFirstObjectByType<Player>();
         if (princess == null || player == null)
         {
             Debug.LogWarning("[TimePointManager] 부활 대상(공주/플레이어) 찾지 못함!");
@@ -235,7 +236,7 @@ public class TimePointManager : MonoBehaviour
         Vector2 targetPos = princess.transform.position;
         player.transform.position = targetPos;
 
-        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
         if (playerOver != null && playerOver.IsDisabled)
         {
             playerOver.OnRewindComplete(targetPos);
@@ -245,10 +246,10 @@ public class TimePointManager : MonoBehaviour
         Rigidbody2D prb = princess.GetComponent<Rigidbody2D>();
         if (prb != null)
         {
-            prb.velocity = Vector2.zero;
+            prb.linearVelocity = Vector2.zero;
         }
 
-        CameraFollow cf = FindObjectOfType<CameraFollow>();
+        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
         if (cf != null)
         {
             cf.SetTarget(player.gameObject);
@@ -278,8 +279,8 @@ public class TimePointManager : MonoBehaviour
     {
         Debug.Log("[TimePointManager] 되감기 시작...");
 
-        Princess princess = FindObjectOfType<Princess>();
-        Player player = FindObjectOfType<Player>();
+        Princess princess = FindFirstObjectByType<Princess>();
+        Player player = FindFirstObjectByType<Player>();
         if (princess == null || player == null)
         {
             Debug.LogWarning("[TimePointManager] 공주/플레이어 찾기 실패!");
@@ -307,7 +308,7 @@ public class TimePointManager : MonoBehaviour
         }
         Time.timeScale = 1f;
 
-        PlayerOver playerOver = FindObjectOfType<PlayerOver>();
+        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
         if (playerOver != null)
         {
             playerOver.ResumeAfterRewind();
