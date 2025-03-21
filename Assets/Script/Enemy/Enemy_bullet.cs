@@ -1,43 +1,94 @@
 using UnityEngine;
 
-public class Enemy_bullet : MonoBehaviour
+public class Enemy_bullet : MonoBehaviour, ITimeAffectable
 {
-
     public float lifetime = 5f;
+    private Rigidbody2D rb;
+    private bool isTimeStopped = false;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+
+        // 시간 정지 시스템에 등록
+        TimeStopController tsc = FindFirstObjectByType<TimeStopController>();
+        if (tsc != null)
+        {
+            tsc.RegisterTimeAffectedObject(this);
+            if (tsc.IsTimeStopped)
+            {
+                StopTime(); // 게임 시작 시 시간 정지 상태라면 즉시 정지
+            }
+        }
+    }
+
     void Start()
     {
         Destroy(gameObject, lifetime);
     }
+
+    void FixedUpdate()
+    {
+        if (isTimeStopped) return;
+    }
+
     void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log($"Bullet collided with: {collision.name}"); // 충돌 감지 확인 로그
+        Debug.Log($"Bullet collided with: {collision.name}");
 
         if (collision.CompareTag("Player"))
         {
             PlayerOver player = collision.GetComponent<PlayerOver>();
             if (player != null)
             {
-                Debug.Log("Player found. Dealing damage."); // 데미지 처리 확인
+                Debug.Log("Player found. Dealing damage.");
                 player.TakeDamage(1);
             }
-
-            Destroy(gameObject); // 총알 제거
+            Destroy(gameObject);
         }
         else if (collision.CompareTag("Princess"))
         {
             Princess princess = collision.GetComponent<Princess>();
             if (princess != null)
             {
-                Debug.Log("Princess hit. Triggering Game Over."); // 공주 타격 확인
+                Debug.Log("Princess hit. Triggering Game Over.");
                 princess.GameOver();
             }
             Destroy(gameObject);
         }
-        
         else
         {
             Destroy(gameObject);
         }
     }
 
+    void OnDestroy()
+    {
+        // 시간 정지 시스템에서 제거
+        TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
+        if (timeStopController != null)
+        {
+            timeStopController.RemoveTimeAffectedObject(this);
+        }
+    }
+
+    // 시간 정지 기능 추가
+    public void StopTime()
+    {
+        isTimeStopped = true;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = false;
+        }
+    }
+
+    public void ResumeTime()
+    {
+        isTimeStopped = false;
+        if (rb != null)
+        {
+            rb.simulated = true;
+        }
+    }
 }

@@ -24,10 +24,23 @@ public class MySceneManager : MonoBehaviour
         SceneManager.LoadScene("New_Game");
     }
 
+    public void MainMenuScene()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void RestartScene()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         Time.timeScale = 1f;
+    }
+
+    public void LoadNextScene()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        int curScene = scene.buildIndex;
+        int nextScene = curScene + 1;
+        SceneManager.LoadScene(nextScene);
     }
 
     public void QuitGame()

@@ -6,14 +6,14 @@ public class P_Shooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public Transform player; // 플레이어 중심, FirePoint의 기준
-    public float firePointRadius = 1.0f; // 플레이어 중심에서 FirePoint까지의 거리
+    public Transform player;
+    public float firePointRadius = 1.0f;
 
     public int currentAmmo = 6;
     public int maxAmmo = 6;
     public TMP_Text ammoText;
 
-    public float reloadEnergyCost = 10f; // 재장전 시 소모량
+    public float reloadEnergyCost = 10f;
 
     [Tooltip("총알 UI가 보여지는 시간 (초)")]
     public float bulletUIDisplayDuration = 0.5f;
@@ -24,38 +24,35 @@ public class P_Shooting : MonoBehaviour
 
     void Update()
     {
-        // FirePoint의 위치와 회전 업데이트
         UpdateFirePointPosition();
 
-        // 재장전 입력 처리
-        if (Input.GetKeyDown(KeyCode.R))
+        // 재장전은 우클릭으로 처리
+        if (Input.GetMouseButtonDown(1))
         {
             Reload();
         }
     }
 
-    /// <summary>
-    /// 플레이어 중심으로 마우스 방향에 따라 FirePoint 위치와 회전을 업데이트합니다.
-    /// </summary>
+    // 반드시 public으로 정의된 HandleShooting() 메서드
+    public void HandleShooting()
+    {
+        if (Input.GetMouseButtonDown(0))  // 좌클릭으로 사격
+        {
+            ShootBullet();
+        }
+    }
+
     private void UpdateFirePointPosition()
     {
         if (player == null || firePoint == null) return;
 
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        // Z축은 0으로 고정
         mousePosition.z = 0;
         Vector2 direction = (mousePosition - player.position).normalized;
         firePoint.position = player.position + (Vector3)direction * firePointRadius;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         firePoint.rotation = Quaternion.Euler(0, 0, angle);
-    }
-
-    public void HandleShooting(){
-        if (Input.GetMouseButtonDown(1))
-        {
-            ShootBullet();
-        }
     }
 
     private void ShootBullet()

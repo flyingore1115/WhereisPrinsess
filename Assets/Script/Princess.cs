@@ -4,6 +4,7 @@ using MyGame;  // MyGame 네임스페이스에 정의된 데이터 클래스(Tim
 
 public class Princess : MonoBehaviour, ITimeAffectable
 {
+    public static Princess Instance { get; private set; }
     public float moveSpeed = 3f;              // 공주 이동 속도
     public Transform groundCheck;             // 발 아래 확인 위치
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f); // 박스 크기
@@ -39,6 +40,15 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         Debug.Log($"[Princess] Awake() => transform.position = {transform.position}");
         defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
     }
@@ -59,6 +69,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
         Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }
+    
 
     void FixedUpdate()
     {

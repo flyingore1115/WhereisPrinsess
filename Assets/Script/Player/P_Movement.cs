@@ -37,7 +37,7 @@ public class P_Movement : MonoBehaviour
         this.spriteRenderer = spriteRenderer;
         this.firePoint = firePoint;
         // Player 컴포넌트는 같은 GameObject에 있으므로 가져옵니다.
-        player = GetComponent<Player>();
+        player = Player.Instance;
     }
 
     void Update()

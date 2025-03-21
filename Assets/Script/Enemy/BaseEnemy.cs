@@ -20,8 +20,9 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
     protected Material originalMaterial;
     public Material grayscaleMaterial;
 
-    // 새롭게 추가된 체력 관련 변수
     public int maxHealth = 3;
+
+    private GameObject orderNumberUIInstance;
     
     [HideInInspector] public int currentHealth;  // 외부 TimePointManager가 접근 가능토록
     public TMP_Text healthDisplay; // 적 위에 표시할 텍스트 (Inspector에서 할당)
@@ -151,10 +152,7 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
     {
         if (this == null || spriteRenderer == null) return;
         isTimeStopped = true;
-        if (grayscaleMaterial != null)
-        {
-            PostProcessingManager.Instance.ApplyTimeStop();
-        }
+        PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null)
         {
             animator.speed = 0;
@@ -171,6 +169,35 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
         }
         PostProcessingManager.Instance.SetDefaultEffects();
     }
+
+       public void DisplayOrderNumber(int order, GameObject uiPrefab)
+    {
+        if (uiPrefab == null)
+            return;
+
+        if (orderNumberUIInstance == null)
+        {
+            // UI 프리팹을 적의 자식으로 생성 (예: 적 중심 위에 배치)
+            orderNumberUIInstance = Instantiate(uiPrefab, transform);
+            orderNumberUIInstance.transform.localPosition = new Vector3(0, 1f, 0); // 위치는 상황에 맞게 조정
+        }
+        TMP_Text tmp = orderNumberUIInstance.GetComponent<TMP_Text>();
+        if (tmp != null)
+        {
+            tmp.text = order.ToString();
+        }
+    }
+
+    // 순서 번호 UI를 제거하는 메서드
+    public void ClearOrderNumber()
+    {
+        if (orderNumberUIInstance != null)
+        {
+            Destroy(orderNumberUIInstance);
+            orderNumberUIInstance = null;
+        }
+    }
+
 
     public virtual void AggroPlayer()
     {

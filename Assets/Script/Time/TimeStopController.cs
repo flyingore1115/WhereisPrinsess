@@ -5,6 +5,8 @@ using System.Linq;
 
 public class TimeStopController : MonoBehaviour
 {
+    public static TimeStopController Instance;
+
     private bool isTimeStopped = false;
     private List<ITimeAffectable> timeAffectedObjects = new List<ITimeAffectable>();
 
@@ -26,6 +28,20 @@ public class TimeStopController : MonoBehaviour
     private bool isBlinking = false;
     private float blinkTimer = 0f;
     public float blinkInterval = 0.5f; 
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            Debug.Log("[RewindManager] Awake -> Instance 할당");
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void Start()
     {

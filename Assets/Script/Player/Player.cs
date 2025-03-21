@@ -3,6 +3,8 @@ using MyGame;
 
 public class Player : MonoBehaviour, ITimeAffectable
 {
+    public static Player Instance { get; private set; }
+
     private Rigidbody2D rb;
     private Animator animator;
     private Collider2D playerCollider;
@@ -12,23 +14,30 @@ public class Player : MonoBehaviour, ITimeAffectable
     public P_Attack attack;
     public P_Shooting shooting;
 
-    // 입력 무시 플래그 및 게임오버 상태
     public bool ignoreInput = false;
     public bool isGameOver = false;
 
-    // 흑백 효과용 마테리얼
     public Material grayscaleMaterial;
     private Material originalMaterial;
 
-    // 되감기 시 흑백 효과 적용 여부
     public bool applyRewindGrayscale = false;
 
-    // 플레이어 상태: 체력, 시간 에너지 등 (필요에 따라 값 수정)
     public int health = 100;
     public float timeEnergy = 100f;
 
-    void Start()
+    private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 유지
+        }
+        else
+        {
+            Destroy(gameObject); // 중복 방지
+            return;
+        }
+
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         playerCollider = GetComponent<Collider2D>();
@@ -40,6 +49,23 @@ public class Player : MonoBehaviour, ITimeAffectable
         if (spriteRenderer != null)
         {
             originalMaterial = spriteRenderer.sharedMaterial;
+        }
+    }
+
+    private void Start()
+    {
+        FindPrincess();
+    }
+
+    private void FindPrincess()
+    {
+        if (GameObject.FindGameObjectWithTag("Princess") != null)
+        {
+            Debug.Log("[Player] 공주 참조를 찾았습니다.");
+        }
+        else
+        {
+            Debug.LogError("[Player] 공주를 찾을 수 없습니다! 씬에서 제대로 배치되었는지 확인하세요.");
         }
     }
 
@@ -61,7 +87,6 @@ public class Player : MonoBehaviour, ITimeAffectable
         transform.position = rewindPosition;
     }
 
-    // 게임 상태 복원을 위한 메서드 (예: 총알 수, 체력, 시간 에너지)
     public void RestoreState(GameStateData gameState)
     {
         if (shooting != null)
@@ -72,11 +97,8 @@ public class Player : MonoBehaviour, ITimeAffectable
         timeEnergy = gameState.playerTimeEnergy;
     }
 
-    // ITimeAffectable 구현 – 되감기 모드와 게임오버 모드를 구분하여 처리
     public void StopTime()
     {
-        // 되감기 모드에서는 applyRewindGrayscale 조건으로 처리하고,
-        // 게임오버 시(isGameOver true)에는 강제로 그레이스케일 및 애니메이션 정지
         PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null && isGameOver)
         {
@@ -92,5 +114,4 @@ public class Player : MonoBehaviour, ITimeAffectable
         }
         PostProcessingManager.Instance.SetDefaultEffects();
     }
-
 }
