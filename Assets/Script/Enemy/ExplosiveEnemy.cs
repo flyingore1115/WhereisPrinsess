@@ -12,6 +12,9 @@ public class ExplosiveEnemy : BaseEnemy
     // 활성화 상태 확인 프로퍼티
     public bool IsActivated { get { return isActivated; } }
 
+    public GameObject explosionParticlePrefab;
+
+
     protected override void Awake()
     {
         base.Awake();
@@ -94,10 +97,20 @@ public class ExplosiveEnemy : BaseEnemy
     private IEnumerator Explode()
     {
         isExploding = true;
-        if (animator != null)
+
+        // 폭발 이펙트
+    if (explosionParticlePrefab != null)
+    {
+        GameObject effect = Instantiate(explosionParticlePrefab, transform.position, Quaternion.identity);
+        
+        // 파티클 정렬 설정 (플레이어보다 앞으로 나오게)
+        ParticleSystemRenderer psr = effect.GetComponent<ParticleSystemRenderer>();
+        if (psr != null)
         {
-            animator.SetTrigger("Explode");
+            psr.sortingOrder = 100;
         }
+    }
+
 
         yield return new WaitForSeconds(1f); // 폭발 애니메이션 재생 시간
 

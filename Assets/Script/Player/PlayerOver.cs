@@ -50,7 +50,7 @@ public class PlayerOver : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        PostProcessingManager.Instance.ApplyCharacterHitEffect(0.5f);
+        PostProcessingManager.Instance.ApplyCharacterHitEffect(0.3f);
         if (heartUI != null)
             heartUI.UpdateHearts(currentHealth, maxHealth);
 

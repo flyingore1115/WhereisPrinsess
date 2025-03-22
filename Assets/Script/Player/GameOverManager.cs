@@ -30,6 +30,11 @@ public class GameOverManager : MonoBehaviour
             playerScript.applyRewindGrayscale = true;       // 강제로 그레이스케일 적용
         }
 
+        if (RewindManager.Instance != null)
+        {
+            RewindManager.Instance.SetGameOver(true);
+        }
+
         // 총알 UI 숨김
         P_Shooting shooting = FindFirstObjectByType<P_Shooting>();
         if (shooting != null)
@@ -96,6 +101,11 @@ public class GameOverManager : MonoBehaviour
             obj.ResumeTime();
         }
         Debug.Log("되감기 종료: 흑백 효과 복구됨.");
+
+        if (RewindManager.Instance != null)
+        {
+            RewindManager.Instance.SetGameOver(false);
+        }
 
         // 카메라 기본 상태 복귀
         if (cameraFollow != null)

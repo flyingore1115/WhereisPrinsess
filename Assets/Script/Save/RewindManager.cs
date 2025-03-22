@@ -10,7 +10,7 @@ public class RewindManager : MonoBehaviour
     public static RewindManager Instance;
 
     [Header("Recording Settings")]
-    public float recordTime = 5f; 
+    public float recordTime = 3f; 
     private List<TimeSnapshot> snapshots = new List<TimeSnapshot>();
 
     [Header("References")]
@@ -21,13 +21,15 @@ public class RewindManager : MonoBehaviour
     private Animator princessAnimator;
 
     [Header("Rewind Settings")]
-    public float rewindFrameDelay = 0.0167f;
+    
     private bool isRewinding = false;
     public bool IsRewinding { get { return isRewinding; } }
 
-    // 예시) 기존 0.001f가 너무 빠를 수 있으므로 0.02~0.03으로 조정
-    private float snapshotInterval = 0.02f;
+
+    private float snapshotInterval = 0.1f;
     private float lastSnapshotTime = 0f;
+    public float rewindFrameDelay = 0.0167f;
+
 
     private bool isGameOver = false; // 게임오버 상태
 

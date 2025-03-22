@@ -141,41 +141,34 @@ public class PostProcessingManager : MonoBehaviour
     }
 
     // ================== 2. 플레이어/공주 피격 ==================
-    // 요구사항: “비네트 빨간색 + 잠깐 강하게 + 노이즈(그레인) + 화면 크게 흔들림”
+    //“비네트 빨간색 + 잠깐 강하게 + 노이즈(그레인) + 화면 크게 흔들림”
     public void ApplyCharacterHitEffect(float duration = 0.5f)
     {
-        // 비네트 빨간색, 강하게
-        if (vignette != null)
-        {
-            vignette.color.value = Color.red;
-            vignette.intensity.value = 0.45f; // 잠깐 세게
-            vignette.smoothness.value = 0.6f;
-        }
-
-        // 그레인
-        if (grain != null)
-        {
-            grain.intensity.value = 0.7f; 
-        }
-
-        // 색수차는 옵션. 원한다면 켜도 됨.
-        if (chromaticAberration != null)
-        {
-            chromaticAberration.intensity.value = 0.3f;
-        }
-
-        // 화면 크게 흔들림
-        if (mainCamera != null)
-        {
-            StartCoroutine(CoShakeCamera(shakeMagnitude * 2f, shakeDuration)); 
-        }
-
-        // 잠시 후 원상복구
+        StartCoroutine(CoVignetteSmooth(Color.red, 0f, 0.45f, 0.1f)); // 부드럽게 등장
         StartCoroutine(CoResetEffectAfter(duration));
     }
 
+    private IEnumerator CoVignetteSmooth(Color color, float from, float to, float time)
+    {
+        if (vignette == null) yield break;
+
+        vignette.color.value = color;
+        vignette.smoothness.value = 0.6f;
+
+        float elapsed = 0f;
+        while (elapsed < time)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / time;
+            vignette.intensity.value = Mathf.Lerp(from, to, t);
+            yield return null;
+        }
+        vignette.intensity.value = to;
+    }
+
+
     // ================== 3. 플레이어가 적에게 피격시킴 ==================
-    // “화면 강하게 흔들림”만 필요 → 다른 효과는 없음
+    // “화면 강하게 흔들림”
     public void ApplyAttackHitEffect()
     {
         if (mainCamera != null)
