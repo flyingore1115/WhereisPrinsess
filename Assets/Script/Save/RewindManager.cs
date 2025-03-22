@@ -69,16 +69,8 @@ public class RewindManager : MonoBehaviour
         Debug.Log("[RewindManager] AssignSceneObjects 호출");
 
         var foundPlayer = GameObject.FindGameObjectWithTag("Player");
-        if (foundPlayer == null)
-            Debug.LogWarning("[RewindManager] Player 태그를 가진 오브젝트가 없음");
-        else
-            Debug.Log("[RewindManager] Found Player = " + foundPlayer.name);
 
         var foundPrincess = GameObject.FindGameObjectWithTag("Princess");
-        if (foundPrincess == null)
-            Debug.LogWarning("[RewindManager] Princess 태그를 가진 오브젝트가 없음");
-        else
-            Debug.Log("[RewindManager] Found Princess = " + foundPrincess.name);
 
         player = foundPlayer;
         princess = foundPrincess;

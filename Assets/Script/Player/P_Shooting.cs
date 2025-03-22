@@ -25,20 +25,24 @@ public class P_Shooting : MonoBehaviour
     void Update()
     {
         UpdateFirePointPosition();
-
-        // 재장전은 우클릭으로 처리
-        if (Input.GetMouseButtonDown(1))
-        {
-            Reload();
-        }
     }
+
 
     // 반드시 public으로 정의된 HandleShooting() 메서드
     public void HandleShooting()
     {
-        if (Input.GetMouseButtonDown(0))  // 좌클릭으로 사격
+        // 사격은 Shift를 누른 상태에서만 가능
+        if (Input.GetKey(KeyCode.LeftShift))
         {
-            ShootBullet();
+            if (Input.GetMouseButtonDown(0))
+            {
+                Debug.Log("쉬프트사격");
+                ShootBullet();
+            }
+            else if (Input.GetMouseButtonDown(1))
+            {
+                Reload();
+            }
         }
     }
 

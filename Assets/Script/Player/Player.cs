@@ -78,8 +78,15 @@ public class Player : MonoBehaviour, ITimeAffectable
             return;
         }
         movement.HandleMovement(attack.IsAttacking);
-        attack.HandleAttack();
-        shooting.HandleShooting();
+        // SHIFT 키에 따라 공격 방식 분기
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            shooting.HandleShooting();
+        }
+        else
+        {
+            attack.HandleAttack();
+        }
     }
 
     public void RestoreFromRewind(Vector2 rewindPosition)
