@@ -17,8 +17,6 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
     public bool isDead = false;
     protected SpriteRenderer spriteRenderer;
     protected Animator animator;
-    protected Material originalMaterial;
-    public Material grayscaleMaterial;
 
     public int maxHealth = 3;
 
@@ -38,11 +36,6 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-
-        if (spriteRenderer != null)
-        {
-            originalMaterial = spriteRenderer.sharedMaterial;
-        }
 
         princess = GameObject.FindGameObjectWithTag("Princess")?.transform;
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -153,7 +146,8 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
     {
         if (this == null || spriteRenderer == null) return;
         isTimeStopped = true;
-        PostProcessingManager.Instance.ApplyTimeStop();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null)
         {
             animator.speed = 0;
@@ -168,7 +162,8 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        PostProcessingManager.Instance.SetDefaultEffects();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.SetDefaultEffects();
     }
 
     public void DisplayOrderNumber(int order, GameObject uiPrefab)

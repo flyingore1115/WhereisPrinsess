@@ -276,6 +276,21 @@ public class RewindManager : MonoBehaviour
             pScript.applyRewindGrayscale = false;
         }
 
+        if (playerAnimator != null)
+            playerAnimator.speed = 1f;
+        if (princessAnimator != null)
+            princessAnimator.speed = 1f;
+
+            if (princess != null)
+        {
+            Princess princessScript = princess.GetComponent<Princess>();
+            if (princessScript != null)
+            {
+                princessScript.ResumeAfterRewind();
+            }
+        }
+
+
         ApplyGrayscaleEffect(false);
         PostProcessingManager.Instance.SetDefaultEffects();
 

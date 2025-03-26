@@ -194,7 +194,7 @@ public class SoundManager : MonoBehaviour
         EnsureAudioSources();
         switch (scene.name)
         {
-            case "Start":
+            case "MainMenu":
                 PlayBGM("BGM_Start");
                 break;
             case "New_Game":

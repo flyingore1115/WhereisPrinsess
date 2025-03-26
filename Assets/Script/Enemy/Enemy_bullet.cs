@@ -56,6 +56,10 @@ public class Enemy_bullet : MonoBehaviour, ITimeAffectable
             }
             Destroy(gameObject);
         }
+        else if (collision.CompareTag("Enemy"))
+        {
+            // 아무것도 안 함. (탄막 유지)
+        }
         else
         {
             Destroy(gameObject);

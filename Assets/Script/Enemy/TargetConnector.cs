@@ -8,7 +8,7 @@ public class TargetConnector : MonoBehaviour
 
     private LineRenderer lineRenderer;
 
-    [Tooltip("선이 그려질 때 적 위치에서 위로 띄울 오프셋")]
+    [Tooltip("선이 그려질 때, UI가 있다면 UI의 중앙 위치를 사용하고, 없으면 적 위치에서 위로 띄울 오프셋")]
     public float verticalOffset = 1.0f;
 
     [Tooltip("선의 두께")]
@@ -44,6 +44,10 @@ public class TargetConnector : MonoBehaviour
         lineRenderer.sortingOrder = 100;
     }
 
+    /// <summary>
+    /// 선택된 적 리스트를 받아 선을 갱신합니다.
+    /// 각 적의 순서번호 UI가 있으면 그 위치를, 없으면 기본 오프셋을 사용합니다.
+    /// </summary>
     public void UpdateLine(List<BaseEnemy> enemies)
     {
         if (enemies == null || enemies.Count == 0)
@@ -58,7 +62,17 @@ public class TargetConnector : MonoBehaviour
             if (enemies[i] != null)
             {
                 Vector3 pos = enemies[i].transform.position;
-                pos.y += verticalOffset;
+
+                // 적의 자식에 Canvas가 있다면(순서번호 UI가 생성되어 있다면) 그 위치를 사용
+                Canvas uiCanvas = enemies[i].GetComponentInChildren<Canvas>();
+                if (uiCanvas != null)
+                {
+                    pos = uiCanvas.transform.position;
+                }
+                else
+                {
+                    pos.y += verticalOffset;
+                }
                 lineRenderer.SetPosition(i, pos);
             }
         }

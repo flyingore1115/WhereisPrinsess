@@ -27,16 +27,11 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public int extraLives = 0;                // 여벌 목숨
 
     // 무적 상태
-    private bool isInvincible = false;
+    public bool isInvincible = false;
     public float invincibilityDuration = 2f;  // 무적 타임 지속 시간
 
     [HideInInspector]
     public bool isControlled = false;         // 공주 조종 여부
-
-    // 흑백 효과 관련
-    private Color originalColor;
-    public Material grayscaleMaterial;
-    private Material originalMaterial;
 
     void Awake()
     {
@@ -57,10 +52,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
     {
 
         spriteRenderer = GetComponent<SpriteRenderer>();
-        originalMaterial = spriteRenderer.material;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        originalColor = spriteRenderer.color;
+
 
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
@@ -135,18 +129,28 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
     }
 
-    public void GameOver()
+public void GameOver()
+{
+    if (isGameOver) return;
+    isGameOver = true;
+
+    if (animator != null)
     {
-        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
-        if (gameOverManager != null)
-        {
-            gameOverManager.TriggerGameOver();
-        }
-        else
-        {
-            Debug.LogError("GameOverManager를 찾을 수 없습니다!");
-        }
+        animator.speed = 1f; // 애니메이션 정지되어 있으면 풀어주고
+        animator.SetTrigger("isDie");
+        Debug.Log("공주 사망 애니메이션 실행됨");
     }
+
+    GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
+    if (gameOverManager != null)
+    {
+        gameOverManager.TriggerGameOver();
+    }
+    else
+    {
+        Debug.LogError("GameOverManager를 찾을 수 없습니다!");
+    }
+}
 
 
     private IEnumerator CoRewindThenCheckpoint()
@@ -238,7 +242,6 @@ public class Princess : MonoBehaviour, ITimeAffectable
     {
         yield return new WaitForSecondsRealtime(duration);
         isShieldActive = false;
-        spriteRenderer.color = originalColor;
         Debug.Log("[Princess] Shield disabled.");
     }
 
@@ -265,7 +268,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
     {
         if (this == null || spriteRenderer == null) return;
         isTimeStopped = true;
-        PostProcessingManager.Instance.SetDefaultEffects();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.SetDefaultEffects();
         if (animator != null)
         {
             animator.speed = 0;
@@ -288,7 +292,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        PostProcessingManager.Instance.SetDefaultEffects();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.SetDefaultEffects();
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
@@ -296,6 +301,23 @@ public class Princess : MonoBehaviour, ITimeAffectable
             rb.bodyType = RigidbodyType2D.Dynamic;
         }
     }
+
+    // Princess.cs
+    public void ResumeAfterRewind()
+    {
+        isGameOver = false;
+
+        if (animator != null)
+        {
+            animator.speed = 1f;
+            animator.ResetTrigger("isDie");
+            animator.SetTrigger("isRun"); // 걷기 애니메이션 재시작
+        }
+
+        isControlled = false;
+        ResumeTime();
+    }
+
 
     // 추가: 여벌 목숨을 외부에서 바로 추가할 수 있는 메서드
     public void AddExtraLife()

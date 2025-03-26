@@ -17,9 +17,6 @@ public class Player : MonoBehaviour, ITimeAffectable
     public bool ignoreInput = false;
     public bool isGameOver = false;
 
-    public Material grayscaleMaterial;
-    private Material originalMaterial;
-
     public bool applyRewindGrayscale = false;
 
     public int health = 100;
@@ -46,10 +43,6 @@ public class Player : MonoBehaviour, ITimeAffectable
         movement.Init(rb, animator, spriteRenderer, shooting.firePoint);
         attack.Init(rb, playerCollider);
 
-        if (spriteRenderer != null)
-        {
-            originalMaterial = spriteRenderer.sharedMaterial;
-        }
     }
 
     private void Start()
@@ -106,7 +99,8 @@ public class Player : MonoBehaviour, ITimeAffectable
 
     public void StopTime()
     {
-        PostProcessingManager.Instance.ApplyTimeStop();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null && isGameOver)
         {
             animator.speed = 0;
@@ -119,6 +113,7 @@ public class Player : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        PostProcessingManager.Instance.SetDefaultEffects();
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.SetDefaultEffects();
     }
 }

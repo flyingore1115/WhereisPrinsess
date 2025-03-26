@@ -112,7 +112,7 @@ public class ExplosiveEnemy : BaseEnemy
     }
 
 
-        yield return new WaitForSeconds(1f); // 폭발 애니메이션 재생 시간
+        yield return new WaitForSeconds(0.5f);
 
         // 폭발 범위 내의 모든 오브젝트에 데미지 처리 (예: 플레이어에게)
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
