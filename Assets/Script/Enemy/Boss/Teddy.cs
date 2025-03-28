@@ -4,35 +4,37 @@ using System.Collections;
 public class Teddy : BaseEnemy
 {
     [Header("Boss Stats")]
-    public int bossMaxHP = 20;             // 보스 체력
-    public float moveSpeed = 2f;           // 보스 이동 속도
+    public int bossMaxHP = 20;
+    public float moveSpeed = 2f;
+
+    [Header("Cycle Settings")]
+    public float cycleIdleTime = 2f;  // 패턴 사이 쿨타임
 
     [Header("Bomb Pattern Settings")]
-    public float bombInterval = 4f;          // 폭탄 투하 주기
-    public float bombSpawnY = 8f;            // 폭탄 소환 Y좌표
-    public Vector2 bombXRange = new Vector2(-6f, 6f); // 폭탄 X좌표 범위
-    public int bombCount = 3;                // 한번에 떨어질 폭탄 개수
+    public float bombSpawnY = 8f;     
+    public Vector2 bombXRange = new Vector2(-6f, 6f);
+    public int bombCountNormal = 3;   
+    public int bombCountSpecial = 5;  
 
     [Header("Barrage Pattern Settings")]
-    public float bulletInterval = 6f;        // 원형 탄막 주기
-    public int bulletCount = 8;              // 원형 탄막 발사 개수
-    public float bulletSpeed = 3f;           // 탄 속도
-    public Vector2 bulletCenter = new Vector2(0f, 0f); // 탄막 발사 위치 (월드 좌표)
+    public int bulletCountNormal = 8; 
+    public int bulletCountSpecial = 12;
+    public float bulletSpeed = 3f;
+    public Vector2 bulletCenter;      
 
     [Header("Explosion Pattern Settings")]
-    public GameObject explosionWarningPrefab; // 빨간 범위 예고 프리팹
-    public GameObject explosionEffectPrefab;  // 폭발 이펙트 프리팹
-    public float explosionRadius = 2f;        // 폭발 범위 보여주기
-    public float explosionDelay = 1.5f;       // 예고 후 실제 폭발까지 딜레이
-
-    public Vector2[] explosionPositions = new Vector2[3]; //폭발 지점
+    public GameObject explosionWarningPrefab;
+    public GameObject explosionEffectPrefab;
+    public float explosionRadius = 2f;
+    public float explosionDelay = 1.5f;
+    public Vector2[] explosionPositions;
 
     [Header("References")]
     public BossHealthUI bossHealthUI;
     public GameObject bombPrefab;
     public GameObject bulletPrefab;
 
-    private bool phase2Started = false;
+    private bool isPhase2 = false; 
     private float moveDir = 1f;
 
     protected override void Awake()
@@ -46,22 +48,23 @@ public class Teddy : BaseEnemy
     void Start()
     {
         if (bossHealthUI != null)
-        {
             bossHealthUI.InitBossUI("테디", bossMaxHP);
-        }
+
         StartCoroutine(MainPatternLoop());
     }
 
     void Update()
     {
+        // ■ 시간 정지라면 이동 로직 패스
+        if (isTimeStopped) return;
+
         BasicMovement();
 
-        // 체력 30% 이하 -> Phase2
-        if (!phase2Started && currentHealth <= bossMaxHP * 0.3f)
+        // HP 30% 이하 -> phase2
+        if (!isPhase2 && currentHealth <= bossMaxHP * 0.3f)
         {
-            phase2Started = true;
-            Debug.Log("Teddy Boss Phase2 started!");
-            StartCoroutine(SpecialPattern());
+            isPhase2 = true;
+            Debug.Log("[Teddy] Phase2 activated!");
         }
     }
 
@@ -72,114 +75,118 @@ public class Teddy : BaseEnemy
         transform.Translate(Vector2.right * moveDir * moveSpeed * Time.deltaTime);
     }
 
+    // ─────────────────────────────────────
+    // 메인 패턴 루프: 죽기 전까지 무한 반복
+    // ─────────────────────────────────────
     private IEnumerator MainPatternLoop()
     {
         while (!isDead)
         {
-            // 폭탄 투하 (랜덤X, 여러개)
-            DropMultipleBombs();
-            yield return new WaitForSeconds(bombInterval);
+            // 1) 한 사이클 실행
+            yield return StartCoroutine(DoOneCycle(isPhase2));
 
-            // 원형 탄막 발사
-            FireRadialBullets();
-            yield return new WaitForSeconds(bulletInterval);
-
-            // (원한다면 폭발 예고-폭발도 여기에 추가 가능)
+            // 2) 사이클 간 대기
+            yield return StartCoroutine(WaitWhileTimeStopped()); // 시간 정지면 대기
+            yield return new WaitForSeconds(cycleIdleTime);
         }
     }
 
-    /// <summary>
-    /// [1] 폭탄 여러개를 임의 X범위에서 떨어뜨리는 함수
-    /// </summary>
-    private void DropMultipleBombs()
+    // ─────────────────────────────────────
+    // 한 사이클 = 폭발 -> 폭탄 -> 탄막 -> (필요하면 또 폭발)
+    // ─────────────────────────────────────
+    private IEnumerator DoOneCycle(bool special)
     {
-        if (bombPrefab == null) return;
+        // 1) 폭발
+        yield return StartCoroutine(ExplodeOnce(special));
 
-        for (int i = 0; i < bombCount; i++)
+        // 2) 폭탄 N개
+        int bombs = special ? bombCountSpecial : bombCountNormal;
+        yield return StartCoroutine(DropMultipleBombs(bombs));
+
+        // 3) 탄막
+        int bulletCount = special ? bulletCountSpecial : bulletCountNormal;
+        yield return StartCoroutine(FireRadialBullets(bulletCount));
+
+        // (원하면 더 패턴 추가)
+        yield return null;
+    }
+
+    // ─────────────────────────────────────
+    // 폭탄 여러개 투하
+    // ─────────────────────────────────────
+    private IEnumerator DropMultipleBombs(int count)
+    {
+        if (bombPrefab == null) yield break;
+
+        for (int i = 0; i < count; i++)
         {
+            yield return StartCoroutine(WaitWhileTimeStopped());
+
             float randomX = Random.Range(bombXRange.x, bombXRange.y);
             Vector2 spawnPos = new Vector2(randomX, bombSpawnY);
             Instantiate(bombPrefab, spawnPos, Quaternion.identity);
+
+            yield return new WaitForSeconds(0.3f);
         }
     }
 
-    /// <summary>
-    /// [2] 원형 탄막 발사 (임의 위치 bulletCenter에서)
-    /// </summary>
-    private void FireRadialBullets()
+    // ─────────────────────────────────────
+    // 탄막 발사
+    // ─────────────────────────────────────
+    private IEnumerator FireRadialBullets(int bulletCount)
     {
-        if (bulletPrefab == null) return;
+        if (bulletPrefab == null) yield break;
+
+        yield return StartCoroutine(WaitWhileTimeStopped());
 
         float angleStep = 360f / bulletCount;
         float angle = 0f;
-        Vector2 spawnCenter = bulletCenter; // 월드 좌표
+
         for (int i = 0; i < bulletCount; i++)
         {
             float rad = Mathf.Deg2Rad * angle;
             Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
 
-            // 탄막 생성
-            GameObject bullet = Instantiate(bulletPrefab, spawnCenter, Quaternion.identity);
+            var bullet = Instantiate(bulletPrefab, bulletCenter, Quaternion.identity);
             TeddyBarrage tb = bullet.GetComponent<TeddyBarrage>();
             if (tb != null)
             {
                 tb.SetDirection(dir);
-                tb.speed = bulletSpeed; // 추가: Inspector보다 이쪽이 우선이라면
+                tb.speed = bulletSpeed;
             }
             angle += angleStep;
         }
+        yield return null;
     }
 
-    /// <summary>
-    /// [3] 폭발(범위 예고 -> 폭발 이펙트) 예시
-    ///  x,y 인스펙터 or 계산으로 받아서 호출하면 됨
-    /// </summary>
-    /// 
-    private IEnumerator ShuffleAndExplode()
+    // ─────────────────────────────────────
+    // 폭발 예시 (1회)
+    // ─────────────────────────────────────
+    private IEnumerator ExplodeOnce(bool special)
     {
-        if (explosionPositions.Length < 2)
-        {
-            Debug.LogWarning("[Teddy] 폭발 좌표가 2개 이상 필요합니다.");
-            yield break;
-        }
+        if (explosionPositions == null || explosionPositions.Length == 0) yield break;
+        
+        yield return StartCoroutine(WaitWhileTimeStopped());
 
-        // 인덱스를 섞어 랜덤 순서 결정
-        int[] indices = { 0, 1, 2 };
-        for (int i = 0; i < indices.Length; i++)
-        {
-            int j = Random.Range(i, indices.Length);
-            (indices[i], indices[j]) = (indices[j], indices[i]);
-        }
+        int index = Random.Range(0, explosionPositions.Length);
+        Vector2 pos = explosionPositions[index];
 
-        // 앞 2개를 순차 폭발
-        yield return StartCoroutine(ExplodeAtPosition(explosionPositions[indices[0]]));
-        yield return new WaitForSeconds(1f);
-        yield return StartCoroutine(ExplodeAtPosition(explosionPositions[indices[1]]));
-    }
-
-    private IEnumerator ExplodeAtPosition(Vector2 pos)
-    {
-        Debug.LogWarning("폭발 실행됨=========================");
-        // 빨간 범위 예고
+        // 예고 프리팹
         if (explosionWarningPrefab != null)
         {
-            GameObject warning = Instantiate(explosionWarningPrefab, pos, Quaternion.identity);
-            // 예: 원 크기 explosionRadius 반영(Scale 등)
-            warning.transform.localScale = new Vector3(explosionRadius*2, explosionRadius*2, 1f);
-            // warning 파괴 시점을 explosionDelay 이후로
+            var warning = Instantiate(explosionWarningPrefab, pos, Quaternion.identity);
+            warning.transform.localScale = new Vector3(explosionRadius * 2, explosionRadius * 2, 1f);
             Destroy(warning, explosionDelay);
         }
 
-        // 기다린 뒤 폭발 이펙트
+        // 딜레이 후 실제 폭발
         yield return new WaitForSeconds(explosionDelay);
 
         if (explosionEffectPrefab != null)
-        {
             Instantiate(explosionEffectPrefab, pos, Quaternion.identity);
-        }
 
-        // 실제 피해 처리(OverlapCircleAll)
-        Collider2D[] hits = Physics2D.OverlapCircleAll(pos, explosionRadius);
+        // 피해 처리
+        var hits = Physics2D.OverlapCircleAll(pos, explosionRadius);
         foreach (var c in hits)
         {
             if (c.CompareTag("Player"))
@@ -187,33 +194,24 @@ public class Teddy : BaseEnemy
                 // c.GetComponent<PlayerOver>()?.TakeDamage(1);
             }
         }
-        Debug.Log($"[Teddy] Explosion at {pos} done!");
+        yield return null;
     }
 
-    private IEnumerator SpecialPattern()
+    // ─────────────────────────────────────
+    // 시간 정지 중에는 코루틴을 진행하지 않고 대기
+    // ─────────────────────────────────────
+    private IEnumerator WaitWhileTimeStopped()
     {
-        while (!isDead && currentHealth <= bossMaxHP * 0.3f)
+        // TimeStopController.Instance.IsTimeStopped 가 true인 동안 대기
+        while (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
         {
-            // 폭탄 2연타
-            DropMultipleBombs();
-            yield return new WaitForSeconds(1.5f);
-            DropMultipleBombs();
-            yield return new WaitForSeconds(bombInterval);
-
-            // 탄막 2연타
-            FireRadialBullets();
-            yield return new WaitForSeconds(0.5f);
-            FireRadialBullets();
-            yield return new WaitForSeconds(bulletInterval);
-
-            // 폭발 패턴
-            yield return StartCoroutine(ShuffleAndExplode());
-            yield return new WaitForSeconds(2f);
+            yield return null;
         }
     }
 
-
-    // 데미지 처리
+    // ─────────────────────────────────────
+    // HP / 사망
+    // ─────────────────────────────────────
     public override void TakeDamage(int damage)
     {
         if (isDead) return;
@@ -223,7 +221,7 @@ public class Teddy : BaseEnemy
         if (bossHealthUI != null)
             bossHealthUI.UpdateHP(currentHealth);
 
-        Debug.Log($"{gameObject.name} took damage {damage}, HP = {currentHealth}");
+        Debug.Log($"[Teddy] took damage {damage}, HP={currentHealth}");
 
         if (currentHealth <= 0)
         {
@@ -234,7 +232,7 @@ public class Teddy : BaseEnemy
     protected override void Die()
     {
         base.Die();
-        Debug.Log("Teddy Boss defeated!");
-        // 보스 사망 후 추가 효과
+        Debug.Log("[Teddy] Boss defeated!");
+        // 추가 종료 로직
     }
 }
