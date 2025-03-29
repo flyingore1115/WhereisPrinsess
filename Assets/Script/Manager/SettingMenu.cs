@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SettingMenu : MonoBehaviour
 {
-    public GameObject settingsPanel;
-
     public Slider masterVolumeSlider;
     public Slider bgmVolumeSlider;
     public Slider sfxVolumeSlider;
@@ -12,49 +11,44 @@ public class SettingMenu : MonoBehaviour
 
     void Start()
     {
-        // 초기값 설정
-        masterVolumeSlider.value = 80;
-        bgmVolumeSlider.value = 80;
-        sfxVolumeSlider.value = 80;
+        // 초기값 설정 (예시)
+        masterVolumeSlider.value = 0.8f;
+        bgmVolumeSlider.value = 0.8f;
+        sfxVolumeSlider.value = 0.8f;
 
         // 이벤트 리스너 연결
         masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
         bgmVolumeSlider.onValueChanged.AddListener(SetBGMVolume);
         sfxVolumeSlider.onValueChanged.AddListener(SetSFXVolume);
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
-
-        //시작할때 꺼져있게
-        settingsPanel.SetActive(false);
     }
 
-    // 볼륨 조절
     public void SetMasterVolume(float volume)
     {
-        SoundManager.Instance.SetMasterVolume(volume);
+        if (SoundManager.Instance != null)
+            SoundManager.Instance.SetMasterVolume(volume);
     }
 
     public void SetBGMVolume(float volume)
     {
-        SoundManager.Instance.SetBGMVolume(volume);
+        if (SoundManager.Instance != null)
+            SoundManager.Instance.SetBGMVolume(volume);
     }
 
     public void SetSFXVolume(float volume)
     {
-        SoundManager.Instance.SetSFXVolume(volume);
+        if (SoundManager.Instance != null)
+            SoundManager.Instance.SetSFXVolume(volume);
     }
 
-    // 전체 화면 설정
     public void SetFullscreen(bool isFullscreen)
     {
         Screen.fullScreen = isFullscreen;
     }
-    public void OpenSettings()
-    {
-        settingsPanel.SetActive(true);
-    }
 
-    public void CloseSettings()
+    // **닫기 버튼**을 누르면 PauseManager 통해서 close
+    public void CloseButton()
     {
-        settingsPanel.SetActive(false);
+        PauseManager.Instance.CloseSettings();
     }
 }

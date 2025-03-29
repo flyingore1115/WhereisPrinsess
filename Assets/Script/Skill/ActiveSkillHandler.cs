@@ -14,7 +14,7 @@ public class ActiveSkillHandler : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q)) ActivateSkill("시야 확장");
         if (Input.GetKeyDown(KeyCode.E)) ActivateSkill("공주 보호막");
         if (Input.GetKeyDown(KeyCode.F)) ActivateSkill("어그로");
-        if (Input.GetKeyDown(KeyCode.T)) ActivateSkill("적 시간 감속");
+        if (Input.GetKeyDown(KeyCode.T)) ActivateSkill("적 시간 감속"); //이거 나중에 삭제
         if (Input.GetKeyDown(KeyCode.H)) ActivateSkill("체력 되감기");
         if (Input.GetKeyDown(KeyCode.P)) ActivateSkill("공주 조종"); // 기존 P키 입력을 스킬 핸들러에서 제어
     }

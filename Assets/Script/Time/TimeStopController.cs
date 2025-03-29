@@ -86,18 +86,19 @@ public class TimeStopController : MonoBehaviour
         }
 
         // (2) 좌클릭 + Ctrl로 대상 해제
-        if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl))
-        {
-            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
-            {
-                var affectable = hit.collider.GetComponent<ITimeAffectable>();
-                if (affectable != null)
-                {
-                    affectable.ResumeTime();
-                }
-            }
-        }
+        //인데 전체 시간정지가 풀리는 문제땜시 잠시 봉인
+        // if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl))
+        // {
+        //     RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+        //     if (hit.collider != null)
+        //     {
+        //         var affectable = hit.collider.GetComponent<ITimeAffectable>();
+        //         if (affectable != null)
+        //         {
+        //             affectable.ResumeTime();
+        //         }
+        //     }
+        // }
 
         UpdateTimeGaugeUI(); 
 

@@ -6,6 +6,8 @@ public class TargetConnector : MonoBehaviour
 {
     public static TargetConnector Instance;
 
+    public Material lineMaterial;
+
     private LineRenderer lineRenderer;
 
     [Tooltip("선이 그려질 때, UI가 있다면 UI의 중앙 위치를 사용하고, 없으면 적 위치에서 위로 띄울 오프셋")]
@@ -15,7 +17,7 @@ public class TargetConnector : MonoBehaviour
     public float lineWidth = 0.1f;
 
     [Tooltip("선의 색상")]
-    public Color lineColor = Color.white;
+    //public Color lineColor = Color.white;
 
     void Awake()
     {
@@ -30,6 +32,8 @@ public class TargetConnector : MonoBehaviour
             Destroy(gameObject); // 중복 방지
             return;
         }
+        
+        gameObject.layer = LayerMask.NameToLayer("line");
 
         lineRenderer = GetComponent<LineRenderer>();
         if (lineRenderer == null)
@@ -39,9 +43,14 @@ public class TargetConnector : MonoBehaviour
         lineRenderer.positionCount = 0;
         lineRenderer.widthMultiplier = lineWidth;
         lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = lineColor;
-        lineRenderer.endColor = lineColor;
+        //lineRenderer.startColor = lineColor;
+        //lineRenderer.endColor = lineColor;
         lineRenderer.sortingOrder = 100;
+
+        if (lineMaterial != null)
+        lineRenderer.material = lineMaterial;
+
+        
     }
 
     /// <summary>

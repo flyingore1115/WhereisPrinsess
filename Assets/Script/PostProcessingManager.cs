@@ -1,29 +1,26 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using System.Collections;
 
 public class PostProcessingManager : MonoBehaviour
 {
     public static PostProcessingManager Instance;
 
-    // ★ 포스트 프로세싱 볼륨
-    [Header("PostProcess Volume / Profile")]
-    public PostProcessVolume postProcessVolume;
+    [Header("URP Volume")]
+    public Volume postProcessVolume;
 
-    // 가져올 효과들
-    private ColorGrading colorGrading;
+    private ColorAdjustments colorAdjustments;
     private Vignette vignette;
     private ChromaticAberration chromaticAberration;
-    private Grain grain;
+    private FilmGrain filmGrain;
 
-    // [선택] 화면 흔들림(카메라 흔들기) 연출을 위한 참조
     [Header("Camera Shake")]
     public Camera mainCamera;
     public float shakeMagnitude = 0.5f;
     public float shakeDuration = 0.2f;
 
-    // ================== Awake ==================
     private void Awake()
     {
         if (Instance == null)
@@ -37,25 +34,15 @@ public class PostProcessingManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        
     }
 
-    // ================== 씬 로드 시 마다 볼륨 재할당 (태그 or Name) ==================
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         TryAssignPostProcessVolume();
         if (mainCamera == null)
         {
-            mainCamera = Camera.main; // 새 씬의 메인카메라를 할당
+            mainCamera = Camera.main;
         }
-
-        if (colorGrading != null)
-        {
-            colorGrading.saturation.overrideState = true;
-            colorGrading.temperature.overrideState = true;
-        }
-
     }
 
     private void TryAssignPostProcessVolume()
@@ -65,45 +52,34 @@ public class PostProcessingManager : MonoBehaviour
             GameObject ppObj = GameObject.FindGameObjectWithTag("PostProcessVolume");
             if (ppObj != null)
             {
-                postProcessVolume = ppObj.GetComponent<PostProcessVolume>();
+                postProcessVolume = ppObj.GetComponent<Volume>();
             }
             else
             {
-                Debug.LogWarning("PostProcessVolume 오브젝트를 씬에서 찾을 수 없습니다!");
+                Debug.LogWarning("URP Volume 오브젝트를 찾을 수 없습니다!");
                 return;
             }
         }
-        
-        // 프로파일 인스턴스 생성: 에셋의 공유 인스턴스가 아니라 런타임 인스턴스를 사용하도록 함
+
         if (postProcessVolume.profile != null)
         {
-            postProcessVolume.profile = Instantiate(postProcessVolume.profile);
-        }
-        
-        if (postProcessVolume.profile != null)
-        {
-            postProcessVolume.profile.TryGetSettings(out colorGrading);
-            postProcessVolume.profile.TryGetSettings(out vignette);
-            postProcessVolume.profile.TryGetSettings(out chromaticAberration);
-            postProcessVolume.profile.TryGetSettings(out grain);
+            postProcessVolume.profile.TryGet(out colorAdjustments);
+            postProcessVolume.profile.TryGet(out vignette);
+            postProcessVolume.profile.TryGet(out chromaticAberration);
+            postProcessVolume.profile.TryGet(out filmGrain);
         }
 
-        // 기본 상태 복원
         SetDefaultEffects();
     }
 
-    // ================== 기본 상태 (아무 효과 없음) ==================
     public void SetDefaultEffects()
     {
-        // 필요시 기본으로 켜둘 효과 설정 가능
-        if (colorGrading != null)
+        if (colorAdjustments != null)
         {
-            colorGrading.saturation.value = 0f;
-            colorGrading.temperature.value = 0f;
+            colorAdjustments.saturation.value = 0f;
         }
         if (vignette != null)
         {
-            // 비네트의 color, intensity, smoothness 등 모두 0~기본값
             vignette.intensity.value = 0f;
             vignette.color.value = Color.black;
         }
@@ -111,28 +87,29 @@ public class PostProcessingManager : MonoBehaviour
         {
             chromaticAberration.intensity.value = 0f;
         }
-        if (grain != null)
+        if (filmGrain != null)
         {
-            grain.intensity.value = 0f;
+            filmGrain.intensity.value = 0f;
         }
     }
 
-    // ================== 1. 시간정지 ==================
     public void ApplyTimeStop()
     {
-        if (colorGrading != null)
-            colorGrading.saturation.value = -100f; 
+        if (colorAdjustments != null)
+            colorAdjustments.saturation.value = -100f;
+
         if (vignette != null)
         {
             vignette.intensity.value = 0.2f;
             vignette.smoothness.value = 0.5f;
             vignette.color.value = Color.black;
         }
+
         if (chromaticAberration != null)
             chromaticAberration.intensity.value = 0.3f;
 
-        if (grain != null)
-            grain.intensity.value = 0f; // 시간정지는 그레인 X
+        if (filmGrain != null)
+            filmGrain.intensity.value = 0f;
     }
 
     public void RemoveTimeStop()
@@ -140,11 +117,9 @@ public class PostProcessingManager : MonoBehaviour
         SetDefaultEffects();
     }
 
-    // ================== 2. 플레이어/공주 피격 ==================
-    //“비네트 빨간색 + 잠깐 강하게 + 노이즈(그레인) + 화면 크게 흔들림”
     public void ApplyCharacterHitEffect(float duration = 0.5f)
     {
-        StartCoroutine(CoVignetteSmooth(Color.red, 0f, 0.45f, 0.1f)); // 부드럽게 등장
+        StartCoroutine(CoVignetteSmooth(Color.red, 0f, 0.45f, 0.1f));
         StartCoroutine(CoResetEffectAfter(duration));
     }
 
@@ -166,9 +141,6 @@ public class PostProcessingManager : MonoBehaviour
         vignette.intensity.value = to;
     }
 
-
-    // ================== 3. 플레이어가 적에게 피격시킴 ==================
-    // “화면 강하게 흔들림”
     public void ApplyAttackHitEffect()
     {
         if (mainCamera != null)
@@ -177,26 +149,24 @@ public class PostProcessingManager : MonoBehaviour
         }
     }
 
-    // ================== 4. 플레이어 행동불능 ==================
-    // “시간정지보다 비네트 좀 더 강하게 + 색수차 조금”
     public void ApplyPlayerDisabled()
     {
         if (vignette != null)
         {
-            vignette.intensity.value = 0.3f;  // 시간정지 0.2 -> 여기선 0.3
+            vignette.intensity.value = 0.3f;
             vignette.color.value = Color.black;
         }
         if (chromaticAberration != null)
         {
-            chromaticAberration.intensity.value = 0.2f;  // “아주 조금”
+            chromaticAberration.intensity.value = 0.2f;
         }
-        if (grain != null)
+        if (filmGrain != null)
         {
-            grain.intensity.value = 0f;
+            filmGrain.intensity.value = 0f;
         }
-        if (colorGrading != null)
+        if (colorAdjustments != null)
         {
-            colorGrading.saturation.value = 0f; // 흑백 X
+            colorAdjustments.saturation.value = 0f;
         }
     }
 
@@ -205,26 +175,24 @@ public class PostProcessingManager : MonoBehaviour
         SetDefaultEffects();
     }
 
-    // ================== 5. 게임오버 ==================
-    // “행동불능보다 비네트 조금 더 강하게”
     public void ApplyGameOver()
     {
         if (vignette != null)
         {
-            vignette.intensity.value = 0.45f; // 행동불능 0.3 -> 여기선 0.45
+            vignette.intensity.value = 0.45f;
             vignette.color.value = Color.black;
         }
         if (chromaticAberration != null)
         {
-            chromaticAberration.intensity.value = 0.2f;  
+            chromaticAberration.intensity.value = 0.2f;
         }
-        if (grain != null)
+        if (filmGrain != null)
         {
-            grain.intensity.value = 0f;
+            filmGrain.intensity.value = 0f;
         }
-        if (colorGrading != null)
+        if (colorAdjustments != null)
         {
-            colorGrading.saturation.value = 0f;
+            colorAdjustments.saturation.value = 0f;
         }
     }
 
@@ -233,26 +201,24 @@ public class PostProcessingManager : MonoBehaviour
         SetDefaultEffects();
     }
 
-    // ================== 6. 되감기 ==================
-    // “게임오버 비네트 수치 그대로 + 그레인 + 색수차 강하게”
     public void ApplyRewind()
     {
         if (vignette != null)
         {
-            vignette.intensity.value = 0.45f;  // 게임오버값 유지
+            vignette.intensity.value = 0.45f;
             vignette.color.value = Color.black;
         }
         if (chromaticAberration != null)
         {
-            chromaticAberration.intensity.value = 0.8f; // 강하게
+            chromaticAberration.intensity.value = 0.8f;
         }
-        if (grain != null)
+        if (filmGrain != null)
         {
-            grain.intensity.value = 0.5f; // 그레인 추가
+            filmGrain.intensity.value = 0.5f;
         }
-        if (colorGrading != null)
+        if (colorAdjustments != null)
         {
-            colorGrading.saturation.value = 0f;
+            colorAdjustments.saturation.value = 0f;
         }
     }
 
@@ -261,7 +227,6 @@ public class PostProcessingManager : MonoBehaviour
         SetDefaultEffects();
     }
 
-    // ================== 카메라 흔들림 코루틴 ==================
     private IEnumerator CoShakeCamera(float magnitude, float duration)
     {
         if (mainCamera == null) yield break;
@@ -279,7 +244,6 @@ public class PostProcessingManager : MonoBehaviour
         mainCamera.transform.localPosition = originalPos;
     }
 
-    // ================== 임시로 적용 후 일정 시간 뒤 복원 코루틴 ==================
     private IEnumerator CoResetEffectAfter(float delay)
     {
         yield return new WaitForSecondsRealtime(delay);

@@ -10,6 +10,16 @@ public class ButtonHandler : MonoBehaviour
     {
         GameManager.Instance.ContinueGame();
     }
+    //게임 재개
+    public void OnReume()
+    {
+        PauseManager.Instance.Resume();
+    }
+
+    public void OnSettingsButton()
+    {
+        PauseManager.Instance.OpenSettings();
+    }
 
     public void OnQuitButton()
     {
@@ -19,8 +29,6 @@ public class ButtonHandler : MonoBehaviour
     public void TitleLoad()
     {
         MySceneManager.Instance.MainMenuScene();
-        // 강제로 타임스케일을 1로 설정
-        
         Time.timeScale = 1f;   
     }
 }
