@@ -43,6 +43,6 @@ public class PreloadManager : MonoBehaviour
     private System.Collections.IEnumerator LoadMainMenu()
     {
         yield return new WaitForSeconds(1.0f); // 로딩 시간 확보
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("MainMenu"); //인게임 구현 끝나면 메인메뉴로 바꾸기!!
     }
 }

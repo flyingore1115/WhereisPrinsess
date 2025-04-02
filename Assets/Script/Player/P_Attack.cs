@@ -24,19 +24,12 @@ public class P_Attack : MonoBehaviour
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
 
-    private TargetConnector targetConnector;
-
-    void Start()
-    {
-        targetConnector = FindFirstObjectByType<TargetConnector>(); 
-        // or targetConnector = GameObject.FindObjectOfType<TargetConnector>();
-    }
+    // 시간 정지 중 선택된 적들을 저장 (콤보 공격용)
+    private List<BaseEnemy> selectedEnemies = new List<BaseEnemy>();
 
     // 시간 정지 상태를 프레임 간 추적
     private bool wasTimeStoppedLastFrame = false;
 
-    // 시간 정지 중 선택된 적들을 저장 (순차 공격용)
-    private List<BaseEnemy> selectedEnemies = new List<BaseEnemy>();
     public void Init(Rigidbody2D rb, Collider2D playerCollider)
     {
         this.rb = rb;
@@ -50,15 +43,14 @@ public class P_Attack : MonoBehaviour
     }
 
     /// <summary>
-    /// 공격 로직 처리 (Update()에서 매 프레임 호출)
+    /// 공격 로직 처리 (매 프레임 호출)
     /// </summary>
     public void HandleAttack()
     {
-        // 최신 Unity에서는 FindObjectOfType<T>()가 deprecate → FindFirstObjectByType<T>() 사용
         TimeStopController timeStop = FindFirstObjectByType<TimeStopController>();
         bool isNowTimeStopped = (timeStop != null && timeStop.IsTimeStopped);
 
-        // 이전 프레임에 시간정지였고 → 지금 해제됐으며 → 선택된 적들이 있으면 콤보 공격
+        // 이전 프레임은 시간정지였고 지금 해제되었으면 콤보 공격 실행
         if (wasTimeStoppedLastFrame && !isNowTimeStopped && selectedEnemies.Count > 0)
         {
             Debug.Log("시간 정지 해제됨 → 콤보 공격 실행");
@@ -66,18 +58,17 @@ public class P_Attack : MonoBehaviour
         }
         wasTimeStoppedLastFrame = isNowTimeStopped;
 
-        // SHIFT 키가 눌려있다면 → 사격 우선 → 이 스크립트(일반 공격)는 처리 안 함
+        // SHIFT 입력 시 사격 우선 처리 (일반 공격 무시)
         if (Input.GetKey(KeyCode.LeftShift))
             return;
 
-        // 시간정지 상태에서는 적 타겟 선택, 아닐 때는 일반 공격
         if (isNowTimeStopped)
         {
             HandleTargetSelectionDuringTimeStop();
         }
         else
         {
-            // 일반(즉시) 공격
+            // 일반(즉시) 공격 처리
             if (Input.GetMouseButtonDown(0))
             {
                 RaycastHit2D hit = Physics2D.Raycast(
@@ -86,10 +77,7 @@ public class P_Attack : MonoBehaviour
                 );
                 if (hit.collider != null && hit.collider.CompareTag("Enemy"))
                 {
-                    float distance = Vector2.Distance(
-                        transform.position,
-                        hit.collider.transform.position
-                    );
+                    float distance = Vector2.Distance(transform.position, hit.collider.transform.position);
                     if (distance <= attackRange)
                     {
                         StartCoroutine(MoveToEnemyAndAttack(hit.collider.gameObject));
@@ -98,7 +86,7 @@ public class P_Attack : MonoBehaviour
             }
         }
 
-        // 이동 입력 발생 시 선택 취소
+        // 이동 입력 시 선택 취소 (선택 상태 초기화)
         if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0 ||
             Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
         {
@@ -108,7 +96,7 @@ public class P_Attack : MonoBehaviour
     }
 
     /// <summary>
-    /// 시간 정지 중 적 클릭 → 순서 지정, 우클릭 → 선택 해제
+    /// 시간 정지 중 적 클릭(좌클릭: 선택, 우클릭: 선택 해제)
     /// </summary>
     private void HandleTargetSelectionDuringTimeStop()
     {
@@ -130,13 +118,13 @@ public class P_Attack : MonoBehaviour
                         selectedEnemies.Add(enemy);
                         enemy.DisplayOrderNumber(selectedEnemies.Count, orderNumberUIPrefab);
                         Debug.Log("Selected enemy: " + enemy.name);
-                        if (targetConnector != null)
-                            TargetConnector.Instance.UpdateLine(selectedEnemies);
+                        if (SpriteTargetConnector.Instance != null)
+                            SpriteTargetConnector.Instance.SetSelectedTargets(selectedEnemies);
                     }
                 }
             }
         }
-        // 우클릭: 적 선택 해제
+        // 우클릭: 선택 해제
         else if (Input.GetMouseButtonDown(1))
         {
             RaycastHit2D hit = Physics2D.Raycast(
@@ -150,11 +138,9 @@ public class P_Attack : MonoBehaviour
                 {
                     selectedEnemies.Remove(enemy);
                     enemy.ClearOrderNumber();
-
-                    if (targetConnector != null)
-                        TargetConnector.Instance.UpdateLine(selectedEnemies);
-
-                    // 남은 적들의 순서 재지정
+                    if (SpriteTargetConnector.Instance != null)
+                        SpriteTargetConnector.Instance.SetSelectedTargets(selectedEnemies);
+                    // 남은 적들 순서 재지정
                     for (int i = 0; i < selectedEnemies.Count; i++)
                     {
                         selectedEnemies[i].DisplayOrderNumber(i + 1, orderNumberUIPrefab);
@@ -166,17 +152,15 @@ public class P_Attack : MonoBehaviour
     }
 
     /// <summary>
-    /// 일반 공격: 플레이어가 적에게 즉시 돌진 후 공격
+    /// 일반 공격: 플레이어가 적에게 돌진 후 공격
     /// </summary>
     private IEnumerator MoveToEnemyAndAttack(GameObject enemyObj)
     {
         isAttacking = true;
         rb.gravityScale = 0;
-        // Rigidbody2D.velocity → linearVelocity 권장
         rb.linearVelocity = Vector2.zero;
         playerCollider.enabled = false;
 
-        // 적에게 이동
         while (Vector2.Distance(transform.position, enemyObj.transform.position) > 0.1f)
         {
             transform.position = Vector2.MoveTowards(
@@ -187,7 +171,6 @@ public class P_Attack : MonoBehaviour
             yield return null;
         }
 
-        // 공격 파티클 효과
         if (attackParticlePrefab != null)
         {
             GameObject effect = Instantiate(
@@ -202,13 +185,11 @@ public class P_Attack : MonoBehaviour
             }
         }
 
-        // 사운드
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX("PlayerAttackSound");
         }
 
-        // 적에게 데미지
         BaseEnemy enemy = enemyObj.GetComponent<BaseEnemy>();
         if (enemy != null)
         {
@@ -225,7 +206,7 @@ public class P_Attack : MonoBehaviour
     }
 
     /// <summary>
-    /// 시간 정지 해제 후: 선택된 적들을 순서대로 공격(콤보)
+    /// 콤보 공격: 시간 정지 해제 후 선택된 적들을 순서대로 공격
     /// </summary>
     private IEnumerator ExecuteComboAttack()
     {
@@ -239,7 +220,6 @@ public class P_Attack : MonoBehaviour
             BaseEnemy enemy = selectedEnemies[i];
             if (enemy == null) continue;
 
-            // 적에게 이동
             while (Vector2.Distance(transform.position, enemy.transform.position) > 0.1f)
             {
                 transform.position = Vector2.MoveTowards(
@@ -250,7 +230,6 @@ public class P_Attack : MonoBehaviour
                 yield return null;
             }
 
-            // 콤보 공격 파티클
             if (attackParticlePrefab != null)
             {
                 GameObject effect = Instantiate(
@@ -265,22 +244,24 @@ public class P_Attack : MonoBehaviour
                 }
             }
 
-            // 콤보 임계치 초과 시 원콤(=적 maxHealth)
             int dmg = (i >= comboThreshold) ? enemy.maxHealth : damageAmount;
             enemy.TakeDamage(dmg);
             Debug.Log("Combo attacked enemy: " + enemy.name + " for damage: " + dmg);
-
             yield return new WaitForSeconds(comboAttackDelay);
         }
 
         ClearSelection();
+
+        if (SpriteTargetConnector.Instance != null)
+            SpriteTargetConnector.Instance.OnAttackFinished();
+
         playerCollider.enabled = true;
         rb.gravityScale = savedGravity;
         isAttacking = false;
     }
 
     /// <summary>
-    /// 타겟 선택 해제 (이동 입력 or 콤보 끝)
+    /// 선택 취소: 선택된 적 UI 초기화 및 SpriteTargetConnector 초기화
     /// </summary>
     private void ClearSelection()
     {
@@ -292,8 +273,7 @@ public class P_Attack : MonoBehaviour
             }
         }
         selectedEnemies.Clear();
-
-        if (targetConnector != null)
-            TargetConnector.Instance.UpdateLine(selectedEnemies);
+        if (SpriteTargetConnector.Instance != null)
+            SpriteTargetConnector.Instance.ClearAllSegments();
     }
 }

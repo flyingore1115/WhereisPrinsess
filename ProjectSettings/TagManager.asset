@@ -21,7 +21,7 @@ TagManager:
   - 
   - 
   - PostProcess
-  - line
+  - 
   - 
   - 
   - 
@@ -57,6 +57,9 @@ TagManager:
     locked: 0
   - name: Paticle
     uniqueID: 3610880661
+    locked: 0
+  - name: Line
+    uniqueID: 3974233775
     locked: 0
   m_RenderingLayers:
   - Default

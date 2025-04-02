@@ -1,11 +1,15 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using System.Collections;
 
 public class PlayerOver : MonoBehaviour
 {
     public int maxHealth = 3;
     private int currentHealth;
-    public HeartUI heartUI;
+
+    [Header("Health Bar UI")]
+    public Slider healthSlider;       // 인스펙터에서 할당 (메인 캔버스 하위에 배치)
 
     public Transform princess;
     public Transform playerTransform; // 본인 transform
@@ -16,44 +20,69 @@ public class PlayerOver : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private Player player;
-    // ★수정: 원래 중력을 Awake()에서 저장 (Inspector의 값 유지)
     private float originalGravityScale;
+
+    // 피해 애니메이션 효과를 부드럽게 적용하기 위한 코루틴 변수
+    private Coroutine healthLerpCoroutine;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        // ★ Awake()에서 원래 gravityScale 값을 저장
         originalGravityScale = rb.gravityScale;
     }
 
     void Start()
     {
         currentHealth = maxHealth;
-        if (heartUI != null)
-            heartUI.UpdateHearts(currentHealth, maxHealth);
-
+        UpdateHealthBar(currentHealth);  // 초기 체력바 업데이트
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
-        // 원래 중력은 이미 Awake()에서 저장되었음
     }
     
+    // 체력바를 부드럽게 업데이트하는 코루틴 (duration은 조절 가능)
+    private IEnumerator LerpHealthBar(int fromHealth, int toHealth, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            int lerpedHealth = Mathf.RoundToInt(Mathf.Lerp(fromHealth, toHealth, t));
+            UpdateHealthBar(lerpedHealth);
+            yield return null;
+        }
+        UpdateHealthBar(toHealth);
+    }
+
+    // 체력바 UI 업데이트 함수
+    private void UpdateHealthBar(int health)
+    {
+        if (healthSlider != null)
+        {
+            healthSlider.value = health;
+        }
+    }
+    
+    // 체력을 복원할 때 (예: 부활시)
     public void RestoreHealth(int amount)
     {
         currentHealth = maxHealth;
-        if (heartUI != null)
-            heartUI.UpdateHearts(currentHealth, maxHealth);
+        UpdateHealthBar(currentHealth);
         Debug.Log($"[PlayerOver] 체력 복원: {currentHealth}/{maxHealth}");
     }
     
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-        if (PostProcessingManager.Instance != null)
-            PostProcessingManager.Instance.ApplyCharacterHitEffect(0.3f);
-        if (heartUI != null)
-            heartUI.UpdateHearts(currentHealth, maxHealth);
-
+        int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
+        if (healthLerpCoroutine != null)
+        {
+            StopCoroutine(healthLerpCoroutine);
+        }
+        // 0.5초 동안 부드럽게 체력을 줄임
+        healthLerpCoroutine = StartCoroutine(LerpHealthBar(currentHealth, newHealth, 0.5f));
+        currentHealth = newHealth;
+        
+        // 체력이 0 이하이면 플레이어 비활성화 처리
         if (currentHealth <= 0)
         {
             DisablePlayer();
@@ -64,18 +93,12 @@ public class PlayerOver : MonoBehaviour
     {
         if (isDisabled) return;
         isDisabled = true;
-
-        if (StatusTextManager.Instance != null)
-            StatusTextManager.Instance.ShowMessage("메이드가 행동불능이 되었습니다!");
-
         rb.linearVelocity = Vector2.zero;
-
         if (player != null)
         {
             player.ignoreInput = true;
             Debug.Log("[PlayerOver] Player input ignored.");
         }
-
         // 카메라 타겟을 공주로 전환
         CameraFollow cf = FindFirstObjectByType<CameraFollow>();
         if (cf != null && princess != null)
@@ -87,52 +110,36 @@ public class PlayerOver : MonoBehaviour
     // 부활 시 호출 – 플레이어 위치, 체력 복원, 카메라 재설정
     public void OnRewindComplete(Vector2 restoredPosition)
     {
-        // 부활 과정: 플레이어를 즉시 부활시키기 위해, 일단 kinematic으로 고정했다면, 
-        // 부활 완료 후 반드시 다시 일반 물리 상태로 전환해야 합니다.
-        rb.bodyType = RigidbodyType2D.Kinematic; // 여기서 kinematic 상태를 해제합니다.
+        rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
-        
         transform.position = restoredPosition;
         Debug.Log($"[PlayerOver] OnRewindComplete: 위치 => {restoredPosition}");
-        
-        RestoreHealth(0); // 체력 복원 (필요 시 maxHealth로 설정 가능)
-        
-        // 원래 중력값 복원
+        RestoreHealth(0);
         rb.gravityScale = originalGravityScale;
-
-        // 부활 후 플레이어의 입력 허용
         if (player != null)
         {
             player.ignoreInput = false;
             Debug.Log("[PlayerOver] OnRewindComplete -> ignoreInput=false, isDisabled=false");
         }
-        
-        // 카메라 타겟 재설정
-        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
+        CameraFollow cf = FindFirstObjectByType<CameraFollow>();;
         if (cf != null)
         {
             cf.SetTarget(gameObject);
             Debug.Log("[PlayerOver] 카메라 타겟이 플레이어로 재설정됨");
         }
-        
-        // 플레이어를 부활 상태로 전환
         isDisabled = false;
     }
-
-
+    
     // 키 입력 후, 정상 플레이 재개
     public void ResumeAfterRewind()
     {
         isDisabled = false;
         rb.bodyType = RigidbodyType2D.Dynamic;
-
-
         if (player != null)
         {
             player.ignoreInput = false;
             Debug.Log("[PlayerOver] 플레이어 입력 복원");
         }
-
         Princess princessScript = princess.GetComponent<Princess>();
         if (princessScript != null)
         {
