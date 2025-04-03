@@ -47,6 +47,8 @@ public class P_Attack : MonoBehaviour
     /// </summary>
     public void HandleAttack()
     {
+        if(Player.Instance.holdingPrincess)
+            return;
         TimeStopController timeStop = FindFirstObjectByType<TimeStopController>();
         bool isNowTimeStopped = (timeStop != null && timeStop.IsTimeStopped);
 

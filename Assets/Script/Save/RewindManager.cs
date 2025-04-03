@@ -83,13 +83,28 @@ public class RewindManager : MonoBehaviour
             princessAnimator = princess.GetComponent<Animator>();
 
         FindTimeAffectedObjects();
+
+
+    }
+
+    void Update()
+    {
+        // R키 누르면 바로 되감기 실행 (이미 되감기 중이 아니면)
+        if (Input.GetKeyDown(KeyCode.R) && !isRewinding)
+        {
+            StartRewind();
+        }
     }
 
     void FixedUpdate()
     {
+        if(timeStopController == null)
+            timeStopController = FindFirstObjectByType<TimeStopController>();
+
         if (isGameOver) return;
         if (timeStopController != null && timeStopController.IsTimeStopped) return;
         if (isRewinding) return;
+        
 
         if (Time.time - lastSnapshotTime >= snapshotInterval)
         {

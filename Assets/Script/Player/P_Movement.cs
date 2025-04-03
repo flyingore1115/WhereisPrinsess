@@ -69,7 +69,9 @@ public class P_Movement : MonoBehaviour
         if (attackIsActive) return;
 
         float moveInput = Input.GetAxisRaw("Horizontal");
-        Vector2 movementVector = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+    // holding 상태면 속도 50% 적용
+        float speedMultiplier = Player.Instance.holdingPrincess ? 0.5f : 1f;
+        Vector2 movementVector = new Vector2(moveInput * moveSpeed * speedMultiplier, rb.linearVelocity.y);
         rb.linearVelocity = movementVector;
 
         if (moveInput != 0)

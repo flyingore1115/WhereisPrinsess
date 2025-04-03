@@ -31,6 +31,8 @@ public class P_Shooting : MonoBehaviour
     // 반드시 public으로 정의된 HandleShooting() 메서드
     public void HandleShooting()
     {
+        if(Player.Instance.holdingPrincess)
+            return;
         // 사격은 Shift를 누른 상태에서만 가능
         if (Input.GetKey(KeyCode.LeftShift))
         {

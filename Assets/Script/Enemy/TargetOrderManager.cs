@@ -119,4 +119,14 @@ public class TargetOrderManager : MonoBehaviour
             enemy.ClearOrderNumber();
         }
     }
+
+    public void ForceAddTarget(BaseEnemy enemy)
+    {
+        if (orderedEnemies.Contains(enemy)) return;
+
+        orderedEnemies.Add(enemy);
+        int order = orderedEnemies.Count;
+        enemy.DisplayOrderNumber(order, orderNumberUIPrefab);
+    }
+
 }

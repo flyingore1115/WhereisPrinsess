@@ -33,6 +33,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
     [HideInInspector]
     public bool isControlled = false;         // 공주 조종 여부
 
+    public bool isHeld = false; //손잡기
+    public float followSpeed = 5f; // 공주가 따라오는 속도
+
     void Awake()
     {
         if (Instance == null)
@@ -59,26 +62,32 @@ public class Princess : MonoBehaviour, ITimeAffectable
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
 
-        
+
 
         Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }
-    
+
+
 
     void FixedUpdate()
     {
         if (isTimeStopped) return;
-        isGrounded = CheckGrounded();
 
-        // 조종 모드일 경우, 외부(PrincessControlHandler)에서 이동 처리하므로 기본 이동하지 않음.
-        if (isControlled)
+        if (isHeld && Player.Instance != null)
+        {
+            // 플레이어 위치에 약간의 오프셋을 주고 부드럽게 따라감
+            Vector3 targetPos = Player.Instance.transform.position + new Vector3(0, 0.5f, 0);
+            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * followSpeed);
+            return;
+        }
+
+        isGrounded = CheckGrounded();
+        if (isControlled) //조종당할때는 움직임 X
         {
             rb.linearVelocity = Vector2.zero;
             return;
         }
-
-        // 기본적으로 공주는 우측으로 이동 (땅에 닿아 있을 때)
-        if (!isGameOver && isGrounded)
+        if (!isGameOver && isGrounded) //기본
         {
             rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
         }
@@ -86,6 +95,26 @@ public class Princess : MonoBehaviour, ITimeAffectable
         {
             rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         }
+    }
+    public void StartBeingHeld()
+    {
+        isHeld = true;
+        if (this == null || spriteRenderer == null) return;
+        isTimeStopped = false;
+        if (animator != null)
+        {
+            animator.speed = 1;
+        }
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
+    }
+    public void StopBeingHeld()
+    {
+        isHeld = false;
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -129,28 +158,28 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
     }
 
-public void GameOver()
-{
-    if (isGameOver) return;
-    isGameOver = true;
+    public void GameOver()
+    {
+        if (isGameOver) return;
+        isGameOver = true;
 
-    if (animator != null)
-    {
-        animator.speed = 1f; // 애니메이션 정지되어 있으면 풀어주고
-        animator.SetTrigger("isDie");
-        Debug.Log("공주 사망 애니메이션 실행됨");
-    }
+        if (animator != null)
+        {
+            animator.speed = 1f; // 애니메이션 정지되어 있으면 풀어주고
+            animator.SetTrigger("isDie");
+            Debug.Log("공주 사망 애니메이션 실행됨");
+        }
 
-    GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
-    if (gameOverManager != null)
-    {
-        gameOverManager.TriggerGameOver();
+        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
+        if (gameOverManager != null)
+        {
+            gameOverManager.TriggerGameOver();
+        }
+        else
+        {
+            Debug.LogError("GameOverManager를 찾을 수 없습니다!");
+        }
     }
-    else
-    {
-        Debug.LogError("GameOverManager를 찾을 수 없습니다!");
-    }
-}
 
 
     private IEnumerator CoRewindThenCheckpoint()

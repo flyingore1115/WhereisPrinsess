@@ -17,15 +17,6 @@ public class CanvasManager : MonoBehaviour
 
     [Header("TimeStop Gauge (슬라이더)")]
     public Slider timeStopSlider;         // 타임스톱 게이지
-    public Image timeStopFillImage;       // 슬라이더의 fill 영역(색상 조절용)
-
-    [Header("Warning Colors")]
-    public Color normalColor = Color.green;
-    public Color warningColor = Color.red;
-    public float warningThreshold = 20f;   // 게이지가 20 이하일 때 경고 깜빡임
-    private bool isBlinking = false;
-    private float blinkTimer = 0f;
-    public float blinkInterval = 0.5f;
 
     private void Awake()
     {
@@ -83,37 +74,6 @@ public class CanvasManager : MonoBehaviour
         {
             timeStopSlider.maxValue = tsc.maxTimeGauge;
             timeStopSlider.value    = tsc.currentTimeGauge;
-
-            // 경고 깜빡임 로직
-            if (tsc.currentTimeGauge <= warningThreshold)
-            {
-                if (!isBlinking)
-                {
-                    isBlinking = true;
-                    blinkTimer = 0f;
-                }
-            }
-            else
-            {
-                if (isBlinking)
-                {
-                    isBlinking = false;
-                    if (timeStopFillImage != null)
-                        timeStopFillImage.color = normalColor;
-                }
-            }
-
-            if (isBlinking && timeStopFillImage != null)
-            {
-                blinkTimer += Time.unscaledDeltaTime; // 게임 일시정지 무시하는 UI라면 unscaledDeltaTime 사용
-                if (blinkTimer >= blinkInterval)
-                {
-                    blinkTimer = 0f;
-                    timeStopFillImage.color = (timeStopFillImage.color == normalColor)
-                        ? warningColor
-                        : normalColor;
-                }
-            }
         }
     }
 }

@@ -3,6 +3,8 @@ using UnityEngine;
 public class Bullet : MonoBehaviour, ITimeAffectable
 {
     public float speed = 30f;
+    public float lifetime = 5f;  // 총알 생명주기
+    private float timer = 0f;
     private Rigidbody2D rb;
     private bool isTimeStopped = false;
     private Vector2 direction;
@@ -11,12 +13,11 @@ public class Bullet : MonoBehaviour, ITimeAffectable
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        // 등록: TimeStopController에 자신을 등록
+        // TimeStopController에 자신 등록
         TimeStopController tsc = FindFirstObjectByType<TimeStopController>();
         if (tsc != null)
         {
             tsc.RegisterTimeAffectedObject(this);
-            // ★ 즉시 시간정지 상태 체크: 만약 현재 시간정지 중이면 StopTime() 호출
             if (tsc.IsTimeStopped)
             {
                 StopTime();
@@ -24,12 +25,17 @@ public class Bullet : MonoBehaviour, ITimeAffectable
         }
     }
 
-    public void SetDirection(Vector2 dir)
+    void Update()
     {
-        direction = dir.normalized;
-        // 발사 방향에 따라 각도 설정
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        // 시간 정지 중이면 lifetime 타이머 업데이트를 멈춤
+        if (!isTimeStopped)
+        {
+            timer += Time.deltaTime;
+            if (timer >= lifetime)
+            {
+                Destroy(gameObject);
+            }
+        }
     }
 
     void FixedUpdate()
@@ -38,31 +44,11 @@ public class Bullet : MonoBehaviour, ITimeAffectable
         rb.linearVelocity = direction * speed;
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    public void SetDirection(Vector2 dir)
     {
-        if (collision.CompareTag("Enemy"))
-        {
-            // 기존 Destroy 대신, 적의 TakeDamage() 호출
-            var enemy = collision.GetComponent<BaseEnemy>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(damageAmount);
-            }
-            else
-            {
-                Destroy(collision.gameObject);
-            }
-
-            // 총알은 충돌 시 제거
-            Destroy(gameObject);
-
-            // 시간 게이지 충전
-            TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
-            if (timeStopController != null)
-            {
-                timeStopController.AddTimeGauge(5f);
-            }
-        }
+        direction = dir.normalized;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     void OnDestroy()
@@ -87,6 +73,4 @@ public class Bullet : MonoBehaviour, ITimeAffectable
         isTimeStopped = false;
         rb.simulated = true;        // 물리 시뮬레이션 재개
     }
-
-    public void RestoreColor() { } // 총알은 색 변화가 필요 없으므로 빈 구현
 }

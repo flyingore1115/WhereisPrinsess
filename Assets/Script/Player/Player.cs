@@ -16,6 +16,7 @@ public class Player : MonoBehaviour, ITimeAffectable
 
     public bool ignoreInput = false;
     public bool isGameOver = false;
+    public bool holdingPrincess = false;
 
     public bool applyRewindGrayscale = false;
 
@@ -80,6 +81,16 @@ public class Player : MonoBehaviour, ITimeAffectable
         {
             attack.HandleAttack();
         }
+    }
+
+    public void StartHoldingPrincess()
+    {
+        holdingPrincess = true;
+    }
+
+    public void StopHoldingPrincess()
+    {
+        holdingPrincess = false;
     }
 
     public void RestoreFromRewind(Vector2 rewindPosition)

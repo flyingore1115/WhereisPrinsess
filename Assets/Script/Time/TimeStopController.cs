@@ -20,14 +20,9 @@ public class TimeStopController : MonoBehaviour
     public bool IsTimeStopped => isTimeStopped;
 
     //================================================================슬라이더
-    public Slider timeGaugeSlider; 
-    public Image fillImage; 
-    public Color normalColor = Color.green; 
-    public Color warningColor = Color.red; 
-    public float warningThreshold = 20f; 
-    private bool isBlinking = false;
-    private float blinkTimer = 0f;
-    public float blinkInterval = 0.5f; 
+    public Slider timeGaugeSlider;
+    public Image fillImage;
+
 
     void Awake()
     {
@@ -55,11 +50,11 @@ public class TimeStopController : MonoBehaviour
         // (1) "게임오버 중" 또는 "되감기 중"이면 플레이어가 시간정지 입력 못하게
         //     RewindManager.Instance가 null일 수도 있으니 체크
         bool isRewinding = (RewindManager.Instance != null && RewindManager.Instance.IsRewinding);
-        bool isGameOver  = (RewindManager.Instance != null && RewindManager.Instance.IsGameOver()); 
+        bool isGameOver = (RewindManager.Instance != null && RewindManager.Instance.IsGameOver());
         // ↑ isGameOver 메서드를 새로 만든다고 가정 (아래 RewindManager 수정 예시 참고)
 
         // => 둘 중 하나라도 true면 시간정지 입력 무시
-        if (!isGameOver && !isRewinding) 
+        if (!isGameOver && !isRewinding)
         {
             // 기존 시간정지 토글 로직
             if (Input.GetKeyDown(KeyCode.Space))
@@ -84,34 +79,50 @@ public class TimeStopController : MonoBehaviour
             currentTimeGauge += passiveChargeRate * Time.deltaTime;
             currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
         }
-
-        // (2) 좌클릭 + Ctrl로 대상 해제
-        //인데 전체 시간정지가 풀리는 문제땜시 잠시 봉인
-        // if (isTimeStopped && Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl))
-        // {
-        //     RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-        //     if (hit.collider != null)
-        //     {
-        //         var affectable = hit.collider.GetComponent<ITimeAffectable>();
-        //         if (affectable != null)
-        //         {
-        //             affectable.ResumeTime();
-        //         }
-        //     }
-        // }
-
-        UpdateTimeGaugeUI(); 
-
-        // (UI 깜빡임 로직)
-        if (isBlinking)
+        // 추가: 손잡기 처리 (시간정지 상태에서 공주 클릭)
+        if (isTimeStopped)
         {
-            blinkTimer += Time.deltaTime;
-            if (blinkTimer >= blinkInterval)
+            // 손잡기 시작: 마우스 왼쪽 클릭 시 레이캐스트로 공주 확인
+            if (!Player.Instance.holdingPrincess && Input.GetMouseButtonDown(0))
             {
-                blinkTimer = 0f;
-                fillImage.color = (fillImage.color == normalColor) ? warningColor : normalColor;
+                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+                if (hit.collider != null && hit.collider.CompareTag("Princess"))
+                {
+                    Player.Instance.StartHoldingPrincess();
+                    Princess.Instance.StartBeingHeld();
+                    Debug.Log("공주 손잡기 시작");
+                }
             }
         }
+        // 시간이 풀리면 손잡기 상태 해제
+        else
+        {
+            if (Player.Instance.holdingPrincess)
+            {
+                Player.Instance.StopHoldingPrincess();
+                Princess.Instance.StopBeingHeld();
+                Debug.Log("시간정지 해제 → 공주 손잡기 해제");
+            }
+        }
+
+        // 시간정지 상태일 때 게이지 소모 (손잡기 상태면 3배 소모)
+        if (isTimeStopped)
+        {
+            float drainRate = Player.Instance.holdingPrincess ? timeStopDrainRate * 3f : timeStopDrainRate;
+            currentTimeGauge -= drainRate * Time.deltaTime;
+            if (currentTimeGauge <= 0)
+            {
+                currentTimeGauge = 0;
+                ResumeTime();
+            }
+        }
+        else
+        {
+            currentTimeGauge += passiveChargeRate * Time.deltaTime;
+            currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
+        }
+        UpdateTimeGaugeUI();
+
     }
 
     public void RemoveTimeAffectedObject(ITimeAffectable obj)
@@ -181,23 +192,6 @@ public class TimeStopController : MonoBehaviour
         if (timeGaugeSlider != null)
         {
             timeGaugeSlider.value = currentTimeGauge;
-
-            if (currentTimeGauge <= warningThreshold)
-            {
-                if (!isBlinking)
-                {
-                    isBlinking = true;
-                    blinkTimer = 0f;
-                }
-            }
-            else
-            {
-                if (isBlinking)
-                {
-                    isBlinking = false;
-                    fillImage.color = normalColor; 
-                }
-            }
         }
     }
 
@@ -217,6 +211,6 @@ public class TimeStopController : MonoBehaviour
     Vector3 GetPlayerPreviousPosition(float duration)
     {
         // 임의 예시
-        return transform.position - (Vector3.right * 5f); 
+        return transform.position - (Vector3.right * 5f);
     }
 }

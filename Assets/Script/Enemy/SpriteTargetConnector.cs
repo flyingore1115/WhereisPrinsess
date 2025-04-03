@@ -116,6 +116,12 @@ public class SpriteTargetConnector : MonoBehaviour
                 SoundManager.Instance.PlaySFX("Line_Connect");
         }
         selectedTargets.Add(targetTr);
+
+        BaseEnemy enemy = targetTr.GetComponent<BaseEnemy>();
+        if (enemy != null && TargetOrderManager.Instance != null)
+        {
+            TargetOrderManager.Instance.ForceAddTarget(enemy);
+        }
     }
 
     /// <summary>
