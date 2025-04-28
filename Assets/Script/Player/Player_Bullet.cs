@@ -44,6 +44,23 @@ public class Bullet : MonoBehaviour, ITimeAffectable
         rb.linearVelocity = direction * speed;
     }
 
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Enemy"))
+        {
+            Debug.Log("Bullet hit Enemy!");
+
+            BaseEnemy enemy = collision.GetComponent<BaseEnemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damageAmount);
+            }
+
+            Destroy(gameObject);
+        }
+    }
+
+
     public void SetDirection(Vector2 dir)
     {
         direction = dir.normalized;

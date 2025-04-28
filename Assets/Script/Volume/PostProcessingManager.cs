@@ -60,7 +60,6 @@ public class PostProcessingManager : MonoBehaviour
                 return;
             }
         }
-
         if (postProcessVolume.profile != null)
         {
             postProcessVolume.profile.TryGet(out colorAdjustments);
@@ -68,9 +67,18 @@ public class PostProcessingManager : MonoBehaviour
             postProcessVolume.profile.TryGet(out chromaticAberration);
             postProcessVolume.profile.TryGet(out filmGrain);
         }
-
-        SetDefaultEffects();
+        
+        // 만약 시간정지 중이면 시간정지 효과 적용, 아니면 기본 효과 적용
+        if(TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
+        {
+            ApplyTimeStop();
+        }
+        else
+        {
+            SetDefaultEffects();
+        }
     }
+
 
     public void SetDefaultEffects()
     {

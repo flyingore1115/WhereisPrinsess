@@ -5,193 +5,205 @@ using System.Collections.Generic;
 
 public class StorySceneManager : MonoBehaviour
 {
+    [Header("Scene Start Trigger")]
+    public string startTriggerID;       // 씬 시작 시 자동 대사 실행용 ID (빈 문자열이면 무시)
+
     [Header("UI References")]
-    public Text characterNameText;   // 캐릭터 이름 UI
-    public Text dialogueText;        // 대사 UI
-    public GameObject dialoguePanel; // 대화창 패널
+    public Text characterNameText;      // 캐릭터 이름 텍스트
+    public Text dialogueText;           // 대사 텍스트
+    public GameObject dialoguePanel;    // 대화창 패널
+
+    [Header("Choice UI References")]
+    public GameObject choicePanel;      // 선택지 패널
+    public Button choiceButtonPrefab;   // 선택지 버튼 프리팹
 
     [Header("Typing Effect Settings")]
-    public float typingSpeed = 0.05f; // 글자 하나씩 찍히는 속도
-    private bool isTyping = false;
+    public float typingSpeed = 0.05f;   // 글자 타이핑 속도
 
     [Header("Camera Settings for Dialogue")]
-    public CameraFollow cameraFollow;     // 씬 내 CameraFollow 참조
-    public float dialogueCameraSize = 8f;   // 대화 중 확대될 카메라 크기
-    public float cameraZoomDuration = 0.5f; // 줌 인/아웃 시간
+    public CameraFollow cameraFollow;   // 카메라 팔로우 스크립트 참조
+    public float dialogueCameraSize = 8f;
+    public float cameraZoomDuration = 0.5f;
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // '트리거ID'별 대사를 코드에 직접 등록
-    // ─────────────────────────────────────────────────────────────────────────────
-    // 여기서는 기본 대화 시퀀스만 등록하고, 재대화 시에는 대체 대사를 출력합니다.
-    private Dictionary<string, DialogueLine[]> dialogueMap = new Dictionary<string, DialogueLine[]>
+    // 트리거ID별 대사 시퀀스 (회차에 따라 다른 배열)
+    private Dictionary<string, DialogueEntry[][]> dialogueSequences = new Dictionary<string, DialogueEntry[][]>
     {
-        {
-            "A",
-            new DialogueLine[]
+        { "Intro", new DialogueEntry[][]
             {
-                new DialogueLine("???",  "일어나보렴,"),
-                new DialogueLine("???",  "많이 긴장한 모양이구나"),
-                new DialogueLine("???",  "한번 몸을 움직여보겠니?"),
+                new DialogueEntry[]
+                {
+                    new DialogueEntry("", "…"),
+                    new DialogueEntry("", "일… 나, …?"),
+                    new DialogueEntry("", "이제 일어나보렴"),
+                    new DialogueEntry("", "…어,"),
+                    new DialogueEntry("Mr. 스프라우트 박사", "아, 일어났다."),
+                    new DialogueEntry("스프라우트", "그 잠깐 사이에 잠들다니, 많이 피곤했나보구나"),
+                    new DialogueEntry("스프라우트", "일어날 수 있겠니?"),
+                    // 선택지
+                    new DialogueEntry(new string[]{ "네에…" }),
+                    new DialogueEntry("", "당신은 겨우 일어서 발을 딛으려 했다."),
+                    new DialogueEntry("", "… 아무래도 걷는 것을 잊어버린 모양인지 발을 디딜 수 없었지만"),
+                    new DialogueEntry("스프라우트", "걷기는 A나 D, 혹은 방향키로 할 수 있단다."),
+                    new DialogueEntry("스프라우트", "아무튼, 다들 기다리고 있단다."),
+                    new DialogueEntry("스프라우트", "…"),
+                    new DialogueEntry("스프라우트", "긴장하지 않아도 돼, 물론 꽤… 까칠하지만 사실 속은 굉장히 여린 아이거든"),
+                    new DialogueEntry("스프라우트", "그러니까 문제는 없을거란다! …아마도"),
+                    new DialogueEntry("스프라우트", "저기 앞에 있는 304호 병실 문을 열고 들어가면 돼")
+                }
             }
         },
-        {
-            "B",
-            new DialogueLine[]
+        { "re", new DialogueEntry[][]
             {
-                new DialogueLine("프릴", "문이 잠겼어. 이걸 어떻게 열지?")
+            new DialogueEntry[]
+                {
+                    new DialogueEntry("스프라우트", "304호 병실은 여기서 조금만 걸어가면 돼"),
+                    new DialogueEntry("스프라우트", "딸아이와 친하게 지내줄거라 기대하고 있단다")
+                }
             }
         },
-        // 필요한 만큼 추가 가능
+        { "A", new DialogueEntry[][]
+            {
+                new DialogueEntry[]
+                {
+                    new DialogueEntry("", "…"),
+                    new DialogueEntry("", "…?"),
+                    new DialogueEntry("", "넌 뭐야?"),
+                    new DialogueEntry("Ms. 스프라우트", "아, 왔구나!"),
+                    new DialogueEntry("스프라우트", "인사하렴 ■■■! 이제부터 네 친구가 되어줄 아이란다!"),
+                    new DialogueEntry("", "… 뭐?"),
+                    new DialogueEntry("", "당신은 분위기가 점차 냉각되는 것을 느낀다.")
+                }
+            }
+        }
     };
 
-    // 대화 진행 여부를 판단하기 위한 플래그 (대화 시작 후 true로 설정)
     private bool isDialogueActive = false;
-    // 각 트리거별로 몇 번 대화가 진행되었는지 기록 (처음 대화면 0, 이후 재대화 시 1 이상)
     private Dictionary<string, int> dialogueTriggerCount = new Dictionary<string, int>();
-
     private Coroutine dialogueCoroutine;
 
     void Start()
     {
-        // 게임 시작 시 대화창 패널은 비활성화
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
+        dialoguePanel?.SetActive(false);
+        choicePanel?.SetActive(false);
+
+        // 씬 시작 자동 대화
+        if (!string.IsNullOrEmpty(startTriggerID))
+            StartDialogueForTrigger(startTriggerID);
     }
 
-    // 외부에서 트리거 ID를 넘겨 대화를 시작할 때 호출
+    // 플레이어가 트리거 영역에 진입했을 때
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player") && !isDialogueActive)
+            StartDialogueForTrigger(gameObject.name);
+    }
+
     public void StartDialogueForTrigger(string triggerID)
     {
-        // 대화가 이미 진행 중이면 무시
-        if (isDialogueActive)
-        {
-            Debug.Log("대화가 진행 중이므로 새로운 대화 호출을 무시합니다.");
-            return;
-        }
+        if (isDialogueActive) return;
+        if (!dialogueSequences.TryGetValue(triggerID, out var sequences)) return;
 
-        DialogueLine[] lines = null;
-
-        // 같은 트리거에 대해 이전에 대화한 적이 있으면 대체 대사 사용
-        if (dialogueTriggerCount.ContainsKey(triggerID) && dialogueTriggerCount[triggerID] >= 1)
-        {
-            // 예시: 재대화 시 간단한 안내 메시지 출력
-            lines = new DialogueLine[]
-            {
-                new DialogueLine("", "이미 대화를 마쳤습니다. 다른 곳으로 이동하세요.")
-            };
-        }
-        else
-        {
-            if (!dialogueMap.TryGetValue(triggerID, out lines))
-            {
-                Debug.LogWarning($"[StorySceneManager] 존재하지 않는 트리거 ID: {triggerID}");
-                return;
-            }
-            dialogueTriggerCount[triggerID] = 1; // 처음 대화임을 기록
-        }
+        int count = dialogueTriggerCount.ContainsKey(triggerID) ? dialogueTriggerCount[triggerID] : 0;
+        int index = Mathf.Clamp(count, 0, sequences.Length - 1);
+        DialogueEntry[] entries = sequences[index];
+        dialogueTriggerCount[triggerID] = count + 1;
 
         isDialogueActive = true;
+        Player.Instance.ignoreInput = true;
+        dialoguePanel.SetActive(true);
+        StartCoroutine(SmoothZoomCamera(dialogueCameraSize, cameraZoomDuration));
 
-        // 플레이어 입력 차단 (대화 중에는 이동, 공격 등 X)
-        if (Player.Instance != null)
-            Player.Instance.ignoreInput = true;
-
-        // 대화창 패널 활성화
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(true);
-
-        // 부드러운 카메라 줌 인 시작
-        if (cameraFollow != null)
-            StartCoroutine(SmoothZoomCamera(dialogueCameraSize, cameraZoomDuration));
-
-        // 대사 재생 코루틴 시작
-        dialogueCoroutine = StartCoroutine(ShowMultipleDialogues(lines));
+        dialogueCoroutine = StartCoroutine(PlayEntries(entries));
     }
 
-    // 여러 줄의 대사를 순차적으로 보여주고, 각 줄마다 아무 키나 누를 때까지 대기
-    private IEnumerator ShowMultipleDialogues(DialogueLine[] lines)
+    private IEnumerator PlayEntries(DialogueEntry[] entries)
     {
-        foreach (var line in lines)
+        foreach (var entry in entries)
         {
-            // 한 줄씩 타이핑 효과로 출력
-            yield return StartCoroutine(TypeSentence(line.characterName, line.dialogueText));
-
-            // 모든 글자가 출력된 후, 아무 키나 누르면 다음 대사로 넘어감
-            yield return new WaitUntil(() => Input.anyKeyDown);
+            if (entry.options != null && entry.options.Length > 0)
+                yield return StartCoroutine(ShowChoices(entry.options));
+            else
+            {
+                yield return StartCoroutine(TypeSentence(entry.characterName, entry.dialogueText));
+                yield return new WaitUntil(() => Input.anyKeyDown);
+            }
         }
-
-        // 모든 대사가 끝나면 후속 처리
         EndDialogue();
     }
 
-    // 한 문장을 타이핑 효과로 출력하는 코루틴
+    private IEnumerator ShowChoices(string[] options)
+    {
+        choicePanel.SetActive(true);
+        int selected = -1;
+        var buttons = new List<Button>();
+        for (int i = 0; i < options.Length; i++)
+        {
+            var btn = Instantiate(choiceButtonPrefab, choicePanel.transform);
+            int idx = i;
+            btn.GetComponentInChildren<Text>().text = options[i];
+            btn.onClick.AddListener(() => { selected = idx; });
+            buttons.Add(btn);
+        }
+        yield return new WaitUntil(() => selected >= 0);
+        buttons.ForEach(b => Destroy(b.gameObject));
+        choicePanel.SetActive(false);
+        // 선택값: options[selected]
+    }
+
     private IEnumerator TypeSentence(string charName, string text)
     {
-        isTyping = true;
         characterNameText.text = charName;
-        dialogueText.text = "";
-
-        foreach (char letter in text.ToCharArray())
+        dialogueText.text = string.Empty;
+        foreach (char c in text)
         {
-            dialogueText.text += letter;
+            dialogueText.text += c;
             yield return new WaitForSeconds(typingSpeed);
         }
-
-        isTyping = false;
     }
 
-    // 대화가 모두 끝난 후 호출 (대화창 비활성화, 플레이어 입력 복원, 카메라 원복)
-    private void EndDialogue()
-    {
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
-
-        // 플레이어 입력 복원
-        if (Player.Instance != null)
-            Player.Instance.ignoreInput = false;
-
-        // 부드러운 카메라 줌 아웃 (기본 크기로)
-        if (cameraFollow != null)
-            StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
-
-        isDialogueActive = false;
-
-        Debug.Log("대사가 모두 끝났습니다. 후속 처리를 여기에 넣으세요.");
-    }
-
-    // 카메라 줌을 부드럽게 처리하는 코루틴 (targetSize로 duration 시간 동안 보간)
     private IEnumerator SmoothZoomCamera(float targetSize, float duration)
     {
-        if (cameraFollow == null)
-            yield break;
+        if (cameraFollow == null) yield break;
+        var cam = cameraFollow.GetComponent<Camera>();
+        if (cam == null) yield break;
 
-        // CameraFollow의 카메라 크기 접근은 CameraFollow 내부의 Camera 컴포넌트를 통해서 합니다.
-        Camera cam = cameraFollow.GetComponent<Camera>();
-        if (cam == null)
-            yield break;
-
-        float startSize = cam.orthographicSize;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
+        float start = cam.orthographicSize;
+        float t = 0f;
+        while (t < duration)
         {
-            elapsed += Time.deltaTime;
-            float newSize = Mathf.Lerp(startSize, targetSize, elapsed / duration);
-            cameraFollow.SetCameraSize(newSize);
+            t += Time.deltaTime;
+            cameraFollow.SetCameraSize(Mathf.Lerp(start, targetSize, t / duration));
             yield return null;
         }
         cameraFollow.SetCameraSize(targetSize);
     }
+
+    private void EndDialogue()
+    {
+        dialoguePanel.SetActive(false);
+        Player.Instance.ignoreInput = false;
+        StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
+        isDialogueActive = false;
+    }
 }
 
 [System.Serializable]
-public struct DialogueLine
+public class DialogueEntry
 {
-    public string characterName; 
+    public string characterName;
     public string dialogueText;
+    public string[] options;
 
-    public DialogueLine(string name, string text)
+    public DialogueEntry(string name, string text)
     {
         characterName = name;
         dialogueText = text;
+        options = null;
+    }
+    public DialogueEntry(string[] opts)
+    {
+        characterName = null;
+        dialogueText = null;
+        options = opts;
     }
 }
