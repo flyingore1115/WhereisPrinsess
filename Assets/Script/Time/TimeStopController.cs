@@ -145,7 +145,7 @@ public class TimeStopController : MonoBehaviour
         }
     }
 
-    void StopTime()
+    public void StopTime()
     {
         // 사운드
         if (SoundManager.Instance != null)
@@ -158,7 +158,7 @@ public class TimeStopController : MonoBehaviour
         }
     }
 
-    void ResumeTime()
+    public void ResumeTime()
     {
         // 사운드
         if (SoundManager.Instance != null)
