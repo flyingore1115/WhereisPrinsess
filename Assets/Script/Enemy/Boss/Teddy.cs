@@ -48,6 +48,10 @@ public class Teddy : BaseEnemy
 
     void Start()
     {
+        if (Princess.Instance != null)
+        {
+            Princess.Instance.PlayScaredIdle();
+        }
         if (bossHealthUI != null)
             bossHealthUI.InitBossUI("테디", bossMaxHP);
 
@@ -176,7 +180,11 @@ public class Teddy : BaseEnemy
         yield return new WaitForSeconds(explosionDelay);
 
         if (explosionEffectPrefab != null)
-            Instantiate(explosionEffectPrefab, pos, Quaternion.identity);
+        {
+            GameObject effect = Instantiate(explosionEffectPrefab, pos, Quaternion.identity);
+            effect.transform.localScale = Vector3.one * (explosionRadius * 2f * 0.3f);
+        }
+
 
         // 피해 처리
         var hits = Physics2D.OverlapCircleAll(pos, explosionRadius);

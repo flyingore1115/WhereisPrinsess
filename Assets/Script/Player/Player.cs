@@ -55,7 +55,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     {
         if (GameObject.FindGameObjectWithTag("Princess") != null)
         {
-            Debug.Log("[Player] 공주 참조를 찾았습니다.");
+            //Debug.Log("[Player] 공주 참조를 찾았습니다.");
         }
         else
         {

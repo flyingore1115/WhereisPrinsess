@@ -12,6 +12,7 @@ public class MySceneManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -21,9 +22,19 @@ public class MySceneManager : MonoBehaviour
 
     public void LoadScene(string sceneName)
     {
-        SceneManager.LoadScene("New_Game");
+        if (FadeManager.Instance != null)
+        {
+            //페이드 인 실행
+            FadeManager.Instance.StartFadeOut(() =>
+            {
+                SceneManager.LoadScene(sceneName);
+            });
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
+        }
     }
-
     public void MainMenuScene()
     {
         SceneManager.LoadScene("MainMenu");
@@ -47,4 +58,16 @@ public class MySceneManager : MonoBehaviour
     {
         Application.Quit();
     }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("[MySceneManager] 씬 로드 완료됨: " + scene.name);
+
+        if (FadeManager.Instance != null)
+        {
+            FadeManager.Instance.StartFadeIn();
+        }
+    }
+
+
 }

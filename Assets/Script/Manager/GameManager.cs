@@ -36,7 +36,8 @@ public class GameManager : MonoBehaviour
             RewindManager.Instance.ClearSnapshots();
 
         // 3) 메인 게임 씬 로드
-        SceneManager.LoadScene("New_Game", LoadSceneMode.Single);
+        MySceneManager.Instance.LoadScene("New_Game");
+
     }
 
     public void ContinueGame()
@@ -48,7 +49,7 @@ public class GameManager : MonoBehaviour
             LoadedCheckpoint = gameStateData.checkpointData; // 수정된 부분
             TimePointData checkpointData = gameStateData.checkpointData;
 
-            // 메인 게임 씬 로드
+            // 메인 게임 씬 로드 (이거 나중에 씬 많아지면 수정해야함)
             MySceneManager.Instance.LoadScene("New_Game");
         }
         else

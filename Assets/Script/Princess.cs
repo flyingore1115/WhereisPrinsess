@@ -49,14 +49,14 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
         Debug.Log($"[Princess] Awake() => transform.position = {transform.position}");
         defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
+    
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
     }
 
     void Start()
     {
-
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
 
 
         // 기존 persistentExtraLives 값 적용
@@ -112,6 +112,20 @@ public class Princess : MonoBehaviour, ITimeAffectable
             rb.bodyType = RigidbodyType2D.Dynamic;
         }
     }
+
+        // 보스씬에서 공주를 고정시키고 떠는 애니메이션만 실행
+    public void PlayScaredIdle()
+    {
+        isControlled = true; // 이동 정지
+        rb.linearVelocity = Vector2.zero;
+
+        if (animator != null)
+        {
+            //animator.SetTrigger("isScared"); // 또는 SetBool("isScared", true);
+            //animator.speed = 1f;
+        }
+    }
+
     public void StopBeingHeld()
     {
         isHeld = false;
