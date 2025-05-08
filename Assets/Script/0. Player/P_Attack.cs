@@ -27,8 +27,15 @@ public class P_Attack : MonoBehaviour
     // 시간 정지 중 선택된 적들을 저장 (콤보 공격용)
     private List<BaseEnemy> selectedEnemies = new List<BaseEnemy>();
 
+    // 튜토리얼 등 외부에서 현재 선택된 적(물체) 개수를 읽기 위해 추가
+    public int SelectedCount => selectedEnemies.Count;
+
+    private List<GameObject> attackTargets = new List<GameObject>();
+
     // 시간 정지 상태를 프레임 간 추적
     private bool wasTimeStoppedLastFrame = false;
+
+    
 
     public void Init(Rigidbody2D rb, Collider2D playerCollider)
     {
@@ -77,7 +84,8 @@ public class P_Attack : MonoBehaviour
                     Camera.main.ScreenToWorldPoint(Input.mousePosition),
                     Vector2.zero
                 );
-                if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+                BaseEnemy enemy = hit.collider ? hit.collider.GetComponent<BaseEnemy>() : null;
+                if (enemy != null)
                 {
                     float distance = Vector2.Distance(transform.position, hit.collider.transform.position);
                     if (distance <= attackRange)
@@ -100,58 +108,42 @@ public class P_Attack : MonoBehaviour
     /// <summary>
     /// 시간 정지 중 적 클릭(좌클릭: 선택, 우클릭: 선택 해제)
     /// </summary>
-    private void HandleTargetSelectionDuringTimeStop()
+private void HandleTargetSelectionDuringTimeStop()
+{
+    if (Input.GetMouseButtonDown(0))
     {
-        // 좌클릭: 적 선택
-        if (Input.GetMouseButtonDown(0))
+        RaycastHit2D hit = Physics2D.Raycast(
+            Camera.main.ScreenToWorldPoint(Input.mousePosition),
+            Vector2.zero
+        );
+
+        // ◆ 적 또는 튜토리얼 타겟 클릭 시 선택
+        if (hit.collider != null 
+            && (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("TutorialTarget")))
         {
-            RaycastHit2D hit = Physics2D.Raycast(
-                Camera.main.ScreenToWorldPoint(Input.mousePosition),
-                Vector2.zero
-            );
-            if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+            BaseEnemy enemy = hit.collider.GetComponent<BaseEnemy>();
+            if (enemy != null && !selectedEnemies.Contains(enemy))
             {
-                BaseEnemy enemy = hit.collider.GetComponent<BaseEnemy>();
-                if (enemy != null && !selectedEnemies.Contains(enemy))
+                float dist = Vector2.Distance(transform.position, enemy.transform.position);
+                if (dist <= attackRange)
                 {
-                    float distance = Vector2.Distance(transform.position, enemy.transform.position);
-                    if (distance <= attackRange)
-                    {
-                        selectedEnemies.Add(enemy);
-                        enemy.DisplayOrderNumber(selectedEnemies.Count, orderNumberUIPrefab);
-                        Debug.Log("Selected enemy: " + enemy.name);
-                        if (SpriteTargetConnector.Instance != null)
-                            SpriteTargetConnector.Instance.SetSelectedTargets(selectedEnemies);
-                    }
-                }
-            }
-        }
-        // 우클릭: 선택 해제
-        else if (Input.GetMouseButtonDown(1))
-        {
-            RaycastHit2D hit = Physics2D.Raycast(
-                Camera.main.ScreenToWorldPoint(Input.mousePosition),
-                Vector2.zero
-            );
-            if (hit.collider != null && hit.collider.CompareTag("Enemy"))
-            {
-                BaseEnemy enemy = hit.collider.GetComponent<BaseEnemy>();
-                if (enemy != null && selectedEnemies.Contains(enemy))
-                {
-                    selectedEnemies.Remove(enemy);
-                    enemy.ClearOrderNumber();
+                    selectedEnemies.Add(enemy);
+                    enemy.DisplayOrderNumber(selectedEnemies.Count, orderNumberUIPrefab);
                     if (SpriteTargetConnector.Instance != null)
                         SpriteTargetConnector.Instance.SetSelectedTargets(selectedEnemies);
-                    // 남은 적들 순서 재지정
-                    for (int i = 0; i < selectedEnemies.Count; i++)
-                    {
-                        selectedEnemies[i].DisplayOrderNumber(i + 1, orderNumberUIPrefab);
-                    }
-                    Debug.Log("Deselected enemy: " + enemy.name);
                 }
             }
         }
+        // ◆ 그 외 클릭(허공 포함) 시 전부 해제
+        else
+        {
+            ClearSelection();
+        }
     }
+
+    // (우클릭 분기는 완전히 제거해도 무방합니다.)
+}
+
 
     /// <summary>
     /// 일반 공격: 플레이어가 적에게 돌진 후 공격
@@ -277,5 +269,17 @@ public class P_Attack : MonoBehaviour
         selectedEnemies.Clear();
         if (SpriteTargetConnector.Instance != null)
             SpriteTargetConnector.Instance.ClearAllSegments();
+    }
+
+    
+    public void RegisterTarget(BaseEnemy enemy)
+    {
+        if (!selectedEnemies.Contains(enemy))
+        {
+            selectedEnemies.Add(enemy);
+            enemy.DisplayOrderNumber(selectedEnemies.Count, orderNumberUIPrefab);
+            if (SpriteTargetConnector.Instance != null)
+                SpriteTargetConnector.Instance.SetSelectedTargets(selectedEnemies);
+        }
     }
 }

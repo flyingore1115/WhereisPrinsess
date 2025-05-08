@@ -45,14 +45,16 @@ public class SpriteTargetConnector : MonoBehaviour
 
     void Update()
     {
-        // TimeStopController가 없으면 NullReferenceException 방지
+        // 1) 파괴된(또는 이미 Destroy() 호출된) Transform 제거
+        selectedTargets.RemoveAll(t => t == null);
+
+        // 2) 시간정지 아니면 바로 리턴
         if (TimeStopController.Instance == null || !TimeStopController.Instance.IsTimeStopped)
         {
             if (previewSprite != null)
                 previewSprite.enabled = false;
             return;
         }
-
         // 좌클릭 감지
         if (Input.GetMouseButtonDown(0))
         {
@@ -60,7 +62,7 @@ public class SpriteTargetConnector : MonoBehaviour
             mouseWorld.z = 0f;
             RaycastHit2D hit = Physics2D.Raycast(mouseWorld, Vector2.zero);
             // (A) 적(Enemy) 클릭 → 연결 처리
-            if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+            if (hit.collider != null && (hit.collider.CompareTag("Enemy")|| hit.collider.CompareTag("TutorialTarget")))
             {
                 Transform enemyTr = hit.collider.transform;
                 // 중복 선택 방지

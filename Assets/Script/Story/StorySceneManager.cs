@@ -48,6 +48,10 @@ public class DialogueEntry
 
 public class StorySceneManager : MonoBehaviour
 {
+
+    public static StorySceneManager Instance { get; private set; }
+
+
     [Header("Scene Start Trigger ID")]
     public string startTriggerID;
 
@@ -85,7 +89,8 @@ public class StorySceneManager : MonoBehaviour
     public Button skipButton;
     public Button autoPlayButton;
 
-
+    [Header("Lady Tutorial")]
+    public Lady lady;
 
     [Header("Panel Slide Settings")]
     public RectTransform dialogueContainer;    // 대화판넬(텍스트 포함)을 감싸는 빈 오브젝트
@@ -95,12 +100,27 @@ public class StorySceneManager : MonoBehaviour
     private Vector2 panelHiddenPos;            // 화면 아래 숨길 때 Y
 
     private Dictionary<string, DialogueEntry[][]> dialogueSequences;
-    private bool isDialogueActive;
+    private bool isDialogueActive = false;
+    public bool IsDialogueActive => isDialogueActive;
+
+
     private Dictionary<string, int> dialogueTriggerCount;
     private Coroutine dialogueCoroutine;
 
     void Awake()
     {
+
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 유지
+        }
+        else
+        {
+            Destroy(gameObject); // 중복 방지
+            return;
+        }
+
         dialogueTriggerCount = new Dictionary<string, int>();
         InitializeSequences();
 
@@ -123,7 +143,7 @@ public class StorySceneManager : MonoBehaviour
         {
             cgImage.sprite = Resources.Load<Sprite>("IMG/CG/fade");
             cgImage.canvasRenderer.SetAlpha(1f);
-            cgImage.gameObject.SetActive(true);
+            cgImage.gameObject.SetActive(false);
         }
     }
 
@@ -168,7 +188,10 @@ public class StorySceneManager : MonoBehaviour
                     new DialogueEntry[]
                     {
                         new DialogueEntry("???", "...?"),
-                        //new DialogueEntry(() => AttackTutorial()),
+
+                        new DialogueEntry(() => AttackTutorial()),
+
+                        new DialogueEntry("소녀", "튜토리얼 종료"),
 
                         // 카메라를 아가씨로 이동
                         new DialogueEntry(() => FocusCameraOnTarget("Lady", 1.0f)),
@@ -176,13 +199,23 @@ public class StorySceneManager : MonoBehaviour
                         new DialogueEntry("","안에 있는 것은 여자아이였다."),
                         new DialogueEntry("","오늘 생일을 맞은 듯, 생일 모자와 각종 선물을 침대 위에 두고 있는 어린 소녀 말이다."),
                         
-                        // 아가씨 애니메이션 재생
-                        //new DialogueEntry(() => PlayCharacterAnimation("Lady", "Throw")), 병실 커튼 여는 애니
                         
-                        new DialogueEntry("소녀", "...이건 뭐야?"),
+                        
                         // 카메라를 스프라우트에게로
                         new DialogueEntry(() => FocusCameraOnTarget("Ms_Sprout", 1.0f)),
                         new DialogueEntry("Ms. 스프라우트", "아..."),
+
+                        
+                        new DialogueEntry(() => FocusCameraOnTarget("Lady", 1.0f)),
+                        new DialogueEntry("소녀", "...이건 뭐야?"),
+                        new DialogueEntry("소녀", "꺼져!!!"),
+
+                        new DialogueEntry(() => FocusCameraOnTarget("Player", 1.0f)),
+
+                        // 아가씨 애니메이션 재생
+                        new DialogueEntry(() => PlayCharacterAnimation("Lady", "imsi")), //임시
+
+                        
                     }
                 }
             },
@@ -202,6 +235,55 @@ public class StorySceneManager : MonoBehaviour
             }
         };
     }
+
+
+    // 공격 튜토리얼 (시간 정지 -> 클릭 -> 시간 해제)
+private IEnumerator AttackTutorial()
+{
+    // 대화창과 튜토리얼창 UI 전환
+    dialoguePanel.SetActive(false);
+    tutorialPanel.SetActive(true);
+    tutorialText.enabled = true;  // 이 줄도 명시적으로 추가해도 좋음
+
+    // 0) 튜토리얼 대상 던지기
+    lady.StartThrowing(); // 추가됨
+
+    // 1) 시간정지 안내 및 실행
+    lady.StartThrowing();                 // ① 먼저 던지고
+    yield return new WaitForSeconds(0.3f);// ② 살짝 날아가게 둔다
+
+    tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
+    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+    TimeStopController.Instance.StopTime();
+    // 2) 클릭 안내
+
+    tutorialText.text = "던진 케이크를 모두 클릭하세요.";
+    yield return new WaitUntil(() =>                     // ★ 3개 클릭될 때까지 대기
+        Player.Instance.attack.SelectedCount >= lady.spawned.Count);
+
+    tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
+    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));   // ★ 해제 입력
+    TimeStopController.Instance.ResumeTime();
+
+    // 4) 튜토리얼 종료 및 대화창 복귀
+    tutorialPanel.SetActive(false);
+    dialoguePanel.SetActive(true);
+    yield return new WaitForSeconds(0.5f);
+}
+
+
+
+public void ShowTutorialMessage(string message)
+{
+    if (tutorialPanel != null && tutorialText != null)
+    {
+        tutorialPanel.SetActive(true);
+        tutorialText.text = message;
+    }
+}
+
+
+
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -326,37 +408,6 @@ public class StorySceneManager : MonoBehaviour
         autoPlayEnabled = !autoPlayEnabled;
         SetButtonAlpha(autoPlayButton, autoPlayEnabled ? 0.4f : 0f);
         Debug.Log($"AutoPlay 모드: {autoPlayEnabled}");
-    }
-
-
-
-    // 공격 튜토리얼 (시간 정지 -> 클릭 -> 시간 해제)
-    private IEnumerator AttackTutorial()
-    {
-        dialoguePanel.SetActive(false);
-        tutorialPanel.SetActive(true);
-        tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
-
-        Player.Instance.StopTime();
-
-        tutorialText.text = "케이크나 빵을 클릭하세요.";
-        yield return new WaitUntil(() =>
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                Vector2 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
-                return hit.collider != null && hit.collider.CompareTag("TutorialTarget");
-            }
-            return false;
-        });
-
-        Player.Instance.ResumeTime();
-
-        tutorialPanel.SetActive(false);
-        dialoguePanel.SetActive(true);
-        yield return new WaitForSeconds(0.5f);
     }
 
     // Resources/IMG/CG/<fileName>.png에서 불러와 화면에 띄움

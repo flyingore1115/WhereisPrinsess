@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
             RewindManager.Instance.ClearSnapshots();
 
         // 3) 메인 게임 씬 로드
-        MySceneManager.Instance.LoadScene("New_Game");
+        MySceneManager.Instance.LoadScene("New_Game");//New_Game  St_1_Horpital
 
     }
 

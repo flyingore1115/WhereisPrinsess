@@ -89,6 +89,10 @@ public class RewindManager : MonoBehaviour
 
     void Update()
     {
+        // 대화나 튜토리얼 중엔 되감기 금지
+        if (StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive)
+            return;
+
         // R키 누르면 바로 되감기 실행 (이미 되감기 중이 아니면)
         if (Input.GetKeyDown(KeyCode.R) && !isRewinding)
         {
@@ -289,6 +293,7 @@ public class RewindManager : MonoBehaviour
         {
             pScript.ignoreInput = false;
             pScript.applyRewindGrayscale = false;
+            pScript.isGameOver = false;  // ◀ 게임오버 플래그 리셋
         }
 
         if (playerAnimator != null)

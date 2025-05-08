@@ -53,8 +53,10 @@ public class TimeStopController : MonoBehaviour
         bool isGameOver = (RewindManager.Instance != null && RewindManager.Instance.IsGameOver());
         // ↑ isGameOver 메서드를 새로 만든다고 가정 (아래 RewindManager 수정 예시 참고)
 
-        // => 둘 중 하나라도 true면 시간정지 입력 무시
-        if (!isGameOver && !isRewinding)
+        // => 게임오버나 되감기 중일때 + 대화나 튜토리얼 중엔 시간정지 입력 무시
+
+        bool inDialogue = StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive;
+        if (!isGameOver && !isRewinding && !inDialogue)
         {
             // 기존 시간정지 토글 로직
             if (Input.GetKeyDown(KeyCode.Space))

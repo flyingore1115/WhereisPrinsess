@@ -36,6 +36,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public bool isHeld = false; //손잡기
     public float followSpeed = 5f; // 공주가 따라오는 속도
 
+    
+
     void Awake()
     {
         if (Instance == null)
@@ -71,11 +73,19 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void FixedUpdate()
     {
+
         if (isTimeStopped) return;
 
         if (isHeld && Player.Instance != null)
         {
-            // 플레이어 위치에 약간의 오프셋을 주고 부드럽게 따라감
+            // 1) 플레이어 방향에 맞춰 뒤집기
+            SpriteRenderer playerSR = Player.Instance.GetComponent<SpriteRenderer>();
+            if (playerSR != null && spriteRenderer != null)
+            {
+                spriteRenderer.flipX = playerSR.flipX;
+            }
+
+            // 2) 플레이어 위치에 부드럽게 따라오기
             Vector3 targetPos = Player.Instance.transform.position + new Vector3(0, 0.5f, 0);
             transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * followSpeed);
             return;
@@ -129,6 +139,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public void StopBeingHeld()
     {
         isHeld = false;
+
+        if (spriteRenderer != null)
+        spriteRenderer.flipX = false;
     }
 
     void OnTriggerEnter2D(Collider2D other)

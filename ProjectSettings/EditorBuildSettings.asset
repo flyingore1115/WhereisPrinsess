@@ -18,10 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/InGame/Boss.unity
     guid: 8e69b4c24983eeb48b838907da9c5cbe
   - enabled: 1
-    path: Assets/Scenes/Story.unity
-    guid: 2779518dde05c5a408d28dc669fae8a4
-  - enabled: 1
-    path: Assets/Scenes/InGame/Tuto.unity
+    path: Assets/Scenes/InGame/St_1_Horpital.unity
     guid: 5c803256ec303da46bfdea3f5d3ab263
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
