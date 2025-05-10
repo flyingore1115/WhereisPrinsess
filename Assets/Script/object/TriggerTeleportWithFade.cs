@@ -1,13 +1,26 @@
 using UnityEngine;
 using System.Collections;
 
+
+[RequireComponent(typeof(InteractionIcon))]
+
 public class TriggerTeleportWithFade : MonoBehaviour
 {
+    InteractionIcon icon;
+
+
     [Header("이동 좌표 (새 위치)")]
     public Vector2 targetPosition;
 
     private bool isPlayerInside = false;
     private bool isTeleporting = false;
+
+    void Awake()
+    {
+        icon = GetComponent<InteractionIcon>();
+        if (icon == null)
+        Debug.LogError("[TriggerTeleportWithFade] InteractionIcon 컴포넌트가 없습니다!");
+    }
 
     private void Update()
     {
@@ -44,6 +57,7 @@ private IEnumerator TeleportWithFade()
         if (other.CompareTag("Player"))
         {
             isPlayerInside = true;
+            icon.Show();
         }
     }
 
@@ -52,6 +66,7 @@ private IEnumerator TeleportWithFade()
         if (other.CompareTag("Player"))
         {
             isPlayerInside = false;
+            icon.Hide();
         }
     }
 }

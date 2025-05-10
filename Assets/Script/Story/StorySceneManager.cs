@@ -70,7 +70,6 @@ public class StorySceneManager : MonoBehaviour
     public float cgFadeDuration = 0.5f;
 
     [Header("Tutorial UI References")]
-    public GameObject tutorialPanel;
     public Text tutorialText;
 
     [Header("Typing Effect Settings")]
@@ -88,6 +87,10 @@ public class StorySceneManager : MonoBehaviour
     public float autoPlayCharDelay = 0.05f;  // 글자수당 추가 대기시간
     public Button skipButton;
     public Button autoPlayButton;
+
+
+    private Coroutine typingCoroutine;
+
 
     [Header("Lady Tutorial")]
     public Lady lady;
@@ -134,7 +137,7 @@ public class StorySceneManager : MonoBehaviour
     {
         dialoguePanel?.SetActive(false);
         choicePanel?.SetActive(false);
-        tutorialPanel?.SetActive(false);
+        tutorialText.enabled = false;
 
         if (!string.IsNullOrEmpty(startTriggerID))
             StartDialogueForTrigger(startTriggerID);
@@ -189,10 +192,6 @@ public class StorySceneManager : MonoBehaviour
                     {
                         new DialogueEntry("???", "...?"),
 
-                        new DialogueEntry(() => AttackTutorial()),
-
-                        new DialogueEntry("소녀", "튜토리얼 종료"),
-
                         // 카메라를 아가씨로 이동
                         new DialogueEntry(() => FocusCameraOnTarget("Lady", 1.0f)),
 
@@ -205,7 +204,7 @@ public class StorySceneManager : MonoBehaviour
                         new DialogueEntry(() => FocusCameraOnTarget("Ms_Sprout", 1.0f)),
                         new DialogueEntry("Ms. 스프라우트", "아..."),
 
-                        
+
                         new DialogueEntry(() => FocusCameraOnTarget("Lady", 1.0f)),
                         new DialogueEntry("소녀", "...이건 뭐야?"),
                         new DialogueEntry("소녀", "꺼져!!!"),
@@ -213,23 +212,16 @@ public class StorySceneManager : MonoBehaviour
                         new DialogueEntry(() => FocusCameraOnTarget("Player", 1.0f)),
 
                         // 아가씨 애니메이션 재생
-                        new DialogueEntry(() => PlayCharacterAnimation("Lady", "imsi")), //임시
+                        //new DialogueEntry(() => PlayCharacterAnimation("Lady", "imsi")), //임시
 
-                        
-                    }
-                }
-            },
-            {
-                "test", new DialogueEntry[][]
-                {
-                    new DialogueEntry[]
-                    {
-                        new DialogueEntry("Ms.스프라우트", "테스트테스트!!"),
-                        new DialogueEntry(() => ShowCG("test")),    // CG 시작
-                        new DialogueEntry("", "이 장면을 보아라."),
-                        new DialogueEntry("", "이는 바로 CG!!!!"),
-                        new DialogueEntry(() => HideCG()),                 // CG 종료
-                        new DialogueEntry("아가씨", "아오..."),
+                        new DialogueEntry(() => AttackTutorial()),
+                        new DialogueEntry("소녀", "...!"),
+                        //대충 아가씨 뛰어가는 애니메이션(병실 바깥으로 나감)
+                        new DialogueEntry(() => FocusCameraOnTarget("Ms_Sprout", 1.0f)),
+                        new DialogueEntry("Ms. 스프라우트", "아..."),
+                        new DialogueEntry("Ms. 스프라우트", "워, 원래 저런 애는 아니야!"),
+                        new DialogueEntry("Ms. 스프라우트", "이해... 해줄 수 있지?")
+
                     }
                 }
             }
@@ -238,49 +230,58 @@ public class StorySceneManager : MonoBehaviour
 
 
     // 공격 튜토리얼 (시간 정지 -> 클릭 -> 시간 해제)
-private IEnumerator AttackTutorial()
-{
-    // 대화창과 튜토리얼창 UI 전환
-    dialoguePanel.SetActive(false);
-    tutorialPanel.SetActive(true);
-    tutorialText.enabled = true;  // 이 줄도 명시적으로 추가해도 좋음
-
-    // 0) 튜토리얼 대상 던지기
-    lady.StartThrowing(); // 추가됨
-
-    // 1) 시간정지 안내 및 실행
-    lady.StartThrowing();                 // ① 먼저 던지고
-    yield return new WaitForSeconds(0.3f);// ② 살짝 날아가게 둔다
-
-    tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
-    TimeStopController.Instance.StopTime();
-    // 2) 클릭 안내
-
-    tutorialText.text = "던진 케이크를 모두 클릭하세요.";
-    yield return new WaitUntil(() =>                     // ★ 3개 클릭될 때까지 대기
-        Player.Instance.attack.SelectedCount >= lady.spawned.Count);
-
-    tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));   // ★ 해제 입력
-    TimeStopController.Instance.ResumeTime();
-
-    // 4) 튜토리얼 종료 및 대화창 복귀
-    tutorialPanel.SetActive(false);
-    dialoguePanel.SetActive(true);
-    yield return new WaitForSeconds(0.5f);
-}
-
-
-
-public void ShowTutorialMessage(string message)
-{
-    if (tutorialPanel != null && tutorialText != null)
+    private IEnumerator AttackTutorial()
     {
-        tutorialPanel.SetActive(true);
-        tutorialText.text = message;
+        // 대화창과 튜토리얼창 UI 전환
+        dialoguePanel.SetActive(false);
+        tutorialText.enabled = true;  // 이 줄도 명시적으로 추가해도 좋음
+
+        // 타겟 클릭 비활성화
+        Player.Instance.attack.enabled = false;
+
+
+        // 0) 튜토리얼 대상 던지기
+        lady.StartThrowing(); 
+
+        // 1) 시간정지 안내 및 실행
+        lady.StartThrowing();                 // ① 먼저 던지고
+        yield return new WaitForSeconds(0.3f);// ② 살짝 날아가게 둔다
+
+        tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        TimeStopController.Instance.StopTime();
+    
+        // 시간정지 되면 클릭 가능하게 함
+        Player.Instance.attack.enabled = true;
+
+        // 2) 클릭 안내
+        tutorialText.text = "던진 케이크를 모두 클릭하세요.";
+        yield return new WaitUntil(() =>                     // ★ 3개 클릭될 때까지 대기
+            Player.Instance.attack.SelectedCount >= lady.spawned.Count);
+
+        tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));   // ★ 해제 입력
+        TimeStopController.Instance.ResumeTime();
+
+        var pm = Player.Instance.GetComponent<P_Movement>();
+        if (pm != null)
+            yield return new WaitUntil(() => pm.IsGrounded);
+
+        // 4) 튜토리얼 종료 및 대화창 복귀
+        tutorialText.enabled = false;
+        dialoguePanel.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
     }
-}
+
+
+
+    public void ShowTutorialMessage(string message)
+    {
+        if (tutorialText != null)
+        {
+            tutorialText.text = message;
+        }
+    }
 
 
 
@@ -322,22 +323,27 @@ public void ShowTutorialMessage(string message)
             switch (entry.type)
             {
                 case EntryType.Dialogue:
+                    // 1) 타이핑 효과
                     yield return StartCoroutine(TypeSentence(entry.characterName, entry.dialogueText));
 
-                    if (skipEnabled)
+                    if (!skipEnabled && !autoPlayEnabled)
                     {
-                        // 아무 대기 없이 바로 다음으로
+                        // (a) 이전 동작 프레임 건너뛰기
+                        yield return null;
+                        // (b) 실제 키 입력 대기
+                        yield return new WaitUntil(() => Input.anyKeyDown);
+                        // ★ (c) 입력 받은 프레임 건너뛰기 → TypeSentence 호출 프레임 분리
+                        yield return null;
                     }
                     else if (autoPlayEnabled)
                     {
                         float delay = autoPlayBaseDelay + entry.dialogueText.Length * autoPlayCharDelay;
                         yield return new WaitForSeconds(delay);
                     }
-                    else
-                    {
-                        yield return new WaitUntil(() => Input.anyKeyDown);
-                    }
+                    // skipEnabled면 바로 다음으로
                     break;
+
+
 
                 case EntryType.Choice:
                     yield return StartCoroutine(ShowChoices(entry.options));
@@ -374,24 +380,39 @@ public void ShowTutorialMessage(string message)
     private IEnumerator TypeSentence(string charName, string text)
     {
         characterNameText.text = charName;
-        dialogueText.text = string.Empty;
+        dialogueText.text = "";
 
         for (int i = 0; i < text.Length; i++)
         {
-            if (skipEnabled)
+            // 도중 입력 시 즉시 전체 출력 후 루프 탈출
+            if (Input.anyKeyDown)
             {
                 dialogueText.text = text;
                 yield break;
             }
 
             dialogueText.text += text[i];
-            // 이름이 공백일 때만 N_beep, 그 외는 일반 beep
-            string sfx = string.IsNullOrEmpty(charName) ? "N_beep" : "beep";
-            SoundManager.Instance.PlaySFX(sfx);
+            SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
 
-            yield return new WaitForSeconds(typingSpeed);
+            // 글자당 대기
+            float timer = 0f;
+            while (timer < typingSpeed)
+            {
+                if (Input.anyKeyDown)
+                {
+                    dialogueText.text = text;
+                    yield break;
+                }
+                timer += Time.deltaTime;
+                yield return null;
+            }
         }
+
+        // 루프 끝나면 텍스트 확정
+        dialogueText.text = text;
     }
+
+
 
 
 
@@ -514,7 +535,7 @@ public void ShowTutorialMessage(string message)
         isDialogueActive = false;
 
         // 4) 대화가 완전히 끝난 뒤 모드 초기화
-        skipEnabled     = false;
+        skipEnabled = false;
         autoPlayEnabled = false;
     }
 

@@ -67,7 +67,6 @@ public class Player : MonoBehaviour, ITimeAffectable
     {
         if (ignoreInput)
         {
-            rb.linearVelocity = Vector2.zero;
             animator.SetBool("isRun", false);
             return;
         }

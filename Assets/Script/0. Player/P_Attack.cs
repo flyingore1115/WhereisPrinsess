@@ -35,6 +35,8 @@ public class P_Attack : MonoBehaviour
     // 시간 정지 상태를 프레임 간 추적
     private bool wasTimeStoppedLastFrame = false;
 
+    private float defaultGravity;
+
     
 
     public void Init(Rigidbody2D rb, Collider2D playerCollider)
@@ -42,6 +44,7 @@ public class P_Attack : MonoBehaviour
         this.rb = rb;
         this.playerCollider = playerCollider;
         originalGravity = rb.gravityScale;
+        defaultGravity    = rb.gravityScale;
     }
 
     void Update()
@@ -152,9 +155,9 @@ private void HandleTargetSelectionDuringTimeStop()
     {
         isAttacking = true;
         rb.gravityScale = 0;
-        rb.linearVelocity = Vector2.zero;
         playerCollider.enabled = false;
 
+        
         while (Vector2.Distance(transform.position, enemyObj.transform.position) > 0.1f)
         {
             transform.position = Vector2.MoveTowards(

@@ -20,6 +20,7 @@ public class P_Movement : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Transform firePoint;
     private bool isGrounded;
+    public bool IsGrounded => isGrounded;
 
     public bool canDash { get; private set; } = true;
     private bool isDashing = false;
@@ -45,9 +46,7 @@ public class P_Movement : MonoBehaviour
         // 입력 무시 플래그가 true이면, 이동 입력을 아예 무시하고 Idle 상태 유지
         if (player != null && player.ignoreInput)
         {
-            rb.linearVelocity = Vector2.zero;
             animator.SetBool("isRun", false);
-            // 옵션: FirePoint 위치를 기본 위치로 복원할 수 있음
             return;
         }
 
@@ -62,6 +61,12 @@ public class P_Movement : MonoBehaviour
         {
             StartCoroutine(Dash());
         }
+    }
+
+    void FixedUpdate()
+    {
+        // → 입력 여부와 상관없이 항상 지면 감지
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
     }
 
     public void HandleMovement(bool attackIsActive)
@@ -88,8 +93,6 @@ public class P_Movement : MonoBehaviour
         {
             animator.SetBool("isRun", false);
         }
-
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
         if (Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
