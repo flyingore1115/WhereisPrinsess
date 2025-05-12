@@ -2,9 +2,12 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer), typeof(Collider2D))]
 public class Lady : MonoBehaviour
+
 {
-    [Header("던질 프리팹들 (케이크, 빵 등)")]
+
+     [Header("던질 프리팹들 (케이크, 빵 등)")]
     public GameObject[] throwPrefabs;
 
     [Header("케이크가 도착할 목표 지점들")]
@@ -29,8 +32,113 @@ public class Lady : MonoBehaviour
     public List<GameObject> spawned = new List<GameObject>();
 
     private bool hasThrown = false;
+    // ── 모드 정의 ──
+    public enum LadyMode { Idle, MovingToDoor, HallwayAutoRun }
+    [Header("현재 동작 모드")]
+    public LadyMode mode = LadyMode.Idle;
 
-    /// <summary>
+    [Header("병실 → 문 이동 설정")]
+    [Tooltip("문 앞에 위치시킬 빈 게임오브젝트")]
+    public Transform doorTarget;
+    [Tooltip("이동 속도")]
+    public float walkSpeed = 3f;
+
+    [Header("복도 자동 달리기 설정")]
+    [Tooltip("복도 시작 위치 (문 너머 스폰)")]
+    public Transform hallwaySpawn;
+    [Tooltip("달리기 속도")]
+    public float runSpeed = 3f;
+
+    private Rigidbody2D rb;
+    private SpriteRenderer sr;
+    private bool isStopped = false;
+    Animator anim;
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
+    }
+
+    void SetRunning(bool run) { if (anim) anim.SetBool("isRun", run); }
+
+void FixedUpdate()
+{
+    switch (mode)
+    {
+        case LadyMode.MovingToDoor:   HandleMoveToDoor();  break;
+        case LadyMode.HallwayAutoRun: HandleAutoRun();     break;
+        case LadyMode.Idle:           rb.linearVelocity = Vector2.zero;
+                                       SetRunning(false); break;
+    }
+}
+    // ── 병실에서 문까지 걷기 ──
+public IEnumerator MoveToDoor()
+{
+    mode = LadyMode.MovingToDoor;  isStopped = false;  SetRunning(true);
+
+    yield return new WaitUntil(() =>
+        Mathf.Abs(transform.position.x - doorTarget.position.x) < 0.04f);
+
+    rb.linearVelocity = Vector2.zero;
+    mode = LadyMode.Idle;          SetRunning(false);
+}
+
+private void HandleMoveToDoor()
+{
+    float dirX = Mathf.Sign(doorTarget.position.x - transform.position.x);
+    rb.linearVelocity = new Vector2(dirX * walkSpeed, rb.linearVelocity.y);
+    sr.flipX = dirX < 0;
+}
+
+private void HandleAutoRun()
+{
+    if (isStopped)
+    {
+        rb.linearVelocity = Vector2.zero;
+        SetRunning(false);
+        return;
+    }
+    sr.flipX = false;                       // 항상 오른쪽 바라봄
+    rb.linearVelocity = new Vector2(runSpeed, rb.linearVelocity.y);
+    SetRunning(true);
+}
+
+public void TeleportToHallway()
+{
+    transform.position = hallwaySpawn.position;
+    sr.flipX = false;
+    mode = LadyMode.HallwayAutoRun;
+    isStopped = false;
+    SetRunning(true);
+}
+
+    // 되감기 후 재개를 위해 호출
+    public void ResumeAutoRun()
+    {
+        isStopped = false;
+    }
+
+    // ── 충돌 처리 ──
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        if (mode == LadyMode.HallwayAutoRun)
+        {
+            if (col.CompareTag("Enemy"))
+            {
+                // 적과 충돌 시 되감기
+                if (!RewindManager.Instance.IsRewinding)
+                    RewindManager.Instance.StartRewind();
+            }
+            else if (col.CompareTag("LadyStop"))
+            {
+                // 지정된 멈춤 지점에 닿으면 정지
+                isStopped = true;
+                rb.linearVelocity = Vector2.zero;
+            }
+        }
+    }
+     /// <summary>
     /// 외부에서 호출: 튜토리얼 시작 시 케이크 던지기
     /// </summary>
     public void StartThrowing()

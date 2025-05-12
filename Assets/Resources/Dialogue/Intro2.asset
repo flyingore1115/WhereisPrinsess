@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
+  m_Name: Intro2
+  m_EditorClassIdentifier: 
+  triggerID: Intro2
+  entries:
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8\", \"\uBCD1\uC2E4\uC740 301\uD638\uB780\uB2E4."
+    options: []
+    actionKey: 

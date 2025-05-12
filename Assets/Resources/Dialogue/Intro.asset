@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
+  m_Name: Intro
+  m_EditorClassIdentifier: 
+  triggerID: Intro
+  entries:
+  - type: 0
+    characterName: 
+    dialogueText: ...
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC77C... \uB098, ...?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uADD3\uAC00\uC5D0 \uB0A8\uC131\uC758 \uBAA9\uC18C\uB9AC\uAC00
+      \uB4E4\uB9B0\uB2E4"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC77C\uC5B4\uB0A0 \uC218 \uC788\uACA0\uB2C8?"
+    options: []
+    actionKey: 
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: HideCG
+  - type: 0
+    characterName: ???
+    dialogueText: "\uB300\uCDA9 \uC77C\uC5B4\uB0A8"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr.\uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uAD1C\uCC2E\uB2C8? \uC601 \uC0C1\uD0DC\uAC00 \uC88B\uC544 \uBCF4\uC774\uC9C0\uB294
+      \uC54A\uB294\uAD6C\uB098."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uB2F9\uC2E0\uC740 \uC77C\uC5B4\uC11C \uC55E\uC73C\uB85C \uAC78\uC5B4\uBCF4\uB824
+      \uC2DC\uB3C4\uD588\uC73C\uB098, \uAC13 \uD0DC\uC5B4\uB09C \uAE30\uB9B0\uCC98\uB7FC
+      \uD718\uCCAD\uAC70\uB838\uB2E4."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uC544\uD558..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uAC77\uAE30\uB294 A\uB098 D, \uD639\uC740 \uBC29\uD5A5\uD0A4\uB85C
+      \uD560 \uC218 \uC788\uB2E8\uB2E4."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uD560 \uC218 \uC788\uACA0\uB2C8?"
+    options: []
+    actionKey: 
+  - type: 1
+    characterName: 
+    dialogueText: 
+    options:
+    - "\uB124\uC5D0..."
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uC5B4\uB514\uB85C \uAC00\uC57C \uD558\uB294\uC9C0\uB294 \uAE30\uC5B5\uD558\uC9C0?
+      \uC800\uAE30 \uC55E\uC758 301\uD638\uAC00 \uBAA9\uC801\uC9C0\uB780\uB2E4."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uAE34\uC7A5\uD560 \uD544\uC694\uB294 \uC5C6\uC5B4. \uADF8 \uC560\uB294
+      \uC870...\uAE08 \uC608\uBBFC\uD558\uAE34 \uD558\uC9C0\uB9CC \uBCF8\uC131\uC740
+      \uCC29\uD55C \uC544\uC774\uB780\uB2E4."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uBD84\uBA85 \uAC19\uC774 \uC798 \uC9C0\uB0BC \uC218 \uC788\uC744\uAC70\uC57C"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uB2F9\uC2E0\uC740 \uC54C\uC558\uB2E4\uB294 \uB4EF \uC2AC\uBA70\uC2DC
+      \uACE0\uAC1C\uB97C \uB044\uB355\uAC70\uB838\uB2E4."
+    options: []
+    actionKey: 
