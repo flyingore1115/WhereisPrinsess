@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer), typeof(Collider2D))]
-public class Lady : MonoBehaviour
+public class Lady : MonoBehaviour, ITimeAffectable
 
 {
 
@@ -53,6 +53,10 @@ public class Lady : MonoBehaviour
     private SpriteRenderer sr;
     private bool isStopped = false;
     Animator anim;
+
+    Vector2 cachedVel;
+    float cachedAnimSpeed;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -60,65 +64,84 @@ public class Lady : MonoBehaviour
         anim = GetComponent<Animator>();
     }
 
-    void SetRunning(bool run) { if (anim) anim.SetBool("isRun", run); }
+    void SetRun(bool v)   => anim.SetBool("isRun", v);
+    void SetStand(bool v) => anim.SetBool("isStand", v);
+    void SetSit(bool v)   => anim.SetBool("isSit", v);
+
 
 void FixedUpdate()
-{
-    switch (mode)
     {
-        case LadyMode.MovingToDoor:   HandleMoveToDoor();  break;
-        case LadyMode.HallwayAutoRun: HandleAutoRun();     break;
-        case LadyMode.Idle:           rb.linearVelocity = Vector2.zero;
-                                       SetRunning(false); break;
+        if (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
+        return;
+        
+        switch (mode)
+        {
+            case LadyMode.MovingToDoor:
+                HandleMoveToDoor();
+                break;
+            case LadyMode.HallwayAutoRun:
+                HandleAutoRun();
+                break;
+            case LadyMode.Idle:
+                rb.linearVelocity = Vector2.zero;
+                SetRun(false);
+                SetStand(true);
+                SetSit(false);
+                break;
+        }
     }
-}
+
     // ── 병실에서 문까지 걷기 ──
 public IEnumerator MoveToDoor()
-{
-    mode = LadyMode.MovingToDoor;  isStopped = false;  SetRunning(true);
-
-    yield return new WaitUntil(() =>
-        Mathf.Abs(transform.position.x - doorTarget.position.x) < 0.04f);
-
-    rb.linearVelocity = Vector2.zero;
-    mode = LadyMode.Idle;          SetRunning(false);
-}
-
-private void HandleMoveToDoor()
-{
-    float dirX = Mathf.Sign(doorTarget.position.x - transform.position.x);
-    rb.linearVelocity = new Vector2(dirX * walkSpeed, rb.linearVelocity.y);
-    sr.flipX = dirX < 0;
-}
-
-private void HandleAutoRun()
-{
-    if (isStopped)
     {
+        mode = LadyMode.MovingToDoor;
+        isStopped = false;
+        SetRun(true); SetStand(false); SetSit(false);
+
+        yield return new WaitUntil(() =>
+            Mathf.Abs(transform.position.x - doorTarget.position.x) < 0.04f);
+
         rb.linearVelocity = Vector2.zero;
-        SetRunning(false);
-        return;
+        mode = LadyMode.Idle;
+        SetRun(false); SetStand(true); SetSit(false);
     }
-    sr.flipX = false;                       // 항상 오른쪽 바라봄
-    rb.linearVelocity = new Vector2(runSpeed, rb.linearVelocity.y);
-    SetRunning(true);
-}
 
-public void TeleportToHallway()
-{
-    transform.position = hallwaySpawn.position;
-    sr.flipX = false;
-    mode = LadyMode.HallwayAutoRun;
-    isStopped = false;
-    SetRunning(true);
-}
+    void HandleMoveToDoor()
+    {
+        float dirX = Mathf.Sign(doorTarget.position.x - transform.position.x);
+        rb.linearVelocity = new Vector2(dirX * walkSpeed, rb.linearVelocity.y);
+        sr.flipX = (dirX < 0);
+    }
 
-    // 되감기 후 재개를 위해 호출
+    public void TeleportToHallway()
+    {
+        transform.position = hallwaySpawn.position;
+        sr.flipX = false;
+        mode = LadyMode.Idle;
+        isStopped = false;
+        SetRun(false); SetStand(true); SetSit(false);
+    }
+
     public void ResumeAutoRun()
     {
+        mode = LadyMode.HallwayAutoRun;
         isStopped = false;
+        SetRun(true); SetStand(false); SetSit(false);
     }
 
+    void HandleAutoRun()
+    {
+        if (isStopped)
+        {
+            rb.linearVelocity = Vector2.zero;
+            SetRun(false); SetStand(true); SetSit(false);
+            return;
+        }
+
+        sr.flipX = false;
+        rb.linearVelocity = new Vector2(runSpeed, rb.linearVelocity.y);
+        SetRun(true); SetStand(false); SetSit(false);
+    }
     // ── 충돌 처리 ──
     void OnTriggerEnter2D(Collider2D col)
     {
@@ -242,5 +265,19 @@ public void TeleportToHallway()
     public void RegisterClick(GameObject obj)
     {
         // 클릭 카운트 등 처리
+    }
+
+    public void StopTime()
+    {
+        cachedVel        = rb.linearVelocity;
+        cachedAnimSpeed  = anim.speed;
+        rb.linearVelocity = Vector2.zero;
+        anim.speed        = 0f;
+    }
+
+    public void ResumeTime()
+    {
+        rb.linearVelocity = cachedVel;
+        anim.speed        = cachedAnimSpeed;
     }
 }

@@ -115,25 +115,25 @@ public class ActiveSkillHandler : MonoBehaviour
                 }
                 yield return new WaitForSeconds(effectDuration);
                 break;
-
-            case "체력 되감기":
-                float energyCost = 20f;
-                TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
-                if (timeStopController != null && timeStopController.currentTimeGauge >= energyCost)
+                case "체력 되감기":
                 {
-                    timeStopController.currentTimeGauge -= energyCost;
-                    PlayerOver maid = FindFirstObjectByType<PlayerOver>();
-                    if (maid != null)
+                    float energyCost = 20f;
+                    var tsc = TimeStopController.Instance;
+                    if (tsc != null && tsc.TrySpendGauge(energyCost))
                     {
-                        maid.RestoreHealth(1);
-                        Debug.Log("[Active Skill] 메이드 체력 되감기 activated: 체력 +1");
+                        PlayerOver maid = FindFirstObjectByType<PlayerOver>();
+                        if (maid != null)
+                        {
+                            maid.RestoreHealth(1);
+                            Debug.Log("[Active Skill] 메이드 체력 되감기 activated: 체력 +1");
+                        }
                     }
+                    else
+                    {
+                        Debug.Log("시간 에너지가 부족합니다. 메이드 체력 회복 실패");
+                    }
+                    yield return new WaitForSeconds(effectDuration);
                 }
-                else
-                {
-                    Debug.Log("시간 에너지가 부족합니다. 메이드 체력 회복 실패");
-                }
-                yield return new WaitForSeconds(effectDuration);
                 break;
 
             case "반격 시스템":

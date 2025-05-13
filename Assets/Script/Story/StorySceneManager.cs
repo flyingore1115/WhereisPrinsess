@@ -63,7 +63,6 @@ public class StorySceneManager : MonoBehaviour
 
     private Coroutine dialogueCoroutine;
 
-
     void Awake()
     {
         if (Instance == null)
@@ -87,15 +86,18 @@ public class StorySceneManager : MonoBehaviour
         actionMap = new Dictionary<string, Func<IEnumerator>>()
         {
             { "AttackTutorial", AttackTutorial },
-            { "LadyDoorSeq", LadyDoorSequence },
+            { "LadyDoorSeq",     LadyDoorSequence },
             { "HallwayTutorial", HallwayTutorial },
-            
-            // 향후 다른 액션 키 추가 가능
+            // ...추가 액션
         };
+
         // 3) 패널 위치 초기화
         panelVisiblePos = dialogueContainer.anchoredPosition;
-        panelHiddenPos = new Vector2(panelVisiblePos.x, -450f);
+        panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
         dialogueContainer.anchoredPosition = panelHiddenPos;
+
+        // 스토리 중엔 시간정지 입력 차단
+        TimeStopController.Instance.SetInputBlocked(true);
     }
 
     void Start()
@@ -104,16 +106,28 @@ public class StorySceneManager : MonoBehaviour
         choicePanel?.SetActive(false);
         tutorialText.enabled = false;
 
+        // CG 초기화
         if (cgImage != null)
         {
-            cgImage.gameObject.SetActive(true);  // 항상 켜진 상태 유지
-            cgImage.sprite = Resources.Load<Sprite>("IMG/CG/fade"); // 검은 배경
-            cgImage.canvasRenderer.SetAlpha(0f); // 완전히 검은 화면
+            cgImage.gameObject.SetActive(true);
+            cgImage.sprite = Resources.Load<Sprite>("IMG/CG/fade");
+            cgImage.canvasRenderer.SetAlpha(0f);
         }
 
+        // UI 버튼 이벤트
+        if (skipButton != null)
+            skipButton.onClick.AddListener(ToggleSkip);
+        if (autoPlayButton != null)
+            autoPlayButton.onClick.AddListener(ToggleAutoPlay);
+
+        // 버튼 초기 알파
+        SetButtonAlpha(skipButton,    0f);
+        SetButtonAlpha(autoPlayButton, 0f);
 
         if (!string.IsNullOrEmpty(startTriggerID))
             StartDialogueForTrigger(startTriggerID);
+
+            
     }
 
     public void StartDialogueForTrigger(string triggerID)
@@ -138,10 +152,8 @@ public class StorySceneManager : MonoBehaviour
             {
                 case EntryType.Dialogue:
                     yield return TypeSentence(entry.characterName, entry.dialogueText);
-
                     if (!string.IsNullOrEmpty(entry.actionKey))
                         yield return InvokeAction(entry.actionKey);
-
                     yield return WaitForNextKey(entry.dialogueText.Length);
                     break;
 
@@ -161,60 +173,49 @@ public class StorySceneManager : MonoBehaviour
     private IEnumerator WaitForNextKey(int textLength)
     {
         if (skipEnabled)
-            yield break;
+        {
+            yield break; // 즉시 다음
+        }
         else if (autoPlayEnabled)
-            yield return new WaitForSeconds(autoPlayBaseDelay + textLength * autoPlayCharDelay);
+        {
+            float delay = autoPlayBaseDelay + textLength * autoPlayCharDelay;
+            yield return new WaitForSeconds(delay);
+        }
         else
         {
-            yield return null;  // 이전 키 누름 소진
+            yield return null;  // 이전 키 프레임 소진
             yield return new WaitUntil(() => Input.anyKeyDown);
             yield return null;  // 다음 문장 분리
         }
     }
 
-private IEnumerator InvokeAction(string key)
-{
-    if (key.StartsWith("ShowCG:"))
+    private IEnumerator InvokeAction(string key)
     {
-        string fileName = key.Substring("ShowCG:".Length);
-        yield return ShowCG(fileName);
-    }
-    else if (key == "HideCG")
-    {
-        yield return HideCG();
-    }
-     else if (key.StartsWith("FocusCameraOnTarget:"))
-    {
-        // 예: FocusCameraOnTarget:Lady:1.0
-        string[] parts = key.Split(':');
-        if (parts.Length >= 3)
+        if (key.StartsWith("ShowCG:"))
         {
-            string targetName = parts[1];
-            if (float.TryParse(parts[2], out float waitTime))
-            {
-                yield return FocusCameraOnTarget(targetName, waitTime);
-            }
+            yield return ShowCG(key.Substring(7));
+        }
+        else if (key == "HideCG")
+        {
+            yield return HideCG();
+        }
+        else if (key.StartsWith("FocusCameraOnTarget:"))
+        {
+            var parts = key.Split(':');
+            if (parts.Length >= 3 && float.TryParse(parts[2], out float t))
+                yield return FocusCameraOnTarget(parts[1], t);
             else
-            {
-                Debug.LogWarning($"[StorySceneManager] FocusCameraOnTarget 시간 파싱 실패: {key}");
-            }
+                Debug.LogWarning($"[SSM] FocusCameraOnTarget 포맷 오류: {key}");
+        }
+        else if (actionMap.TryGetValue(key, out var act))
+        {
+            yield return StartCoroutine(act());
         }
         else
         {
-            Debug.LogWarning($"[StorySceneManager] FocusCameraOnTarget 포맷 오류: {key}");
+            Debug.LogWarning($"[SSM] 알 수 없는 actionKey: {key}");
         }
     }
-    else if (actionMap.TryGetValue(key, out var act))
-    {
-        yield return StartCoroutine(act());
-    }
-    else
-    {
-        Debug.LogWarning($"[StorySceneManager] 알 수 없는 actionKey: {key}");
-    }
-}
-
-
 
     private IEnumerator TypeSentence(string charName, string text)
     {
@@ -228,7 +229,6 @@ private IEnumerator InvokeAction(string key)
                 dialogueText.text = text;
                 yield break;
             }
-
             dialogueText.text += text[i];
             SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
 
@@ -257,8 +257,8 @@ private IEnumerator InvokeAction(string key)
         for (int i = 0; i < options.Length; i++)
         {
             var btn = Instantiate(choiceButtonPrefab, choicePanel.transform);
-            int idx = i;
             btn.GetComponentInChildren<Text>().text = options[i];
+            int idx = i;
             btn.onClick.AddListener(() => selected = idx);
             buttons.Add(btn);
         }
@@ -268,131 +268,90 @@ private IEnumerator InvokeAction(string key)
         choicePanel.SetActive(false);
     }
 
-    // ────────────────────────────────────────────────────────────
-    // AttackTutorial 코루틴 (시간 멈춤 이전엔 클릭 비활성, 이후 활성)// StorySceneManager.cs 에서
-private IEnumerator AttackTutorial()
-{
-    // 0) 대화판 숨기고 플레이어 이동·공격 모두 잠시 봉인
-    dialoguePanel.SetActive(false);
-    Player.Instance.ignoreInput = true;
-    Player.Instance.attack.enabled = false;
-    tutorialText.enabled = true;
-
-    // 1) 케이크 던지기
-    lady.StartThrowing();
-    yield return new WaitForSeconds(0.3f);
-
-    // 2) 시간 정지 유도
-    tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
-    TimeStopController.Instance.StopTime();
-
-    // 3) 공격만 활성화
-    Player.Instance.attack.enabled = true;
-    tutorialText.text = "던진 케이크를 모두 클릭하세요.";
-    yield return new WaitUntil(() =>
-        Player.Instance.attack.SelectedCount >= lady.spawned.Count);
-
-    // 4) 시간 해제
-    tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
-    TimeStopController.Instance.ResumeTime();
-
-    // 5) 플레이어 착지 대기
-    var pm = Player.Instance.GetComponent<P_Movement>();
-    if (pm != null)
-        yield return new WaitUntil(() => pm.IsGrounded);
-
-    // 6) 공격 비활성화, 입력 해제, 튜토리얼 텍스트 끄기
-    Player.Instance.attack.enabled = false;
-    Player.Instance.ignoreInput  = false;
-    tutorialText.enabled = false;
-
-    // 7) 이제 대화창 켜면 곧바로 다음 대사 TypeSentence 가 실행
-    dialoguePanel.SetActive(true);
-    yield return null;      // 한 프레임 기다려 텍스트 셋팅
-}
-
-    // ────────────────────────────────────────────────────────────
-
-    // ① AttackTutorial 끝에서 호출
-private IEnumerator LadyDoorSequence()
-{
-    Debug.Log("[LadyDoorSeq] 시작");
-    yield return StartCoroutine(lady.MoveToDoor());     // 문까지 걷기
-
-    // 페이드 없이 바로 복도 스폰
-    lady.TeleportToHallway();
-    Debug.Log("[LadyDoorSeq] 복도 스폰 완료");
-
-    StartCoroutine(HallwayTutorial());
-}
-
-
-    private IEnumerator HallwayTutorial()
+    // ─────────────────────────────────────────
+    private IEnumerator AttackTutorial()
     {
-        // LadyAutoRunner는 자동 시작
-        lady.GetComponent<Lady>().ResumeAutoRun();
+        dialoguePanel.SetActive(false);
+        Player.Instance.ignoreInput = true;
+        Player.Instance.attack.enabled = false;
+        tutorialText.enabled = true;
 
-        // 여기는 TutorialCheckpoint가 종료 조건을 대신 감시
-        // 종료 시 DialogueEntryData triggerID "LadyAfterRun" 실행
-        yield break;
+        lady.StartThrowing();
+        yield return new WaitForSeconds(0.3f);
+
+        tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        TimeStopController.Instance.StopTime();
+
+        Player.Instance.attack.enabled = true;
+        tutorialText.text = "던진 케이크를 모두 클릭하세요.";
+        yield return new WaitUntil(() =>
+            Player.Instance.attack.SelectedCount >= lady.spawned.Count);
+
+        tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        TimeStopController.Instance.ResumeTime();
+
+        var pm = Player.Instance.GetComponent<P_Movement>();
+        if (pm != null) yield return new WaitUntil(() => pm.IsGrounded);
+
+        Player.Instance.attack.enabled = false;
+        Player.Instance.ignoreInput = false;
+        tutorialText.enabled = false;
+
+        dialoguePanel.SetActive(true);
+        yield return null;
     }
 
+    private IEnumerator LadyDoorSequence()
+    {
+        yield return StartCoroutine(lady.MoveToDoor());
+        lady.TeleportToHallway();
+        lady.transform.position += Vector3.right * 5f;
+    }
 
+    public IEnumerator HallwayTutorial()
+    {
+        lady.ResumeAutoRun();
+        TimeStopController.Instance.SetInputBlocked(false);
+        yield return null;
+    }
+
+    // ─────────────────────────────────────────
     public void ShowTutorialMessage(string message)
     {
-        if (tutorialText != null)
-            tutorialText.text = message;
+        tutorialText.text = message;
     }
 
     private IEnumerator ShowCG(string fileName)
     {
         if (cgImage == null) yield break;
-
-        var sprite = Resources.Load<Sprite>($"IMG/CG/{fileName}");
-        if (sprite == null)
+        var sp = Resources.Load<Sprite>($"IMG/CG/{fileName}");
+        if (sp == null)
         {
-            Debug.LogWarning($"CG 파일을 찾을 수 없습니다: {fileName}");
+            Debug.LogWarning($"[SSM] CG 못 찾음: {fileName}");
             yield break;
         }
-
-        cgImage.sprite = sprite;
+        cgImage.sprite = sp;
         cgImage.CrossFadeAlpha(1f, cgFadeDuration, false);
         yield return new WaitForSeconds(cgFadeDuration);
     }
 
-
     private IEnumerator HideCG()
     {
         if (cgImage == null) yield break;
-
         cgImage.CrossFadeAlpha(0f, cgFadeDuration, false);
         yield return new WaitForSeconds(cgFadeDuration);
-        cgImage.sprite = null; // CG 비움
+        cgImage.sprite = null;
     }
-
 
     private IEnumerator FocusCameraOnTarget(string targetName, float waitTime)
     {
         var target = GameObject.Find(targetName);
         if (target == null) yield break;
-
         cameraFollow.EnableStoryMode(true);
         cameraFollow.SetTarget(target);
         yield return new WaitForSeconds(waitTime);
-    }
-
-    private IEnumerator PlayCharacterAnimation(string characterName, string triggerName)
-    {
-        var character = GameObject.Find(characterName);
-        if (character == null) yield break;
-
-        var animator = character.GetComponent<Animator>();
-        if (animator == null) yield break;
-
-        animator.SetTrigger(triggerName);
-        yield return new WaitForSeconds(0.5f);
     }
 
     private IEnumerator SmoothZoomCamera(float targetSize, float duration)
@@ -427,15 +386,17 @@ private IEnumerator LadyDoorSequence()
         cameraFollow.EnableStoryMode(false);
         cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"));
 
-        isDialogueActive = false;
-        skipEnabled = false;
-        autoPlayEnabled = false;
+        isDialogueActive  = false;
+        skipEnabled       = false;
+        autoPlayEnabled   = false;
+        SetButtonAlpha(skipButton,    0f);
+        SetButtonAlpha(autoPlayButton, 0f);
     }
 
     private IEnumerator SlideInPanel()
     {
-        dialogueText.text = "";
         characterNameText.text = "";
+        dialogueText.text       = "";
 
         float t = 0f;
         while (t < panelSlideDuration)
@@ -459,6 +420,21 @@ private IEnumerator LadyDoorSequence()
             yield return null;
         }
         dialogueContainer.anchoredPosition = panelHiddenPos;
+    }
+
+    public void ToggleSkip()
+    {
+        
+        skipEnabled = !skipEnabled;
+        SetButtonAlpha(skipButton, skipEnabled ? 0.4f : 0f);
+        Debug.Log($"Skip 모드: {skipEnabled}");
+    }
+
+    public void ToggleAutoPlay()
+    {
+        autoPlayEnabled = !autoPlayEnabled;
+        SetButtonAlpha(autoPlayButton, autoPlayEnabled ? 0.4f : 0f);
+        Debug.Log($"AutoPlay 모드: {autoPlayEnabled}");
     }
 
     private void SetButtonAlpha(Button btn, float alpha)

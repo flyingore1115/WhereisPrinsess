@@ -112,20 +112,16 @@ public class P_Shooting : MonoBehaviour
 
     private void Reload()
     {
-        TimeStopController timeStopController = FindFirstObjectByType<TimeStopController>();
-        if (timeStopController.currentTimeGauge < reloadEnergyCost)
+        var tsc = TimeStopController.Instance;
+        if (tsc == null || !tsc.TrySpendGauge(reloadEnergyCost))
         {
             Debug.Log("에너지 부족! 재장전 불가");
             return;
         }
 
-        timeStopController.currentTimeGauge -= reloadEnergyCost;
-        timeStopController.currentTimeGauge = Mathf.Clamp(timeStopController.currentTimeGauge, 0, timeStopController.maxTimeGauge);
-
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
-        if (SoundManager.Instance != null)
-            SoundManager.Instance.PlaySFX("RevolverSpin");
+        SoundManager.Instance?.PlaySFX("RevolverSpin");
     }
 
     private void UpdateAmmoUI()

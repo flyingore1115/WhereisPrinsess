@@ -10,6 +10,7 @@ TagManager:
   - MainCanvas
   - FxTemporaire
   - TutorialTarget
+  - LadyStop
   layers:
   - Default
   - TransparentFX

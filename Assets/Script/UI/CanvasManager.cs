@@ -65,15 +65,13 @@ public class CanvasManager : MonoBehaviour
     /// <summary>
     /// 시간정지 게이지 UI 업데이트(슬라이더). TimeStopController.Instance를 직접 참조해서 처리.
     /// </summary>
-    private void UpdateTimeStopUI()
+    void UpdateTimeStopUI()
     {
-        TimeStopController tsc = TimeStopController.Instance;
-        if (tsc == null) return;
+        var tsc = TimeStopController.Instance;
+        if (tsc == null || timeStopSlider == null) return;
 
-        if (timeStopSlider != null)
-        {
-            timeStopSlider.maxValue = tsc.maxTimeGauge;
-            timeStopSlider.value    = tsc.currentTimeGauge;
-        }
+        timeStopSlider.maxValue = tsc.MaxGauge;
+        timeStopSlider.value    = tsc.CurrentGauge;
     }
+
 }

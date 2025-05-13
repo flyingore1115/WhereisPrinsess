@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,212 +8,157 @@ public class TimeStopController : MonoBehaviour
 {
     public static TimeStopController Instance;
 
-    private bool isTimeStopped = false;
-    private List<ITimeAffectable> timeAffectedObjects = new List<ITimeAffectable>();
-
-    public float maxTimeGauge = 100f;
-    public float currentTimeGauge;
+    [Header("Gauge Settings")]
+    public float maxTimeGauge      = 100f;
     public float passiveChargeRate = 0.5f;
     public float timeStopDrainRate = 1f;
-    public float enemyKillGain = 5f;
+    public float enemyKillGain     = 5f;
 
-    // ★추가: 외부(RewindManager)에서 접근 가능하도록 프로퍼티
-    public bool IsTimeStopped => isTimeStopped;
-
-    //================================================================슬라이더
+    [Header("UI")]
     public Slider timeGaugeSlider;
-    public Image fillImage;
+    public Image  fillImage;
 
+    /*──────────────────────────────*/
+    public float CurrentGauge { get; private set; }   // 읽기 전용
+    public bool  IsTimeStopped => _isTimeStopped;
 
+    bool _isTimeStopped = false;
+    bool _inputBlocked  = true;               // 스토리 씬 기본 봉인
+    readonly List<ITimeAffectable> _objs = new ();
+
+    
+    public float MaxGauge     => maxTimeGauge;        // 읽기 전용
+
+    /*──────────────────────────────*/
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[RewindManager] Awake -> Instance 할당");
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+        else { Destroy(gameObject); }
     }
 
     void Start()
     {
-        FindTimeAffectedObjects();
-        currentTimeGauge = maxTimeGauge;
-        UpdateTimeGaugeUI();
+        RefreshList();
+        CurrentGauge = maxTimeGauge;
+        UpdateGaugeUI();
     }
 
+    /*──────────────────────────────*/
+    void OnSceneLoaded(Scene sc, LoadSceneMode _)
+    {
+        RefreshList();
+        _inputBlocked = sc.name.Contains("Story");
+    }
+
+    public void SetInputBlocked(bool v) => _inputBlocked = v;
+
+    /*──────────────────────────────*/
     void Update()
     {
-        // (1) "게임오버 중" 또는 "되감기 중"이면 플레이어가 시간정지 입력 못하게
-        //     RewindManager.Instance가 null일 수도 있으니 체크
-        bool isRewinding = (RewindManager.Instance != null && RewindManager.Instance.IsRewinding);
-        bool isGameOver = (RewindManager.Instance != null && RewindManager.Instance.IsGameOver());
-        // ↑ isGameOver 메서드를 새로 만든다고 가정 (아래 RewindManager 수정 예시 참고)
+        bool inDialogue = StorySceneManager.Instance != null &&
+                          StorySceneManager.Instance.IsDialogueActive;
 
-        // => 게임오버나 되감기 중일때 + 대화나 튜토리얼 중엔 시간정지 입력 무시
+        bool isRewinding = RewindManager.Instance != null &&
+                           RewindManager.Instance.IsRewinding;
 
-        bool inDialogue = StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive;
-        if (!isGameOver && !isRewinding && !inDialogue)
+        bool isGameOver  = RewindManager.Instance != null &&
+                           RewindManager.Instance.IsGameOver();
+
+        if (!_inputBlocked && !inDialogue && !isRewinding && !isGameOver &&
+            Input.GetKeyDown(KeyCode.Space))
         {
-            // 기존 시간정지 토글 로직
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                ToggleTimeStop();
-            }
+            ToggleTimeStop();
         }
 
-        // 시간정지 상태일 때 게이지 소모 / 시간정지 아닐 때 패시브 충전
-        if (isTimeStopped)
-        {
-            currentTimeGauge -= timeStopDrainRate * Time.deltaTime;
-            if (currentTimeGauge <= 0)
-            {
-                currentTimeGauge = 0;
-                ResumeTime();
-            }
-        }
-        else
-        {
-            //패시브 자동 충전
-            currentTimeGauge += passiveChargeRate * Time.deltaTime;
-            currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
-        }
-        // 추가: 손잡기 처리 (시간정지 상태에서 공주 클릭)
-        if (isTimeStopped)
-        {
-            // 손잡기 시작: 마우스 왼쪽 클릭 시 레이캐스트로 공주 확인
-            if (!Player.Instance.holdingPrincess && Input.GetMouseButtonDown(0))
-            {
-                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-                if (hit.collider != null && hit.collider.CompareTag("Princess"))
-                {
-                    Player.Instance.StartHoldingPrincess();
-                    Princess.Instance.StartBeingHeld();
-                    Debug.Log("공주 손잡기 시작");
-                }
-            }
-        }
-        // 시간이 풀리면 손잡기 상태 해제
-        else
-        {
-            if (Player.Instance.holdingPrincess)
-            {
-                Player.Instance.StopHoldingPrincess();
-                Princess.Instance.StopBeingHeld();
-                Debug.Log("시간정지 해제 → 공주 손잡기 해제");
-            }
-        }
-
-        // 시간정지 상태일 때 게이지 소모 (손잡기 상태면 3배 소모)
-        if (isTimeStopped)
-        {
-            float drainRate = Player.Instance.holdingPrincess ? timeStopDrainRate * 3f : timeStopDrainRate;
-            currentTimeGauge -= drainRate * Time.deltaTime;
-            if (currentTimeGauge <= 0)
-            {
-                currentTimeGauge = 0;
-                ResumeTime();
-            }
-        }
-        else
-        {
-            currentTimeGauge += passiveChargeRate * Time.deltaTime;
-            currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
-        }
-        UpdateTimeGaugeUI();
-
+        HandleGauge();
+        UpdateGaugeUI();
     }
 
-    public void RemoveTimeAffectedObject(ITimeAffectable obj)
+    /*──────────────────────────────*/
+    void HandleGauge()
     {
-        timeAffectedObjects.Remove(obj);
+        if (_isTimeStopped)
+        {
+            float drain = (Player.Instance != null && Player.Instance.holdingPrincess)
+                          ? timeStopDrainRate * 3f
+                          : timeStopDrainRate;
+
+            CurrentGauge -= drain * Time.deltaTime;
+            if (CurrentGauge <= 0f)
+            {
+                CurrentGauge = 0f;
+                ResumeTime();
+            }
+        }
+        else
+        {
+            CurrentGauge += passiveChargeRate * Time.deltaTime;
+            CurrentGauge  = Mathf.Clamp(CurrentGauge, 0f, maxTimeGauge);
+        }
     }
 
+    /*──────────────────────────────*/
     void ToggleTimeStop()
     {
-        if (isTimeStopped)
-        {
-            ResumeTime();
-        }
-        else
-        {
-            if (currentTimeGauge > 0)
-            {
-                StopTime();
-            }
-        }
+        if (_isTimeStopped) ResumeTime();
+        else if (CurrentGauge > 0f) StopTime();
     }
 
     public void StopTime()
     {
-        // 사운드
-        if (SoundManager.Instance != null)
-            SoundManager.Instance.PlaySFX("TimeStopSound");
-
-        isTimeStopped = true;
-        foreach (var obj in timeAffectedObjects)
-        {
-            obj.StopTime();
-        }
+        SoundManager.Instance?.PlaySFX("TimeStopSound");
+        _isTimeStopped = true;
+        foreach (var o in _objs) o.StopTime();
     }
 
     public void ResumeTime()
     {
-        // 사운드
-        if (SoundManager.Instance != null)
-            SoundManager.Instance.PlaySFX("TimeStopRelease");
-
-        isTimeStopped = false;
-        foreach (var obj in timeAffectedObjects)
-        {
-            if (obj != null)
-            {
-                obj.ResumeTime();
-            }
-        }
+        SoundManager.Instance?.PlaySFX("TimeStopRelease");
+        _isTimeStopped = false;
+        foreach (var o in _objs) if (o != null) o.ResumeTime();
     }
 
-    void FindTimeAffectedObjects()
+    /*──────────────────────────────*/
+    void RefreshList()
     {
-        var affectables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<ITimeAffectable>();
-        timeAffectedObjects.AddRange(affectables);
-    }
-
-    public void AddTimeGauge(float amount)
-    {
-        currentTimeGauge += amount;
-        currentTimeGauge = Mathf.Clamp(currentTimeGauge, 0, maxTimeGauge);
-        UpdateTimeGaugeUI();
-    }
-
-    void UpdateTimeGaugeUI()
-    {
-        if (timeGaugeSlider != null)
-        {
-            timeGaugeSlider.value = currentTimeGauge;
-        }
+        _objs.Clear();
+        _objs.AddRange(FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
+                       .OfType<ITimeAffectable>());
     }
 
     public void RegisterTimeAffectedObject(ITimeAffectable obj)
     {
-        timeAffectedObjects.Add(obj);
+        if (!_objs.Contains(obj)) _objs.Add(obj);
     }
 
-    void ReverseTime(float duration)
+    public void RemoveTimeAffectedObject(ITimeAffectable obj)
     {
-        // 예제만
-        Debug.Log("[Skill] Time Reversal Activated!");
-        Vector3 previousPosition = GetPlayerPreviousPosition(duration);
-        transform.position = previousPosition;
+        _objs.Remove(obj);
     }
 
-    Vector3 GetPlayerPreviousPosition(float duration)
+    /*──────────────────────────────*/
+    void UpdateGaugeUI()
     {
-        // 임의 예시
-        return transform.position - (Vector3.right * 5f);
+        if (timeGaugeSlider) timeGaugeSlider.value = CurrentGauge;
     }
+
+    public bool TrySpendGauge(float amount)
+    {
+        if (CurrentGauge < amount) return false;
+        CurrentGauge -= amount;
+        UpdateGaugeUI();
+        return true;
+    }
+
+    public void AddTimeGauge(float amount)   // ±값 모두 허용
+    {
+        CurrentGauge = Mathf.Clamp(CurrentGauge + amount, 0f, maxTimeGauge);
+        UpdateGaugeUI();
+    }
+
 }
