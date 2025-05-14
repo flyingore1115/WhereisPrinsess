@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class Lady : MonoBehaviour, ITimeAffectable
 
 {
+    public bool isControlled;
 
      [Header("던질 프리팹들 (케이크, 빵 등)")]
     public GameObject[] throwPrefabs;
@@ -56,6 +57,8 @@ public class Lady : MonoBehaviour, ITimeAffectable
 
     Vector2 cachedVel;
     float cachedAnimSpeed;
+
+    bool    cachedVelValid  = false;   // ← 새 플래그 추가
 
     void Awake()
     {
@@ -268,16 +271,37 @@ public IEnumerator MoveToDoor()
     }
 
     public void StopTime()
+{
+    cachedVel       = rb.linearVelocity;
+    cachedVelValid  = rb.linearVelocity.sqrMagnitude > 0.0001f; // 움직임 있었다면 true
+    cachedAnimSpeed = anim.speed;
+
+    rb.linearVelocity = Vector2.zero;
+    anim.speed        = 0f;
+}
+
+// Lady.cs
+public void ResumeTime()
+{
+    // 1) 되감기 직후엔 무조건 Idle 고정
+    if (RewindManager.Instance != null && RewindManager.Instance.IsRewinding)
     {
-        cachedVel        = rb.linearVelocity;
-        cachedAnimSpeed  = anim.speed;
-        rb.linearVelocity = Vector2.zero;
-        anim.speed        = 0f;
+        ForceIdle();                       // 모드 Idle + isStopped = true
+        return;                            // 속도 복원 안 함
     }
 
-    public void ResumeTime()
-    {
-        rb.linearVelocity = cachedVel;
-        anim.speed        = cachedAnimSpeed;
-    }
+    // 2) 일반적인 시간정지 해제(플레이어 스킬)일 때만 원래대로
+    rb.linearVelocity = cachedVel;
+    anim.speed        = cachedAnimSpeed;
+}
+
+
+
+    public void ForceIdle()
+{
+    mode      = LadyMode.Idle;
+    isStopped = true;
+    rb.linearVelocity = Vector2.zero;
+    SetRun(false); SetStand(true); SetSit(false);
+}
 }

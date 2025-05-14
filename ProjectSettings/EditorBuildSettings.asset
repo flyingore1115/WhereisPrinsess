@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/InGame/St_1.unity
     guid: 5c803256ec303da46bfdea3f5d3ab263
   - enabled: 1
+    path: Assets/Scenes/InGame/St_2.unity
+    guid: 4fc39bf72d192964d8be6240f0ac4e50
+  - enabled: 1
     path: Assets/Scenes/InGame/New_Game.unity
     guid: f34dd51e1a37ff04a9f4b42abef99fe1
   - enabled: 1

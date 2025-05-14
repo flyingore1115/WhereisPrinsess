@@ -173,4 +173,14 @@ public class P_Movement : MonoBehaviour
     {
         return isInvincible;
     }
+
+// 기존 ResetInput() 교체
+public void ResetInput()
+{
+    // 잔여 속도 제거
+    rb.linearVelocity = Vector2.zero;
+    // 대쉬 중이었으면 해제
+    isDashing = false;
+}
+
 }

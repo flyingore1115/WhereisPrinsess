@@ -170,24 +170,26 @@ public class StorySceneManager : MonoBehaviour
         EndDialogue();
     }
 
-    private IEnumerator WaitForNextKey(int textLength)
+private IEnumerator WaitForNextKey(int textLength)
+{
+    if (skipEnabled)
     {
-        if (skipEnabled)
-        {
-            yield break; // 즉시 다음
-        }
-        else if (autoPlayEnabled)
-        {
-            float delay = autoPlayBaseDelay + textLength * autoPlayCharDelay;
-            yield return new WaitForSeconds(delay);
-        }
-        else
-        {
-            yield return null;  // 이전 키 프레임 소진
-            yield return new WaitUntil(() => Input.anyKeyDown);
-            yield return null;  // 다음 문장 분리
-        }
+        yield break; // 즉시 다음
     }
+    else if (autoPlayEnabled)
+    {
+        // 이전보다 빠르게 넘기도록 수정 (기존보다 약 50% 빠름)
+        float delay = autoPlayBaseDelay + textLength * autoPlayCharDelay * 0.5f;
+        yield return new WaitForSeconds(delay);
+    }
+    else
+    {
+        yield return null;  // 이전 키 입력 소진
+        yield return new WaitUntil(() => Input.anyKeyDown);
+        yield return null;
+    }
+}
+
 
     private IEnumerator InvokeAction(string key)
     {
@@ -217,36 +219,45 @@ public class StorySceneManager : MonoBehaviour
         }
     }
 
-    private IEnumerator TypeSentence(string charName, string text)
+private IEnumerator TypeSentence(string charName, string text)
+{
+    // 스킵 모드일 경우 즉시 출력
+    if (skipEnabled)
     {
         characterNameText.text = charName;
-        dialogueText.text = "";
+        dialogueText.text = text;
+        yield break;
+    }
 
-        for (int i = 0; i < text.Length; i++)
+    characterNameText.text = charName;
+    dialogueText.text = "";
+
+    for (int i = 0; i < text.Length; i++)
+    {
+        if (Input.anyKeyDown)
+        {
+            dialogueText.text = text;
+            yield break;
+        }
+
+        dialogueText.text += text[i];
+        SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
+
+        float timer = 0f;
+        while (timer < typingSpeed)
         {
             if (Input.anyKeyDown)
             {
                 dialogueText.text = text;
                 yield break;
             }
-            dialogueText.text += text[i];
-            SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
-
-            float timer = 0f;
-            while (timer < typingSpeed)
-            {
-                if (Input.anyKeyDown)
-                {
-                    dialogueText.text = text;
-                    yield break;
-                }
-                timer += Time.deltaTime;
-                yield return null;
-            }
+            timer += Time.deltaTime;
+            yield return null;
         }
-
-        dialogueText.text = text;
     }
+
+    dialogueText.text = text;
+}
 
     private IEnumerator ShowChoices(string[] options)
     {
@@ -316,6 +327,30 @@ public class StorySceneManager : MonoBehaviour
         TimeStopController.Instance.SetInputBlocked(false);
         yield return null;
     }
+
+    public IEnumerator ShootingTutorial()
+{
+    dialoguePanel.SetActive(false);
+    tutorialText.enabled = true;
+    Player.Instance.ignoreInput = true;
+
+    // ① 적 스폰(혹은 미리 배치된 Enemy 찾기)
+    BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
+    Transform  target = enemy.transform;
+
+    // ② 플레이어 총알 각도 제한 켜기
+    Player.Instance.shooting.EnableAngleLimit(target, 15f);
+
+    tutorialText.text = "Shift + 좌클릭으로\n적 방향으로 사격하세요!";
+    // ③ 적이 죽을 때까지 대기
+    yield return new WaitUntil(() => enemy == null || enemy.isDead);
+
+    // ④ 제한 해제 및 마무리
+    Player.Instance.shooting.DisableAngleLimit();
+    tutorialText.enabled = false;
+    Player.Instance.ignoreInput = false;
+    dialoguePanel.SetActive(true);
+}
 
     // ─────────────────────────────────────────
     public void ShowTutorialMessage(string message)

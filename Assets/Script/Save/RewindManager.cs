@@ -310,13 +310,33 @@ public class RewindManager : MonoBehaviour
             }
         }
 
+        if (pRb != null) pRb.linearVelocity = Vector2.zero;
+        if (cRb != null) cRb.linearVelocity = Vector2.zero;
+
+        // 기존 코드 유지 ─ Rigidbody 다시 Dynamic 으로
+        if (pRb != null) pRb.bodyType = RigidbodyType2D.Dynamic;
+        if (cRb != null) cRb.bodyType = RigidbodyType2D.Dynamic;
+
+        Lady lady = FindFirstObjectByType<Lady>();
+if (lady != null)
+{
+    lady.ForceIdle();                         // ① 모드 Idle + isStopped = true
+    lady.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;  // ② 속도 0
+}
+
 
         ApplyGrayscaleEffect(false);
         PostProcessingManager.Instance.SetDefaultEffects();
 
         Time.timeScale = originalTimeScale;
         isRewinding = false;
+
+        // ── 되감기 끝난 뒤 Lady 자동 달리기 재개 ──
+        Lady storyLady = FindFirstObjectByType<Lady>();
+        if (storyLady != null)
+            storyLady.ResumeAutoRun();
         Debug.Log("[RewindManager] Rewind End");
+
     }
 
     void FindTimeAffectedObjects()

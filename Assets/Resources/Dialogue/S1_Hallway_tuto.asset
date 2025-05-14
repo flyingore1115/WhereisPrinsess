@@ -24,8 +24,3 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: HallwayTutorial
-  - type: 0
-    characterName: 
-    dialogueText: "\uD29C\uD1A0 \uB05D!"
-    options: []
-    actionKey: HallwayTutorial

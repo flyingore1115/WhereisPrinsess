@@ -4,72 +4,72 @@ public class TimePoint : MonoBehaviour
 {
     private bool isUsed = false;
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    // TimePoint.cs  ▸ OnTriggerEnter2D() 내부만 교체
+private void OnTriggerEnter2D(Collider2D collision)
+{
+    // Princess 태그가 아니라면 무시
+    if (!collision.CompareTag("Princess") || isUsed) return;
+    isUsed = true;
+
+    // ① Princess 또는 Lady 컴포넌트 찾기
+    Princess princess = collision.GetComponent<Princess>();
+    Lady     lady     = collision.GetComponent<Lady>();
+
+    // 둘 다 없으면 처리 불가
+    Transform princessTf = (princess != null) ? princess.transform
+                          : (lady     != null) ? lady.transform
+                          : null;
+    if (princessTf == null) return;
+
+    // Player & PlayerOver
+    PlayerOver pOver = FindFirstObjectByType<PlayerOver>();
+    Player     player = FindFirstObjectByType<Player>();
+    if (player == null || pOver == null) return;
+
+    // ② 플레이어가 쓰러져 있으면 ‘부활’ 시퀀스
+    if (pOver.IsDisabled)
     {
-        // 공주 태그에만 반응
-        if (!collision.CompareTag("Princess")) return;
-        if (isUsed) return;
-        isUsed = true;
+        Debug.Log("[TimePoint] 플레이어 Disable ▸ 부활용 체크포인트 저장");
+        TimePointManager.Instance.SaveCheckpoint(
+            princessTf.position, player.transform.position);
 
-        Princess princess = collision.GetComponent<Princess>();
-        if (princess == null) return;
-
-        // 플레이어 / PlayerOver
-        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
-        Player player = FindFirstObjectByType<Player>();
-        if (player == null || playerOver == null) return;
-
-        // ★ 플레이어가 '행동불능' 상태인 경우 => 부활 절차
-        if (playerOver.IsDisabled)
-        {
-            Debug.Log("[TimePoint] 플레이어가 Disable 상태이므로 '부활' 시퀀스 실행");
-
-            // 1) 체크포인트 저장
-            TimePointManager.Instance.SaveCheckpoint(
-                princess.transform.position,
-                player.transform.position
-            );
-
-            // 2) 플레이어를 체크포인트 위치(=공주 위치)로 이동 + 부활(체력 복원)
-            //    - ImmediateRevive() 쓰거나, 직접 OnRewindComplete() 호출 등 원하는 방식
-            TimePointManager.Instance.ImmediateRevive();
-
-            // 3) 공주를 멈추고, 일정 흐름 후 재개
-            StartCoroutine(CoStopPrincessAndResume(princess));
-        }
-        else
-        {
-            // ★ 평소대로 체크포인트 저장만
-            Debug.Log("[TimePoint] 일반 체크포인트 저장");
-            TimePointManager.Instance.SaveCheckpoint(
-                princess.transform.position,
-                player.transform.position
-            );
-        }
+        TimePointManager.Instance.ImmediateRevive();
+        StartCoroutine(CoStopPrincessAndResume((MonoBehaviour)(object)(princess ?? (object)lady)));
     }
+    else
+    {
+        // ③ 일반 체크포인트 저장
+        Debug.Log("[TimePoint] 일반 체크포인트 저장");
+        TimePointManager.Instance.SaveCheckpoint(
+            princessTf.position, player.transform.position);
+    }
+}
 
     /// <summary>
     /// 공주를 잠시 멈추고, 사용자 입력이 들어오면 재개시키는 흐름
     /// </summary>
-    private System.Collections.IEnumerator CoStopPrincessAndResume(Princess princess)
-    {
-        // (선택) 공주 이동 정지
-        Rigidbody2D rb = princess.GetComponent<Rigidbody2D>();
-        if (rb != null) rb.linearVelocity = Vector2.zero;
-        // Princess.cs에 public bool stopMovement 추가 가능
-        princess.isControlled = true; 
-        // → FixedUpdate()에서 isControlled면 이동 안 함
+    private System.Collections.IEnumerator CoStopPrincessAndResume(MonoBehaviour target)
+{
+    Rigidbody2D rb = target.GetComponent<Rigidbody2D>();
+    if (rb != null) rb.linearVelocity = Vector2.zero;
 
-        Debug.Log("[TimePoint] 공주 일시 정지. 아무 키(또는 마우스)를 눌러 재개");
+    // 공주 or 아가씨 모두 isControlled=true 속성을 공유하게 만들어야 함
+    if (target is Princess p)
+        p.isControlled = true;
+    else if (target is Lady l)
+        l.isControlled = true;
 
-        // 사용자 입력 대기
-        while (!Input.anyKeyDown) 
-        {
-            yield return null;
-        }
+    Debug.Log("[TimePoint] 대상 일시 정지. 아무 키 입력 대기 중...");
 
-        // 공주 재개
-        princess.isControlled = false;
-        Debug.Log("[TimePoint] 공주 이동 재개 완료");
-    }
+    while (!Input.anyKeyDown)
+        yield return null;
+
+    if (target is Princess pp)
+        pp.isControlled = false;
+    else if (target is Lady ll)
+        ll.isControlled = false;
+
+    Debug.Log("[TimePoint] 이동 재개됨.");
+}
+
 }

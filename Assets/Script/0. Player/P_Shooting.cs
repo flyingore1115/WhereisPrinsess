@@ -20,6 +20,11 @@ public class P_Shooting : MonoBehaviour
     [Tooltip("총알 UI 오브젝트 (평소에는 비활성화)")]
     public GameObject bulletUI;
 
+    // 튜토리얼 각도 제한
+    private bool tutorialMode = false;
+    private Transform tutorialTarget;
+    private float allowedAngle = 15f;
+
     private Coroutine hideBulletUICoroutine;
 
     void Update()
@@ -27,19 +32,43 @@ public class P_Shooting : MonoBehaviour
         UpdateFirePointPosition();
     }
 
+     public void EnableAngleLimit(Transform target, float angleDeg)
+    {
+        tutorialMode = true;
+        tutorialTarget = target;
+        allowedAngle = angleDeg;
+    }
+
+    public void DisableAngleLimit()
+    {
+        tutorialMode = false;
+        tutorialTarget = null;
+    }
+
 
     // 반드시 public으로 정의된 HandleShooting() 메서드
     public void HandleShooting()
     {
-        if(Player.Instance.holdingPrincess)
-            return;
-        // 사격은 Shift를 누른 상태에서만 가능
+        if (Player.Instance.holdingPrincess) return;
+
         if (Input.GetKey(KeyCode.LeftShift))
         {
             if (Input.GetMouseButtonDown(0))
             {
-                Debug.Log("쉬프트사격");
-                ShootBullet();
+                if (tutorialMode && tutorialTarget != null)
+                {
+                    Vector2 dirMouse = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - firePoint.position).normalized;
+                    Vector2 dirTarget = ((Vector2)tutorialTarget.position - (Vector2)firePoint.position).normalized;
+
+                    if (Vector2.Angle(dirMouse, dirTarget) <= allowedAngle)
+                        ShootBullet();
+                    else
+                        SoundManager.Instance?.PlaySFX("InvalidShot");
+                }
+                else
+                {
+                    ShootBullet();
+                }
             }
             else if (Input.GetMouseButtonDown(1))
             {

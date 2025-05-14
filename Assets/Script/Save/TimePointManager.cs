@@ -70,7 +70,7 @@ public class TimePointManager : MonoBehaviour
                 esd.position = enemy.transform.position;
                 esd.localScale = enemy.transform.localScale;
                 esd.health = enemy.currentHealth;
-                
+
                 data.enemyStates.Add(esd);
             }
         }
@@ -112,44 +112,47 @@ public class TimePointManager : MonoBehaviour
 
     public IEnumerator ApplyCheckpoint(TimePointData checkpointData, bool waitForInput)
     {
-        if (checkpointData == null)
-        {
-            Debug.LogError("[TimePointManager] ApplyCheckpoint: checkpointData가 null입니다.");
-            yield break;
-        }
+        if (checkpointData == null) yield break;
 
-        lastCheckpointData = checkpointData;
-        hasCheckpoint = true;
-
-        Princess princess = null;
+        // ① Player만 찾을 수 있으면 바로 진행 — princess는 Optional
         Player player = null;
         float waitTimer = 0f;
-        while (princess == null || player == null)
+        while (player == null)
         {
-            princess = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
             player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
             waitTimer += Time.deltaTime;
             if (waitTimer > 5f)
             {
-                Debug.LogError("[TimePointManager] ApplyCheckpoint: 5초 내에 Princess 또는 Player를 찾지 못했습니다.");
+                Debug.LogError("[TPM] Player 못 찾음 – Abort");
                 yield break;
             }
             yield return null;
         }
 
-        // 위치 복원
-        princess.transform.position = checkpointData.princessPosition;
+        // ② Princess 대신 Lady 지원
+        Princess princess = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
+        Lady lady = (princess == null) ? FindFirstObjectByType<Lady>() : null;
+
+        // ③ 위치 복원
+        if (princess != null)
+            princess.transform.position = checkpointData.princessPosition;
+        else if (lady != null)
+            lady.transform.position = checkpointData.princessPosition;
+
         player.RestoreFromRewind(checkpointData.playerPosition);
-        // 추가: 플레이어 상태 복원
-        if (lastGameStateData != null)
+
+        // ④ 속도·모드 클린업
+        player.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+        if (lady != null)
         {
-            player.RestoreState(lastGameStateData);
+            var lrb = lady.GetComponent<Rigidbody2D>();
+            lrb.linearVelocity = Vector2.zero;
+            lady.ForceIdle();               // Idle + isStopped = true
         }
-        Debug.Log($"[TimePointManager] 체크포인트 적용: 공주 위치 {checkpointData.princessPosition}, 플레이어 위치 {checkpointData.playerPosition}");
 
         ReactivateDeadEnemies(checkpointData);
         Debug.Log("[TimePointManager] 체크포인트 적용 완료.");
-        
+
 
         if (waitForInput)
         {
@@ -160,8 +163,26 @@ public class TimePointManager : MonoBehaviour
             }
             Time.timeScale = 1f;
         }
-    }
+        // — 위치&속도 복원 (princess 또는 lady가 null이 아니어야 처리)
+        if (princess != null)
+        {
+            princess.transform.position = checkpointData.princessPosition;
+            var prb = princess.GetComponent<Rigidbody2D>();
+            if (prb != null) prb.linearVelocity = Vector2.zero;
+        }
+        else if (lady != null)
+        {
+            lady.transform.position = checkpointData.princessPosition;
+            var lrb = lady.GetComponent<Rigidbody2D>();
+            if (lrb != null) lrb.linearVelocity = Vector2.zero;
+        }
 
+        // 플레이어는 항상 처리
+        player.transform.position = checkpointData.playerPosition;
+        var prRb = player.GetComponent<Rigidbody2D>();
+        if (prRb != null) prRb.linearVelocity = Vector2.zero;
+        player.GetComponent<P_Movement>().ResetInput();
+    }
     /// <summary>
     /// 죽은 적을 다시 활성화하는 함수
     /// 체크포인트 데이터(enemyStates)에 기록된 ID, prefabName과 일치하는 isDead=true 적만 되살림
@@ -200,7 +221,7 @@ public class TimePointManager : MonoBehaviour
                 }
 
                 candidate.SetHealth(esd.health);
-                
+
                 // **피격 상태 리셋 호출**
                 candidate.ResetDamageState();
                 // 그리고 일반 상태로 복원 (ResumeTime() 호출)

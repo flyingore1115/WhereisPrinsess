@@ -195,10 +195,10 @@ public class SoundManager : MonoBehaviour
         switch (scene.name)
         {
             case "MainMenu":
-                PlayBGM("BGM_Start");
+                //PlayBGM("BGM_Start");
                 break;
             case "New_Game":
-                PlayBGM("BGM_InGame");
+                //PlayBGM("BGM_InGame");
                 break;
             default:
                 StopBGM();
