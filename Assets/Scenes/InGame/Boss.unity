@@ -248,7 +248,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxTimeGauge: 100
-  currentTimeGauge: 0
   passiveChargeRate: 0.5
   timeStopDrainRate: 1
   enemyKillGain: 5
@@ -689,7 +688,7 @@ Transform:
   m_GameObject: {fileID: 186933915}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.8680725, y: 14.101457, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -752,7 +751,6 @@ MonoBehaviour:
   damageAmount: 1
   comboAttackDelay: 0.2
   comboThreshold: 3
-  orderNumberUIPrefab: {fileID: 0}
   attackParticlePrefab: {fileID: 0}
 --- !u!114 &186933927
 MonoBehaviour:
@@ -939,7 +937,7 @@ Transform:
   m_GameObject: {fileID: 258614414}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -20, y: 27.313583, z: 0}
+  m_LocalPosition: {x: -20, y: 13.313583, z: 0}
   m_LocalScale: {x: 10, y: 30, z: 1.3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1455,7 +1453,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -8.23, y: 14.5, z: -5}
+  m_LocalPosition: {x: -8.23, y: 0.5, z: -5}
   m_LocalScale: {x: 3.2916665, y: 1.6666665, z: 1.6666665}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1607,7 +1605,7 @@ Transform:
   m_GameObject: {fileID: 528229228}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 13, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -1695,28 +1693,27 @@ MonoBehaviour:
   isDead: 0
   maxHealth: 3
   currentHealth: 0
-  uiPrefab: {fileID: 0}
   healthDisplay: {fileID: 0}
   bossMaxHP: 20
   moveSpeed: 0
   cycleIdleTime: 3
   alertAnimTime: 1
-  bombSpawnY: 30
+  bombSpawnY: 15
   bombXRange: {x: -15, y: 15}
   bombCountNormal: 3
   bombCountSpecial: 10
   bulletCountNormal: 8
   bulletCountSpecial: 12
   bulletSpeed: 3
-  bulletCenter: {x: 0, y: 17}
+  bulletCenter: {x: 0, y: 5}
   explosionWarningPrefab: {fileID: 2405621649592795995, guid: ceeef3cda3fccb24ebe23896c1786bc3, type: 3}
   explosionEffectPrefab: {fileID: 725748389856807714, guid: 4bda94453d2ca7444a0fff05b2d425f5, type: 3}
   explosionRadius: 4
   explosionDelay: 3
   explosionPositions:
-  - {x: -11, y: 15}
-  - {x: 0, y: 15}
-  - {x: 11, y: 15}
+  - {x: -11, y: 1}
+  - {x: 0, y: 1}
+  - {x: 11, y: 1}
   bossHealthUI: {fileID: 528229234}
   bombPrefab: {fileID: 5629200147703959746, guid: 2d43ec8955865774f908dd2a0e8c7c27, type: 3}
   bulletPrefab: {fileID: 504851966543456732, guid: a110a8df0bef8924b939fc9c64dd1456, type: 3}
@@ -2061,6 +2058,8 @@ MonoBehaviour:
   bulletText: {fileID: 0}
   playerHealthSlider: {fileID: 0}
   timeStopSlider: {fileID: 0}
+  gameOnlyUI: []
+  storyUI: {fileID: 0}
 --- !u!1 &716225950
 GameObject:
   m_ObjectHideFlags: 0
@@ -2309,7 +2308,7 @@ Transform:
   m_GameObject: {fileID: 809758536}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.4000244, z: 0}
+  m_LocalPosition: {x: 0, y: -7.5999756, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2499,7 +2498,7 @@ Transform:
   m_GameObject: {fileID: 934893953}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 20, y: 27.313583, z: 0}
+  m_LocalPosition: {x: 20, y: 13.313583, z: 0}
   m_LocalScale: {x: 10, y: 30, z: 1.3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3582,7 +3581,7 @@ Transform:
   m_GameObject: {fileID: 1751854970}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.459467, y: 13.761619, z: 0}
+  m_LocalPosition: {x: -8.459467, y: -0.23838139, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -3756,7 +3755,7 @@ Transform:
   m_GameObject: {fileID: 1834671960}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 17, z: 0}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1.6000001, y: 1.6000001, z: 1.6000001}
   m_ConstrainProportionsScale: 1
   m_Children: []

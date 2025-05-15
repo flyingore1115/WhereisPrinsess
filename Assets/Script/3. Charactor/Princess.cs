@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using MyGame;  // MyGame 네임스페이스에 정의된 데이터 클래스(TimePointData 등) 사용
 
+
 public class Princess : MonoBehaviour, ITimeAffectable
 {
     public static Princess Instance { get; private set; }
@@ -30,7 +31,6 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public bool isInvincible = false;
     public float invincibilityDuration = 2f;  // 무적 타임 지속 시간
 
-    [HideInInspector]
     public bool isControlled = false;         // 공주 조종 여부
 
     public bool isHeld = false; //손잡기
@@ -59,14 +59,10 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     void Start()
     {
-
-
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
-
-
-
-        Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
+        
+    Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }
 
 
@@ -131,7 +127,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
         if (animator != null)
         {
-            //animator.SetTrigger("isScared"); // 또는 SetBool("isScared", true);
+            animator.SetTrigger("isScared");
             //animator.speed = 1f;
         }
     }
@@ -275,6 +271,35 @@ public class Princess : MonoBehaviour, ITimeAffectable
         Debug.DrawRay(groundCheck.position, Vector2.down * fallThreshold, Color.red);
         return false;
     }
+
+public void RefreshSceneBehavior()
+{
+    string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+    Debug.Log($"[Princess] RefreshSceneBehavior in scene: {sceneName}");
+
+    if (sceneName.Contains("Story"))
+    {
+        isControlled = true;
+        animator?.SetTrigger("isStand");
+        Debug.Log("[Princess] 상태 = STORY (isStand + 정지)");
+    }
+    else if (sceneName.Contains("Boss"))
+    {
+        isControlled = true;
+        animator?.SetTrigger("isScared");
+        Debug.Log("[Princess] 상태 = BOSS (isScared + 정지)");
+    }
+    else
+    {
+        isControlled = false;
+        animator?.ResetTrigger("isStand");
+        animator?.ResetTrigger("isScared");
+        animator?.SetTrigger("isRun");
+        Debug.Log("[Princess] 상태 = NORMAL (Run + 이동 가능)");
+    }
+}
+
+
 
     public void ResetToDefaultPosition()
     {

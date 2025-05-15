@@ -95,7 +95,7 @@ void FixedUpdate()
     }
 
     // ── 병실에서 문까지 걷기 ──
-public IEnumerator MoveToDoor()
+    public IEnumerator MoveToDoor()
     {
         mode = LadyMode.MovingToDoor;
         isStopped = false;
@@ -196,8 +196,9 @@ public IEnumerator MoveToDoor()
 
             // 튜토리얼 태그·스크립트
             obj.tag = "TutorialTarget";
-            var tut = obj.AddComponent<ThrowableTutorialTarget>();
-            tut.master = this;
+             var tut = obj.GetComponent<ThrowableTutorialTarget>() 
+                 ?? obj.AddComponent<ThrowableTutorialTarget>();
+       tut.Initialize(this);
 
             spawned.Add(obj);
 

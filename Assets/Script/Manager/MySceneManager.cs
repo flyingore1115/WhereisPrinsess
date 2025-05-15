@@ -6,6 +6,9 @@ public class MySceneManager : MonoBehaviour
 {
     public static MySceneManager Instance;
 
+    public static bool IsStoryScene => SceneManager.GetActiveScene().name.Contains("Story");
+
+
     void Awake()
     {
         if (Instance == null)
@@ -67,6 +70,28 @@ public class MySceneManager : MonoBehaviour
         {
             FadeManager.Instance.StartFadeIn();
         }
+
+        // UI 활성/비활성 분기
+        if (CanvasManager.Instance != null)
+        {
+            if (scene.name.StartsWith("Story") || scene.name.Contains("Story"))
+                CanvasManager.Instance.SetGameUIActive(false);  // 스토리 씬이면 UI 숨김
+            else
+                CanvasManager.Instance.SetGameUIActive(true);   // 인게임 씬이면 표시
+        }
+
+        // 플레이어 위치 리셋
+        if (Player.Instance != null)
+        {
+            Player.Instance.transform.position = Vector3.zero;
+            var rb = Player.Instance.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.linearVelocity = Vector2.zero;
+        }
+
+        if (Princess.Instance != null)
+    {
+        Princess.Instance.RefreshSceneBehavior();
+    }
     }
 
 

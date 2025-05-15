@@ -71,14 +71,20 @@ public class Player : MonoBehaviour, ITimeAffectable
             return;
         }
         movement.HandleMovement(attack.IsAttacking);
-        // SHIFT 키에 따라 공격 방식 분기
-        if (Input.GetKey(KeyCode.LeftShift))
+        // 좌클릭(공격/사격) & 우클릭(재장전) 분기 처리[^4][^5][^6]
+        if (Input.GetMouseButtonDown(0))
         {
-            shooting.HandleShooting();
+            Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            wp.z = 0f;
+            var hit = Physics2D.Raycast(wp, Vector2.zero);
+            if (hit.collider != null && hit.collider.GetComponent<BaseEnemy>() != null)
+                attack.HandleAttack();
+            else
+                shooting.HandleShooting();
         }
-        else
+        else if (Input.GetMouseButtonDown(1))
         {
-            attack.HandleAttack();
+            shooting.HandleShooting();  // 재장전은 HandleShooting 내부에서 처리됨[^3]
         }
     }
 

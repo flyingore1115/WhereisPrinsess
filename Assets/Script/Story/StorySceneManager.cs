@@ -11,21 +11,8 @@ public class StorySceneManager : MonoBehaviour
     [Header("Scene Start Trigger ID")]
     public string startTriggerID;
 
-    [Header("UI References")]
-    public Text characterNameText;
-    public Text dialogueText;
-    public GameObject dialoguePanel;
-
-    [Header("Choice UI References")]
-    public GameObject choicePanel;
-    public Button choiceButtonPrefab;
-
     [Header("CG Display")]
-    public Image cgImage;
     public float cgFadeDuration = 0.5f;
-
-    [Header("Tutorial UI References")]
-    public Text tutorialText;
 
     [Header("Typing Effect Settings")]
     public float typingSpeed = 0.05f;
@@ -40,14 +27,11 @@ public class StorySceneManager : MonoBehaviour
     public bool autoPlayEnabled = false;
     public float autoPlayBaseDelay = 0.5f;
     public float autoPlayCharDelay = 0.05f;
-    public Button skipButton;
-    public Button autoPlayButton;
 
     [Header("Lady Tutorial")]
     public Lady lady;
 
     [Header("Panel Slide Settings")]
-    public RectTransform dialogueContainer;
     public float panelSlideDuration = 0.5f;
 
     private Vector2 panelVisiblePos;
@@ -88,46 +72,54 @@ public class StorySceneManager : MonoBehaviour
             { "AttackTutorial", AttackTutorial },
             { "LadyDoorSeq",     LadyDoorSequence },
             { "HallwayTutorial", HallwayTutorial },
+            { "ShootingTutorial", ShootingTutorial},
+            { "LoadNextScene", LoadNextScene }
             // ...추가 액션
         };
 
-        // 3) 패널 위치 초기화
-        panelVisiblePos = dialogueContainer.anchoredPosition;
-        panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
-        dialogueContainer.anchoredPosition = panelHiddenPos;
+        if (StoryCanvasManager.Instance != null && StoryCanvasManager.Instance.DialogueContainer != null)
+        {
+            panelVisiblePos = StoryCanvasManager.Instance.DialogueContainer.anchoredPosition;
+            panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
+        }
+        else
+        {
+            Debug.Log("[SSM] Awake: CanvasManager 아직 준비 안됨, 위치 초기화는 Start에서 처리하세요.");
+        }
 
-        // 스토리 중엔 시간정지 입력 차단
         TimeStopController.Instance.SetInputBlocked(true);
     }
 
     void Start()
     {
-        dialoguePanel?.SetActive(false);
-        choicePanel?.SetActive(false);
-        tutorialText.enabled = false;
+        
+        StoryCanvasManager.Instance.DialoguePanel?.SetActive(false);
+        StoryCanvasManager.Instance.ChoicePanel?.SetActive(false);
+        StoryCanvasManager.Instance.TutorialText.enabled = false;
 
         // CG 초기화
-        if (cgImage != null)
+        if (StoryCanvasManager.Instance.CGImage != null)
         {
-            cgImage.gameObject.SetActive(true);
-            cgImage.sprite = Resources.Load<Sprite>("IMG/CG/fade");
-            cgImage.canvasRenderer.SetAlpha(0f);
+            StoryCanvasManager.Instance.CGImage.gameObject.SetActive(true);
+            StoryCanvasManager.Instance.CGImage.sprite = Resources.Load<Sprite>("IMG/CG/fade");
+            StoryCanvasManager.Instance.CGImage.canvasRenderer.SetAlpha(0f);
         }
 
         // UI 버튼 이벤트
-        if (skipButton != null)
-            skipButton.onClick.AddListener(ToggleSkip);
-        if (autoPlayButton != null)
-            autoPlayButton.onClick.AddListener(ToggleAutoPlay);
+        if (StoryCanvasManager.Instance.SkipButton != null)
+            StoryCanvasManager.Instance.SkipButton.onClick.AddListener(ToggleSkip);
+        if (StoryCanvasManager.Instance.AutoPlayButton != null)
+            StoryCanvasManager.Instance.AutoPlayButton.onClick.AddListener(ToggleAutoPlay);
 
         // 버튼 초기 알파
-        SetButtonAlpha(skipButton,    0f);
-        SetButtonAlpha(autoPlayButton, 0f);
+        SetButtonAlpha(StoryCanvasManager.Instance.SkipButton, 0f);
+        SetButtonAlpha(StoryCanvasManager.Instance.AutoPlayButton, 0f);
 
         if (!string.IsNullOrEmpty(startTriggerID))
             StartDialogueForTrigger(startTriggerID);
 
-            
+
     }
 
     public void StartDialogueForTrigger(string triggerID)
@@ -137,7 +129,7 @@ public class StorySceneManager : MonoBehaviour
 
         isDialogueActive = true;
         Player.Instance.ignoreInput = true;
-        dialoguePanel.SetActive(true);
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
         StartCoroutine(SmoothZoomCamera(dialogueCameraSize, cameraZoomDuration));
         dialogueCoroutine = StartCoroutine(PlayEntries(entries));
     }
@@ -170,25 +162,25 @@ public class StorySceneManager : MonoBehaviour
         EndDialogue();
     }
 
-private IEnumerator WaitForNextKey(int textLength)
-{
-    if (skipEnabled)
+    private IEnumerator WaitForNextKey(int textLength)
     {
-        yield break; // 즉시 다음
+        if (skipEnabled)
+        {
+            yield break; // 즉시 다음
+        }
+        else if (autoPlayEnabled)
+        {
+            // 이전보다 빠르게 넘기도록 수정 (기존보다 약 50% 빠름)
+            float delay = autoPlayBaseDelay + textLength * autoPlayCharDelay * 0.5f;
+            yield return new WaitForSeconds(delay);
+        }
+        else
+        {
+            yield return null;  // 이전 키 입력 소진
+            yield return new WaitUntil(() => Input.anyKeyDown);
+            yield return null;
+        }
     }
-    else if (autoPlayEnabled)
-    {
-        // 이전보다 빠르게 넘기도록 수정 (기존보다 약 50% 빠름)
-        float delay = autoPlayBaseDelay + textLength * autoPlayCharDelay * 0.5f;
-        yield return new WaitForSeconds(delay);
-    }
-    else
-    {
-        yield return null;  // 이전 키 입력 소진
-        yield return new WaitUntil(() => Input.anyKeyDown);
-        yield return null;
-    }
-}
 
 
     private IEnumerator InvokeAction(string key)
@@ -219,55 +211,57 @@ private IEnumerator WaitForNextKey(int textLength)
         }
     }
 
-private IEnumerator TypeSentence(string charName, string text)
-{
-    // 스킵 모드일 경우 즉시 출력
-    if (skipEnabled)
+    private IEnumerator TypeSentence(string charName, string text)
     {
-        characterNameText.text = charName;
-        dialogueText.text = text;
-        yield break;
-    }
-
-    characterNameText.text = charName;
-    dialogueText.text = "";
-
-    for (int i = 0; i < text.Length; i++)
-    {
-        if (Input.anyKeyDown)
+        // 스킵 모드일 경우 즉시 출력
+        if (skipEnabled)
         {
-            dialogueText.text = text;
+            StoryCanvasManager.Instance.CharacterNameText.text = charName;
+            StoryCanvasManager.Instance.DialogueText.text = text;
             yield break;
         }
 
-        dialogueText.text += text[i];
-        SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
+        StoryCanvasManager.Instance.CharacterNameText.text = charName;
+        StoryCanvasManager.Instance.DialogueText.text = "";
 
-        float timer = 0f;
-        while (timer < typingSpeed)
+        for (int i = 0; i < text.Length; i++)
         {
             if (Input.anyKeyDown)
             {
-                dialogueText.text = text;
+                StoryCanvasManager.Instance.DialogueText.text = text;
                 yield break;
             }
-            timer += Time.deltaTime;
-            yield return null;
-        }
-    }
 
-    dialogueText.text = text;
-}
+            StoryCanvasManager.Instance.DialogueText.text += text[i];
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlaySFX(string.IsNullOrEmpty(charName) ? "N_beep" : "beep");
+            }
+            float timer = 0f;
+            while (timer < typingSpeed)
+            {
+                if (Input.anyKeyDown)
+                {
+                    StoryCanvasManager.Instance.DialogueText.text = text;
+                    yield break;
+                }
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        StoryCanvasManager.Instance.DialogueText.text = text;
+    }
 
     private IEnumerator ShowChoices(string[] options)
     {
-        choicePanel.SetActive(true);
+        StoryCanvasManager.Instance.ChoicePanel.SetActive(true);
         int selected = -1;
         var buttons = new List<Button>();
 
         for (int i = 0; i < options.Length; i++)
         {
-            var btn = Instantiate(choiceButtonPrefab, choicePanel.transform);
+            var btn = Instantiate(StoryCanvasManager.Instance.ChoiceButtonPrefab, StoryCanvasManager.Instance.ChoicePanel.transform);
             btn.GetComponentInChildren<Text>().text = options[i];
             int idx = i;
             btn.onClick.AddListener(() => selected = idx);
@@ -276,30 +270,30 @@ private IEnumerator TypeSentence(string charName, string text)
 
         yield return new WaitUntil(() => selected >= 0);
         buttons.ForEach(b => Destroy(b.gameObject));
-        choicePanel.SetActive(false);
+        StoryCanvasManager.Instance.ChoicePanel.SetActive(false);
     }
 
     // ─────────────────────────────────────────
     private IEnumerator AttackTutorial()
     {
-        dialoguePanel.SetActive(false);
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
         Player.Instance.ignoreInput = true;
         Player.Instance.attack.enabled = false;
-        tutorialText.enabled = true;
+        StoryCanvasManager.Instance.TutorialText.enabled = true;
 
         lady.StartThrowing();
         yield return new WaitForSeconds(0.3f);
 
-        tutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
+        StoryCanvasManager.Instance.TutorialText.text = "스페이스바를 눌러 시간을 멈춰보세요.";
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         TimeStopController.Instance.StopTime();
 
         Player.Instance.attack.enabled = true;
-        tutorialText.text = "던진 케이크를 모두 클릭하세요.";
+        StoryCanvasManager.Instance.TutorialText.text = "던진 케이크를 모두 클릭하세요.";
         yield return new WaitUntil(() =>
-            Player.Instance.attack.SelectedCount >= lady.spawned.Count);
+            lady.spawned.Count == 0);
 
-        tutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
+        StoryCanvasManager.Instance.TutorialText.text = "스페이스바를 눌러 시간을 해제하세요.";
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         TimeStopController.Instance.ResumeTime();
 
@@ -308,9 +302,9 @@ private IEnumerator TypeSentence(string charName, string text)
 
         Player.Instance.attack.enabled = false;
         Player.Instance.ignoreInput = false;
-        tutorialText.enabled = false;
+        StoryCanvasManager.Instance.TutorialText.enabled = false;
 
-        dialoguePanel.SetActive(true);
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
         yield return null;
     }
 
@@ -329,55 +323,57 @@ private IEnumerator TypeSentence(string charName, string text)
     }
 
     public IEnumerator ShootingTutorial()
-{
-    dialoguePanel.SetActive(false);
-    tutorialText.enabled = true;
-    Player.Instance.ignoreInput = true;
+    {
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
+        StoryCanvasManager.Instance.TutorialText.enabled = true;
+        Player.Instance.ignoreInput = true;
 
-    // ① 적 스폰(혹은 미리 배치된 Enemy 찾기)
-    BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
-    Transform  target = enemy.transform;
+        // ① 적 스폰(혹은 미리 배치된 Enemy 찾기)
+        BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
+        Transform target = enemy.transform;
 
-    // ② 플레이어 총알 각도 제한 켜기
-    Player.Instance.shooting.EnableAngleLimit(target, 15f);
+        // ② 플레이어 총알 각도 제한 켜기
+        Player.Instance.shooting.EnableAngleLimit(target, 15f);
 
-    tutorialText.text = "Shift + 좌클릭으로\n적 방향으로 사격하세요!";
-    // ③ 적이 죽을 때까지 대기
-    yield return new WaitUntil(() => enemy == null || enemy.isDead);
+        Player.Instance.ignoreInput = false;
 
-    // ④ 제한 해제 및 마무리
-    Player.Instance.shooting.DisableAngleLimit();
-    tutorialText.enabled = false;
-    Player.Instance.ignoreInput = false;
-    dialoguePanel.SetActive(true);
-}
+        StoryCanvasManager.Instance.TutorialText.text = "Shift + 좌클릭으로 사격하세요!";
+        // ③ 적이 죽을 때까지 대기
+        yield return new WaitUntil(() => enemy == null || enemy.isDead);
+
+        // ④ 제한 해제 및 마무리
+        Player.Instance.shooting.DisableAngleLimit();
+        StoryCanvasManager.Instance.TutorialText.enabled = false;
+        Player.Instance.ignoreInput = false;
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+    }
 
     // ─────────────────────────────────────────
     public void ShowTutorialMessage(string message)
     {
-        tutorialText.text = message;
+        StoryCanvasManager.Instance.TutorialText.text = message;
     }
 
     private IEnumerator ShowCG(string fileName)
     {
-        if (cgImage == null) yield break;
+        if (StoryCanvasManager.Instance.CGImage == null) yield break;
         var sp = Resources.Load<Sprite>($"IMG/CG/{fileName}");
         if (sp == null)
         {
             Debug.LogWarning($"[SSM] CG 못 찾음: {fileName}");
             yield break;
         }
-        cgImage.sprite = sp;
-        cgImage.CrossFadeAlpha(1f, cgFadeDuration, false);
+        StoryCanvasManager.Instance.CGImage.sprite = sp;
+        StoryCanvasManager.Instance.CGImage.CrossFadeAlpha(1f, cgFadeDuration, false);
         yield return new WaitForSeconds(cgFadeDuration);
     }
 
     private IEnumerator HideCG()
     {
-        if (cgImage == null) yield break;
-        cgImage.CrossFadeAlpha(0f, cgFadeDuration, false);
+        if (StoryCanvasManager.Instance.CGImage == null) yield break;
+        StoryCanvasManager.Instance.CGImage.CrossFadeAlpha(0f, cgFadeDuration, false);
         yield return new WaitForSeconds(cgFadeDuration);
-        cgImage.sprite = null;
+        StoryCanvasManager.Instance.CGImage.sprite = null;
     }
 
     private IEnumerator FocusCameraOnTarget(string targetName, float waitTime)
@@ -414,34 +410,34 @@ private IEnumerator TypeSentence(string charName, string text)
     private IEnumerator EndDialogueRoutine()
     {
         yield return SlideOutPanel();
-        dialoguePanel.SetActive(false);
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
 
         Player.Instance.ignoreInput = false;
         StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
         cameraFollow.EnableStoryMode(false);
         cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"));
 
-        isDialogueActive  = false;
-        skipEnabled       = false;
-        autoPlayEnabled   = false;
-        SetButtonAlpha(skipButton,    0f);
-        SetButtonAlpha(autoPlayButton, 0f);
+        isDialogueActive = false;
+        skipEnabled = false;
+        autoPlayEnabled = false;
+        SetButtonAlpha(StoryCanvasManager.Instance.SkipButton, 0f);
+        SetButtonAlpha(StoryCanvasManager.Instance.AutoPlayButton, 0f);
     }
 
     private IEnumerator SlideInPanel()
     {
-        characterNameText.text = "";
-        dialogueText.text       = "";
+        StoryCanvasManager.Instance.CharacterNameText.text = "";
+        StoryCanvasManager.Instance.DialogueText.text = "";
 
         float t = 0f;
         while (t < panelSlideDuration)
         {
             t += Time.deltaTime;
-            dialogueContainer.anchoredPosition =
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
                 Vector2.Lerp(panelHiddenPos, panelVisiblePos, t / panelSlideDuration);
             yield return null;
         }
-        dialogueContainer.anchoredPosition = panelVisiblePos;
+        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelVisiblePos;
     }
 
     private IEnumerator SlideOutPanel()
@@ -450,25 +446,25 @@ private IEnumerator TypeSentence(string charName, string text)
         while (t < panelSlideDuration)
         {
             t += Time.deltaTime;
-            dialogueContainer.anchoredPosition =
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
                 Vector2.Lerp(panelVisiblePos, panelHiddenPos, t / panelSlideDuration);
             yield return null;
         }
-        dialogueContainer.anchoredPosition = panelHiddenPos;
+        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
     }
 
     public void ToggleSkip()
     {
-        
+
         skipEnabled = !skipEnabled;
-        SetButtonAlpha(skipButton, skipEnabled ? 0.4f : 0f);
+        SetButtonAlpha(StoryCanvasManager.Instance.SkipButton, skipEnabled ? 0.4f : 0f);
         Debug.Log($"Skip 모드: {skipEnabled}");
     }
 
     public void ToggleAutoPlay()
     {
         autoPlayEnabled = !autoPlayEnabled;
-        SetButtonAlpha(autoPlayButton, autoPlayEnabled ? 0.4f : 0f);
+        SetButtonAlpha(StoryCanvasManager.Instance.AutoPlayButton, autoPlayEnabled ? 0.4f : 0f);
         Debug.Log($"AutoPlay 모드: {autoPlayEnabled}");
     }
 
@@ -483,4 +479,9 @@ private IEnumerator TypeSentence(string charName, string text)
             img.color = c;
         }
     }
+    private IEnumerator LoadNextScene()
+{
+    yield return new WaitForSeconds(0.3f); // 연출 텀
+    MySceneManager.Instance.LoadNextScene();
+}
 }

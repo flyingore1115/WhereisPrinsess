@@ -89,8 +89,8 @@ public class RewindManager : MonoBehaviour
 
     void Update()
     {
-        // 대화나 튜토리얼 중엔 되감기 금지
-        if (StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive)
+        // 스토리 씬에서 리와인드 금지
+        if (MySceneManager.IsStoryScene)
             return;
 
         // R키 누르면 바로 되감기 실행 (이미 되감기 중이 아니면)

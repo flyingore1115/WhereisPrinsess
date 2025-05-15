@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public static TimePointData LoadedCheckpoint;
 
+    
+
     void Awake()
     {
         if (Instance == null)
@@ -36,7 +38,7 @@ public class GameManager : MonoBehaviour
             RewindManager.Instance.ClearSnapshots();
 
         // 3) 메인 게임 씬 로드
-        MySceneManager.Instance.LoadScene("St_1");//New_Game  St_1
+        MySceneManager.Instance.LoadScene("Story_1");//New_Game  Story_1
 
     }
 

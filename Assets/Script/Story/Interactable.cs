@@ -9,11 +9,19 @@ public class Interactable : MonoBehaviour
     bool isPlayerInside = false;
     public string triggerID;
 
+    void Awake()
+    {
+        icon = GetComponent<InteractionIcon>();
+       if (icon == null)
+           Debug.LogError($"[Interactable] InteractionIcon 컴포넌트를 찾을 수 없습니다: {name}");
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
         isPlayerInside = true;
-        icon.Show();
+        if (!Player.Instance.ignoreInput && !StorySceneManager.Instance?.IsDialogueActive == true)
+            icon.Show();
     }
 
     void OnTriggerExit2D(Collider2D other)
@@ -27,6 +35,7 @@ public class Interactable : MonoBehaviour
     {
         if (!isPlayerInside) return;                      // 범위 밖이면 무시
         if (Player.Instance.ignoreInput) return;          // 이동/대화 중이면 무시
+        if (StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive) return;
         if (Input.GetKeyDown(KeyCode.E))
             Interact();
     }

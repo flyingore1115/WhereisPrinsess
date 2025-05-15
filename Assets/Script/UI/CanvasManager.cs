@@ -18,6 +18,10 @@ public class CanvasManager : MonoBehaviour
     [Header("TimeStop Gauge (슬라이더)")]
     public Slider timeStopSlider;         // 타임스톱 게이지
 
+
+    public GameObject[] gameOnlyUI;    // ← 인스펙터에서 bulletText, 슬라이더 등 등록
+    //public GameObject storyUI;      // ← 스토리 씬에서도 유지할 UI만 별도 지정
+
     private void Awake()
     {
         // 싱글톤
@@ -71,7 +75,18 @@ public class CanvasManager : MonoBehaviour
         if (tsc == null || timeStopSlider == null) return;
 
         timeStopSlider.maxValue = tsc.MaxGauge;
-        timeStopSlider.value    = tsc.CurrentGauge;
+        timeStopSlider.value = tsc.CurrentGauge;
+    }
+    
+    public void SetGameUIActive(bool active)
+    {
+        foreach (var go in gameOnlyUI)
+        {
+            if (go != null) go.SetActive(active);
+        }
+
+        //if (storyUI != null)
+            //storyUI.SetActive(true); // 항상 켜짐
     }
 
 }

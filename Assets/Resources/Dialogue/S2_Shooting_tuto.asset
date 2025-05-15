@@ -10,27 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
-  m_Name: S1_Attack_tuto
+  m_Name: S2_Shooting_tuto
   m_EditorClassIdentifier: 
-  triggerID: Attack_tuto
+  triggerID: Shooting_tuto
   entries:
   - type: 0
     characterName: 
-    dialogueText: "\uAC9F\uC544\uC6C3 \uC4F1\uBC1C\uB7EC\uB9C8"
+    dialogueText: "\uC0AC\uACA9 \uD29C\uD1A0!"
     options: []
     actionKey: 
   - type: 2
     characterName: 
     dialogueText: 
     options: []
-    actionKey: AttackTutorial
+    actionKey: ShootingTutorial
   - type: 0
-    characterName: "\uC544\uAC00\uC528"
-    dialogueText: "\uC774\uAC78\uC9C4\uC9DC\uD558\uB124;;"
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uC2B7\uACE0\uC774!!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uB108\uB294 \uC0AC\uACA9\uC744 \uC798\uD558\uB294 \uD504\uB80C\uC988\uAD6C\uB098!"
     options: []
     actionKey: 
   - type: 2
     characterName: 
     dialogueText: 
     options: []
-    actionKey: LadyDoorSeq
+    actionKey: LoadNextScene

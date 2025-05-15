@@ -49,33 +49,40 @@ public class P_Shooting : MonoBehaviour
     // 반드시 public으로 정의된 HandleShooting() 메서드
     public void HandleShooting()
     {
-        if (Player.Instance.holdingPrincess) return;
+        if (MySceneManager.IsStoryScene && !tutorialMode)
+        return;
+        if (Player.Instance.holdingPrincess)
+            return;
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        worldPoint.z = 0f;
+        Vector2 direction = (worldPoint - firePoint.position).normalized;
+
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                if (tutorialMode && tutorialTarget != null)
-                {
-                    Vector2 dirMouse = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - firePoint.position).normalized;
-                    Vector2 dirTarget = ((Vector2)tutorialTarget.position - (Vector2)firePoint.position).normalized;
-
-                    if (Vector2.Angle(dirMouse, dirTarget) <= allowedAngle)
-                        ShootBullet();
-                    else
-                        SoundManager.Instance?.PlaySFX("InvalidShot");
-                }
-                else
-                {
-                    ShootBullet();
-                }
-            }
-            else if (Input.GetMouseButtonDown(1))
-            {
-                Reload();
-            }
+            ShootBullet(direction);
+        }
+        else if (Input.GetMouseButtonDown(1))
+        {
+            Reload();
         }
     }
+
+    private void ShootBullet(Vector2 dir)
+    {
+        if (currentAmmo <= 0)
+        {
+            SoundManager.Instance?.PlaySFX("EmptyGunSound");
+            return;
+        }
+        GameObject b = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        var bs = b.GetComponent<Bullet>();
+        if (bs != null) bs.SetDirection(dir);
+        SoundManager.Instance?.PlaySFX("PlayerGunSound");
+        currentAmmo--;
+        UpdateAmmoUI();
+    }
+
 
     private void UpdateFirePointPosition()
     {
