@@ -121,6 +121,13 @@ public class TimeStopController : MonoBehaviour
         SoundManager.Instance?.PlaySFX("TimeStopRelease");
         _isTimeStopped = false;
         foreach (var o in _objs) if (o != null) o.ResumeTime();
+        
+        //손잡기 상태 자동 해제
+        if (Player.Instance?.holdingPrincess == true)
+        {
+            Player.Instance.StopHoldingPrincess();      //① 플레이어 플래그 다운
+            Princess.Instance?.StopBeingHeld();         //② 공주 플래그 다운
+        }
     }
 
     /*──────────────────────────────*/

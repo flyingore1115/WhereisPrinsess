@@ -939,7 +939,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cb43bbe3e7b0f4429fc2db9fdd64d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startTriggerID: 
+  startTriggerID: Shooting_tuto
   cgFadeDuration: 0.5
   typingSpeed: 0.05
   cameraFollow: {fileID: 519420034}
@@ -2510,7 +2510,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 381162076155496614, guid: 0bc659de0c05a7049a74ba7416f899aa, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -20.955036
+      value: -15.955036
       objectReference: {fileID: 0}
     - target: {fileID: 381162076155496614, guid: 0bc659de0c05a7049a74ba7416f899aa, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3262,6 +3262,9 @@ MonoBehaviour:
   isInvincible: 0
   invincibilityDuration: 2
   isControlled: 0
+  storyMoveSpeed: 0
+  bossMoveSpeed: 0
+  stageMoveSpeed: 3
   isHeld: 0
   followSpeed: 5
 --- !u!50 &1616479087
@@ -4003,7 +4006,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.9671516
+      value: 10.032848
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.y

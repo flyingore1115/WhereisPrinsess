@@ -159,8 +159,13 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        if (PostProcessingManager.Instance != null)
+        if (!TimeStopController.Instance.IsTimeStopped &&PostProcessingManager.Instance != null)
+        {
+            if (PostProcessingManager.Instance != null)
             PostProcessingManager.Instance.SetDefaultEffects();
+        }
+        
+
     }
 
     public virtual void AggroPlayer()

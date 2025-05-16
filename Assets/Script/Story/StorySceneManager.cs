@@ -36,6 +36,7 @@ public class StorySceneManager : MonoBehaviour
 
     private Vector2 panelVisiblePos;
     private Vector2 panelHiddenPos;
+    private Vector2 panelHiddenUpPos;
 
     // 데이터 분리용 맵
     private Dictionary<string, DialogueEntryData[]> dataMap;
@@ -81,6 +82,7 @@ public class StorySceneManager : MonoBehaviour
         {
             panelVisiblePos = StoryCanvasManager.Instance.DialogueContainer.anchoredPosition;
             panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
+            panelHiddenUpPos = new Vector2(panelVisiblePos.x, 450f);
             StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
         }
         else
@@ -413,6 +415,8 @@ public class StorySceneManager : MonoBehaviour
         StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
 
         Player.Instance.ignoreInput = false;
+        if (cameraFollow == null)
+        {cameraFollow = FindFirstObjectByType<CameraFollow>();}
         StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
         cameraFollow.EnableStoryMode(false);
         cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"));
@@ -435,6 +439,35 @@ public class StorySceneManager : MonoBehaviour
             t += Time.deltaTime;
             StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
                 Vector2.Lerp(panelHiddenPos, panelVisiblePos, t / panelSlideDuration);
+            yield return null;
+        }
+        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelVisiblePos;
+    }
+
+    // ── NEW: 위쪽으로 슬라이드 아웃 (가시 위치→위 숨김)
+    private IEnumerator SlideOutToTop()
+    {
+        float t = 0f;
+        while (t < panelSlideDuration)
+        {
+            t += Time.deltaTime;
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
+                Vector2.Lerp(panelVisiblePos, panelHiddenUpPos, t / panelSlideDuration);
+            yield return null;
+        }
+        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenUpPos;
+    }
+
+     private IEnumerator SlideInFromTop()
+    {
+        // 시작을 위쪽 숨김 위치에 세팅
+        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenUpPos;
+        float t = 0f;
+        while (t < panelSlideDuration)
+        {
+            t += Time.deltaTime;
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
+                Vector2.Lerp(panelHiddenUpPos, panelVisiblePos, t / panelSlideDuration);
             yield return null;
         }
         StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelVisiblePos;

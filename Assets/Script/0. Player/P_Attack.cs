@@ -37,6 +37,8 @@ public class P_Attack : MonoBehaviour
 
     void Update()
     {
+        if (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
+        return;
         HandleAttack();
     }
 
@@ -83,7 +85,7 @@ private void HandleTargetSelectionDuringTimeStop()
     /// <summary>
     /// 일반 공격: 플레이어가 적에게 돌진 후 공격
     /// </summary>
-    private IEnumerator MoveToEnemyAndAttack(GameObject enemyObj)
+    public IEnumerator MoveToEnemyAndAttack(GameObject enemyObj)
     {
         isAttacking = true;
         rb.gravityScale = 0;

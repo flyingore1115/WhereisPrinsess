@@ -89,9 +89,9 @@ public class MySceneManager : MonoBehaviour
         }
 
         if (Princess.Instance != null)
-    {
-        Princess.Instance.RefreshSceneBehavior();
-    }
+        {
+            Princess.Instance.RefreshSceneBehavior();
+        }
     }
 
 

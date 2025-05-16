@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using MyGame;  // MyGame 네임스페이스에 정의된 데이터 클래스(TimePointData 등) 사용
 
-
 public class Princess : MonoBehaviour, ITimeAffectable
 {
     public static Princess Instance { get; private set; }
@@ -33,8 +32,18 @@ public class Princess : MonoBehaviour, ITimeAffectable
 
     public bool isControlled = false;         // 공주 조종 여부
 
+    [Header("Speed Settings")]
+    [Tooltip("스토리 씬에서의 이동 속도 (0으로 멈춤)")]
+    public float storyMoveSpeed = 0f;
+    [Tooltip("보스 씬에서의 이동 속도 (보통 멈춤)")]
+    public float bossMoveSpeed  = 0f;
+    [Tooltip("스테이지(인게임) 씬에서의 기본 이동 속도")]
+    public float stageMoveSpeed = 3f;
+
     public bool isHeld = false; //손잡기
     public float followSpeed = 5f; // 공주가 따라오는 속도
+
+    
 
     
 
@@ -272,32 +281,54 @@ public class Princess : MonoBehaviour, ITimeAffectable
         return false;
     }
 
+// Princess.cs
 public void RefreshSceneBehavior()
-{
-    string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-    Debug.Log($"[Princess] RefreshSceneBehavior in scene: {sceneName}");
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
-    if (sceneName.Contains("Story"))
-    {
-        isControlled = true;
-        animator?.SetTrigger("isStand");
-        Debug.Log("[Princess] 상태 = STORY (isStand + 정지)");
+        // ── 공통 초기화 ──
+        isGameOver    = false;
+        isTimeStopped = false;
+        isHeld        = false;
+        isControlled  = false;
+
+        if (rb != null)
+        {
+            rb.bodyType       = RigidbodyType2D.Dynamic;
+            rb.WakeUp();
+            rb.linearVelocity = Vector2.zero;
+        }
+        if (animator != null) animator.speed = 1f;
+
+        // ── 씬별 설정 ──
+        if (sceneName.Contains("Story"))
+        {
+            // 대사 씬에선 서 있기만
+            moveSpeed = storyMoveSpeed;
+            isControlled = true;
+            animator?.ResetTrigger("isScared");
+            animator?.ResetTrigger("isRun");
+            animator?.SetTrigger("isStand");
+        }
+        else if (sceneName.Contains("Boss"))
+        {
+            // 보스 씬에선 겁에 질린 상태
+            moveSpeed = bossMoveSpeed;
+            isControlled = true;
+            animator?.ResetTrigger("isStand");
+            animator?.ResetTrigger("isRun");
+            animator?.SetTrigger("isScared");
+        }
+        else
+        {
+            // 그 외 스테이지 씬에선 달리기
+            moveSpeed = stageMoveSpeed;
+            isControlled = false;
+            animator?.ResetTrigger("isStand");
+            animator?.ResetTrigger("isScared");
+            animator?.SetTrigger("isRun");
+        }
     }
-    else if (sceneName.Contains("Boss"))
-    {
-        isControlled = true;
-        animator?.SetTrigger("isScared");
-        Debug.Log("[Princess] 상태 = BOSS (isScared + 정지)");
-    }
-    else
-    {
-        isControlled = false;
-        animator?.ResetTrigger("isStand");
-        animator?.ResetTrigger("isScared");
-        animator?.SetTrigger("isRun");
-        Debug.Log("[Princess] 상태 = NORMAL (Run + 이동 가능)");
-    }
-}
 
 
 

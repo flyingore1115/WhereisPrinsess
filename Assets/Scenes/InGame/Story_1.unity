@@ -1467,7 +1467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cb43bbe3e7b0f4429fc2db9fdd64d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startTriggerID: Intro
+  startTriggerID: 
   cgFadeDuration: 0.5
   typingSpeed: 0.05
   cameraFollow: {fileID: 519420034}
