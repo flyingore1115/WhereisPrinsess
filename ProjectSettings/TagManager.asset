@@ -51,6 +51,9 @@ TagManager:
   - name: BackGround
     uniqueID: 385852359
     locked: 0
+  - name: foreGround
+    uniqueID: 2221100077
+    locked: 0
   - name: Character
     uniqueID: 4276361719
     locked: 0

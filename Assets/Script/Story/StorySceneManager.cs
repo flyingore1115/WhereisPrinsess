@@ -36,7 +36,6 @@ public class StorySceneManager : MonoBehaviour
 
     private Vector2 panelVisiblePos;
     private Vector2 panelHiddenPos;
-    private Vector2 panelHiddenUpPos;
 
     // 데이터 분리용 맵
     private Dictionary<string, DialogueEntryData[]> dataMap;
@@ -47,6 +46,16 @@ public class StorySceneManager : MonoBehaviour
     public bool IsDialogueActive => isDialogueActive;
 
     private Coroutine dialogueCoroutine;
+
+    void OnEnable()
+   {
+       UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+   }
+
+   void OnDisable()
+   {
+       UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+   }
 
     void Awake()
     {
@@ -82,7 +91,6 @@ public class StorySceneManager : MonoBehaviour
         {
             panelVisiblePos = StoryCanvasManager.Instance.DialogueContainer.anchoredPosition;
             panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
-            panelHiddenUpPos = new Vector2(panelVisiblePos.x, 450f);
             StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
         }
         else
@@ -122,6 +130,34 @@ public class StorySceneManager : MonoBehaviour
             StartDialogueForTrigger(startTriggerID);
 
 
+    }
+
+    private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
+                              UnityEngine.SceneManagement.LoadSceneMode mode)
+   {
+       // 1) 캔버스 위치 재초기화
+       if (StoryCanvasManager.Instance != null &&
+           StoryCanvasManager.Instance.DialogueContainer != null)
+       {
+           StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
+       }
+
+       // 2) 씬 내 IntroDialogueMarker 찾기
+       IntroDialogueMarker marker = FindFirstObjectByType<IntroDialogueMarker>();
+       if (marker != null && !string.IsNullOrEmpty(marker.triggerID))
+       {
+           // 만약 대화가 진행중이면 먼저 종료
+           if (isDialogueActive) StopAllCoroutines();
+           isDialogueActive = false;
+
+           StartDialogueForTrigger(marker.triggerID);
+       }
+   }
+
+    private IEnumerator BeginIntroNextFrame(string triggerID)
+    {
+        yield return null;             // 한 프레임 대기
+        StartDialogueForTrigger(triggerID);
     }
 
     public void StartDialogueForTrigger(string triggerID)
@@ -339,7 +375,7 @@ public class StorySceneManager : MonoBehaviour
 
         Player.Instance.ignoreInput = false;
 
-        StoryCanvasManager.Instance.TutorialText.text = "Shift + 좌클릭으로 사격하세요!";
+        StoryCanvasManager.Instance.TutorialText.text = "적이 있는 방향으로 사격하세요!";
         // ③ 적이 죽을 때까지 대기
         yield return new WaitUntil(() => enemy == null || enemy.isDead);
 
@@ -439,35 +475,6 @@ public class StorySceneManager : MonoBehaviour
             t += Time.deltaTime;
             StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
                 Vector2.Lerp(panelHiddenPos, panelVisiblePos, t / panelSlideDuration);
-            yield return null;
-        }
-        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelVisiblePos;
-    }
-
-    // ── NEW: 위쪽으로 슬라이드 아웃 (가시 위치→위 숨김)
-    private IEnumerator SlideOutToTop()
-    {
-        float t = 0f;
-        while (t < panelSlideDuration)
-        {
-            t += Time.deltaTime;
-            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
-                Vector2.Lerp(panelVisiblePos, panelHiddenUpPos, t / panelSlideDuration);
-            yield return null;
-        }
-        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenUpPos;
-    }
-
-     private IEnumerator SlideInFromTop()
-    {
-        // 시작을 위쪽 숨김 위치에 세팅
-        StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenUpPos;
-        float t = 0f;
-        while (t < panelSlideDuration)
-        {
-            t += Time.deltaTime;
-            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition =
-                Vector2.Lerp(panelHiddenUpPos, panelVisiblePos, t / panelSlideDuration);
             yield return null;
         }
         StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelVisiblePos;

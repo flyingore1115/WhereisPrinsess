@@ -16,7 +16,29 @@ MonoBehaviour:
   entries:
   - type: 0
     characterName: 
-    dialogueText: "\uAC9F\uC544\uC6C3 \uC4F1\uBC1C\uB7EC\uB9C8"
+    dialogueText: ...
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC774\uAC74 \uBB50\uC57C?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uB0B4\uAC00 \uC6D0\uD55C\uAC74 \uB9E4\uC9C0\uCEEC \uD551\uD06C
+      \uD504\uB9B0\uC138\uC2A4 \uC778\uD615\uC774\uC5C8\uB2E8 \uB9D0\uC774\uC57C!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "Ms. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
+    dialogueText: "\uADF8\uC73C... \uAC8C \uB9D0\uC774\uC9C0, \uC7A0\uAE50 \uC880
+      \uC9C4\uC815\uD558\uACE0 \uC598\uAE30\uB97C..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uAEBC\uC838!!!"
     options: []
     actionKey: 
   - type: 2
@@ -25,8 +47,8 @@ MonoBehaviour:
     options: []
     actionKey: AttackTutorial
   - type: 0
-    characterName: "\uC544\uAC00\uC528"
-    dialogueText: "\uC774\uAC78\uC9C4\uC9DC\uD558\uB124;;"
+    characterName: ???
+    dialogueText: ...!
     options: []
     actionKey: 
   - type: 2

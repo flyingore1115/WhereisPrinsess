@@ -23,7 +23,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     public int health = 100;
     public float timeEnergy = 100f;
 
-    private bool       preparedAttack = false;
+    private bool preparedAttack = false;
     private GameObject preparedTarget = null;
 
     private void Awake()
@@ -74,24 +74,31 @@ public class Player : MonoBehaviour, ITimeAffectable
             return;
         }
 
-        bool timeStopped = TimeStopController.Instance != null &&TimeStopController.Instance.IsTimeStopped;
+        bool timeStopped = TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped;
 
-                /* ──────────────────────────────────────────
-           Ⅰ.  시간정지 상태 입력 처리
-        ──────────────────────────────────────────*/
+        // ────────────────────────────────────────────────
+        // 0. 시간정지 상태일 때 (모든 입력 제한 + 특수 입력 허용)
+        // ────────────────────────────────────────────────
         if (timeStopped)
         {
-            
-           // 1) Ctrl + 좌클릭  ─ Princess or Enemy 선택
-            if (Input.GetMouseButtonDown(0) &&
-                (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+            // 0-1. Shift + 좌클릭 → 정지된 총알 생성
+            if (Input.GetMouseButtonDown(0))
+            {
+                shooting.HandleShooting();
+            }
+
+            // 0-2. Ctrl + 좌클릭 → 손잡기 or 적 시간 해제
+            if (Input.GetMouseButtonDown(0) && ctrl)
             {
                 Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0;
                 RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
 
                 if (hit.collider)
                 {
-                    // (a) 공주 클릭 → 손잡기
+                    // Princess 클릭 → 손잡기 시작
                     if (hit.collider.CompareTag("Princess"))
                     {
                         Princess pr = hit.collider.GetComponent<Princess>();
@@ -101,18 +108,18 @@ public class Player : MonoBehaviour, ITimeAffectable
                             pr.StartBeingHeld();
                         }
                     }
-                    // (b) 적 클릭 → 그 적만 시간정지 해제
+                    // Enemy 클릭 → 해당 적만 ResumeTime()
                     else if (hit.collider.CompareTag("Enemy"))
                     {
-                        BaseEnemy en = hit.collider.GetComponent<BaseEnemy>();
-                        if (en != null) en.ResumeTime();
+                        BaseEnemy enemy = hit.collider.GetComponent<BaseEnemy>();
+                        if (enemy != null)
+                            enemy.ResumeTime();
                     }
                 }
             }
-            // 2) Ctrl 미사용 좌클릭  → Prepared-Attack 설정
-            else if (Input.GetMouseButtonDown(0) &&
-                     !Input.GetKey(KeyCode.LeftControl) &&
-                     !Input.GetKey(KeyCode.RightControl))
+
+            // 0-3. Ctrl 미사용 + 좌클릭 → 준비 공격 상태
+            else if (Input.GetMouseButtonDown(0))
             {
                 Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0;
                 RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
@@ -121,83 +128,75 @@ public class Player : MonoBehaviour, ITimeAffectable
                 {
                     preparedAttack = true;
                     preparedTarget = enemy.gameObject;
-                    //준비 공격 애니메이션 트리거 ※
-                    //if (animator != null)
-                    //    animator.SetTrigger("prepareAttack");
+                    animator.SetTrigger("prepareAttack"); // 준비 포즈
                 }
             }
 
-           /* 3) 준비상태 취소 : 임의의 다른 입력 */
-           if (preparedAttack && (Input.anyKeyDown || Input.GetMouseButtonDown(1)))
-           {
-               // Space(시간 해제)는 허용, 나머지는 취소
+            // 0-4. 준비 공격 취소: 특정 입력 시만
+            if (preparedAttack)
+            {
                 bool cancel =
-                    Input.GetMouseButtonDown(1) ||                     // 우클릭
+                    Input.GetMouseButtonDown(1) ||
                     Input.GetKeyDown(KeyCode.Escape) ||
-                    Input.GetKeyDown(KeyCode.Q)     ||
-                    Input.GetKeyDown(KeyCode.E)     ||
+                    Input.GetKeyDown(KeyCode.Q) ||
+                    Input.GetKeyDown(KeyCode.E) ||
                     Input.GetKeyDown(KeyCode.R);
 
                 if (cancel)
                 {
                     preparedAttack = false;
                     preparedTarget = null;
-                    if (animator != null)
-                        animator.ResetTrigger("prepareAttack");
+                    animator.ResetTrigger("prepareAttack");
                 }
-           }
-
-           // 시간정지 중에는 Move/Attack/Shooting 모두 금지
-           return;
-       } // ─── (timeStopped) 블록 끝 ───
-
-        /* ──────────────────────────────────────────
-           Ⅱ.  시간정지가 해제된 뒤 준비 공격 실행
-        ──────────────────────────────────────────*/
-        if (!timeStopped && preparedAttack)
-        {
-           // 수정: 손잡기 상태면 해제
-           if (holdingPrincess)
-           {
-               StopHoldingPrincess();
-               Princess.Instance?.StopBeingHeld();
-           }
-           
-            //준비 상태 트리거 종료 + 공격 트리거 발동 ※
-            if (animator != null)
-            {
-                animator.ResetTrigger("prepareAttack");
-                animator.SetTrigger("attack");
             }
 
-           if (preparedTarget != null)
+            return; // 시간정지 중에는 나머지 입력 차단
+        }
+
+        // ────────────────────────────────────────────────
+        // 1. 시간정지 해제 후 → 준비 공격 실행
+        // ────────────────────────────────────────────────
+        if (!timeStopped && preparedAttack)
+        {
+            // 손잡기 상태라면 해제
+            if (holdingPrincess)
+            {
+                StopHoldingPrincess();
+                Princess.Instance?.StopBeingHeld();
+            }
+
+            // 공격 애니메이션
+            animator.ResetTrigger("prepareAttack");
+            animator.SetTrigger("attack");
+
+            if (preparedTarget != null)
                 StartCoroutine(attack.MoveToEnemyAndAttack(preparedTarget));
 
-           preparedAttack = false;
-           preparedTarget = null;
-       }
+            preparedAttack = false;
+            preparedTarget = null;
+        }
 
-        /* ──────────────────────────────────────────
-           Ⅲ.  평상시 입력 (기존 로직 그대로)
-        ──────────────────────────────────────────*/
-
+        // ────────────────────────────────────────────────
+        // 2. 일반 상태 입력 (이동, 공격, 사격)
+        // ────────────────────────────────────────────────
         movement.HandleMovement(attack.IsAttacking);
-        // 좌클릭(공격/사격) & 우클릭(재장전) 분기 처리[^4][^5][^6]
+
         if (Input.GetMouseButtonDown(0))
         {
-            Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            wp.z = 0f;
+            Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0f;
             var hit = Physics2D.Raycast(wp, Vector2.zero);
+
             if (hit.collider != null && hit.collider.GetComponent<BaseEnemy>() != null)
-                attack.HandleAttack();
+                attack.HandleAttack();         // 일반 공격
             else
-                shooting.HandleShooting();
+                shooting.HandleShooting();    // 일반 사격
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            shooting.HandleShooting();  // 재장전은 HandleShooting 내부에서 처리됨[^3]
+            shooting.HandleShooting();        // 우클릭 = 재장전
         }
     }
+
 
     public void StartHoldingPrincess()
     {

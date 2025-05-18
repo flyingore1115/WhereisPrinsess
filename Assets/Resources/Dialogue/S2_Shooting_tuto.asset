@@ -15,8 +15,74 @@ MonoBehaviour:
   triggerID: Shooting_tuto
   entries:
   - type: 0
+    characterName: ???
+    dialogueText: "...\uC774, \uBA54...\uC774, ..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uBA54\uC774!!!!"
+    options: []
+    actionKey: 
+  - type: 0
     characterName: 
-    dialogueText: "\uC0AC\uACA9 \uD29C\uD1A0!"
+    dialogueText: 
+    options: []
+    actionKey: ShowCG:SleePriil
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC5B4\uB514 \uC544\uD508\uAC70\uC57C?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uACE0, \uACF5\uC8FC\uB2D8...?!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC544, \uC77C\uC5B4\uB0AC\uB2E4!"
+    options: []
+    actionKey: 
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: HideCG
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uADF8\uAC83\uBCF4\uB2E4\uB3C4 \uC77C\uB2E8 \uB4E4\uC5B4\uBD10,
+      \uBA54\uC774!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uC5C4\uCCAD\uB098\uAC8C \uC5C4\uCCAD\uB09C \uD070 \uC77C\uC774
+      \uC0DD\uACBC\uC5B4! \uB300\uC0AC\uAC74!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uC544, \uB124\uC5D0..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uC774\uBC88\uC5D0\uB294 \uBB34\uC2A8 \uC77C\uC778\uAC00\uC694?
+      \uB2E4\uB78C\uC950 \uC778\uD615\uB4E4\uC774 \uB2E8\uCCB4\uB85C \uC815\uC6D0\uC5D0
+      \uC788\uB294 \uB3C4\uD1A0\uB9AC \uB098\uBB34\uB97C \uD6D4\uCCD0\uAC00\uAE30\uB77C\uB3C4
+      \uD55C\uAC74\uAC00\uC694?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uADF8\uB7F0 \uC77C\uC774 \uC544\uB2C8\uC57C! \uC815\uB9D0 \uC5C4\uCCAD\uB098\uAC8C
+      \uD070\uC77C,"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: ...!
     options: []
     actionKey: 
   - type: 2
@@ -26,12 +92,7 @@ MonoBehaviour:
     actionKey: ShootingTutorial
   - type: 0
     characterName: "\uD504\uB9B4"
-    dialogueText: "\uC2B7\uACE0\uC774!!!"
-    options: []
-    actionKey: 
-  - type: 0
-    characterName: "\uD504\uB9B4"
-    dialogueText: "\uB108\uB294 \uC0AC\uACA9\uC744 \uC798\uD558\uB294 \uD504\uB80C\uC988\uAD6C\uB098!"
+    dialogueText: "\uAE84\uC557!!"
     options: []
     actionKey: 
   - type: 2

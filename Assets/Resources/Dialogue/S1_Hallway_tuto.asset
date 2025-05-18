@@ -16,7 +16,7 @@ MonoBehaviour:
   entries:
   - type: 0
     characterName: 
-    dialogueText: "\uD29C\uD1A0\uC2DC\uC791!"
+    dialogueText: "... \uB610 \uBB50\uC57C!"
     options: []
     actionKey: 
   - type: 2
