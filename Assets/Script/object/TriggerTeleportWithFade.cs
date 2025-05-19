@@ -41,6 +41,7 @@ private IEnumerator TeleportWithFade()
     {
         if (Player.Instance != null)
             Player.Instance.transform.position = targetPosition;
+            Player.Instance.movement.ResetInput();
     });
 
     // 딜레이 끝나기까지 대기

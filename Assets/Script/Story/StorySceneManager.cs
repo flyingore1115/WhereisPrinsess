@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Cinemachine;
 
 public class StorySceneManager : MonoBehaviour
 {
@@ -414,13 +415,25 @@ public class StorySceneManager : MonoBehaviour
         StoryCanvasManager.Instance.CGImage.sprite = null;
     }
 
+
+
     private IEnumerator FocusCameraOnTarget(string targetName, float waitTime)
     {
         var target = GameObject.Find(targetName);
         if (target == null) yield break;
+        // 1) 플레이용 Cinemachine 끄기
+        CinemachineCamera vcam = FindFirstObjectByType<CinemachineCamera>();
+        if (vcam != null) vcam.enabled = false;
+
+        // 2) CameraFollow 켜고 스토리 모드 활성
+        cameraFollow.enabled = true;
         cameraFollow.EnableStoryMode(true);
         cameraFollow.SetTarget(target);
         yield return new WaitForSeconds(waitTime);
+        // 3) 원상 복구
+        cameraFollow.EnableStoryMode(false);
+        cameraFollow.enabled = false;
+        if (vcam != null) vcam.enabled = true;
     }
 
     private IEnumerator SmoothZoomCamera(float targetSize, float duration)

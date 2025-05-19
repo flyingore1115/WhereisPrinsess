@@ -186,7 +186,7 @@ public class Player : MonoBehaviour, ITimeAffectable
             Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0f;
             var hit = Physics2D.Raycast(wp, Vector2.zero);
 
-            if (hit.collider != null && hit.collider.GetComponent<BaseEnemy>() != null)
+            if (hit.collider != null && (hit.collider.GetComponent<BaseEnemy>() != null || hit.collider.GetComponent<HallwayObstacle>() != null))
                 attack.HandleAttack();         // 일반 공격
             else
                 shooting.HandleShooting();    // 일반 사격

@@ -15,7 +15,7 @@ MonoBehaviour:
   triggerID: Hallway_tuto
   entries:
   - type: 0
-    characterName: 
+    characterName: ???
     dialogueText: "... \uB610 \uBB50\uC57C!"
     options: []
     actionKey: 

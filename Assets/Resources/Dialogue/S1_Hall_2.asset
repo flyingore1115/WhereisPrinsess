@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
+  m_Name: S1_Hall_2
+  m_EditorClassIdentifier: 
+  triggerID: Hallway_end
+  entries:
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC65C \uC790\uAFB8 \uB530\uB77C\uC624\uB294\uAC74\uB370?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uBB50, \uAC10\uC0AC\uC778\uC0AC\uB77C\uB3C4 \uBC1B\uACE0 \uC2F6\uC5B4\uC11C?"
+    options: []
+    actionKey: 
+  - type: 1
+    characterName: 
+    dialogueText: 
+    options:
+    - "\uC544\uB2C8... \uADF8\uB7F0\uAC74 \uC544\uB2C8\uACE0..."
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uD558, \uC6C3\uAE30\uB294 \uC18C\uB9AC."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "...\uC5B4, \uC5B4\uB77C?!"
+    options: []
+    actionKey: 
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: LoadNextScene

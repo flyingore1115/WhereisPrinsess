@@ -1,80 +1,53 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class CameraFollow : MonoBehaviour
 {
-    [Tooltip("기본 타겟 (예: 플레이어)")]
+    [Tooltip("스토리 컷신용 기본 타깃 (예: NPC)")]
     public GameObject defaultTarget;
 
     private GameObject currentTarget;
     private Camera cam;
 
-    [Tooltip("기본 카메라 크기 (Orthographic Size)")]
+    [Tooltip("기본 카메라 크기")]
     public float defaultSize = 5f;
 
-    [Tooltip("카메라 이동 속도")]
+    [Tooltip("스토리 모드 카메라 이동 속도")]
     public float cameraMoveSpeed = 2f;
 
-    [Tooltip("스토리 모드 여부 (스토리에서는 부드럽게 이동)")]
     public bool isStoryMode = false;
 
     void Start()
     {
         cam = GetComponent<Camera>();
-        if (defaultTarget != null)
-        {
-            currentTarget = defaultTarget;
-        }
-        if (cam != null)
-            cam.orthographicSize = defaultSize;
+        currentTarget = defaultTarget;
+        if (cam != null) cam.orthographicSize = defaultSize;
 
-        // 씬 전환 시 자동으로 새로운 타겟을 찾도록 설정
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;   // 씬 전환 후에도 컷신용으로만 사용
     }
 
     void LateUpdate()
     {
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
-        {
+        //*수정: 스토리 모드일 때만 움직임 적용
+        if (!isStoryMode || currentTarget == null) return;
 
-            // 새로운 씬에서 자동으로 타겟 재설정
-            FindNewTarget();
-        }
-
-        if (currentTarget != null)
-        {
-            if (isStoryMode)
-            {
-                // 스토리 모드에서는 부드럽게 이동
-                transform.position = Vector3.Lerp(transform.position, new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z), Time.deltaTime * cameraMoveSpeed);
-            }
-            else
-            {
-                // 인게임 모드에서는 즉각 이동
-                transform.position = new Vector3(currentTarget.transform.position.x, currentTarget.transform.position.y, transform.position.z);
-            }
-        }
+        // 부드럽게 타깃으로 이동 (컷신 카메라)
+        transform.position = Vector3.Lerp(
+            transform.position,
+            new Vector3(currentTarget.transform.position.x,
+                        currentTarget.transform.position.y,
+                        transform.position.z),
+            Time.deltaTime * cameraMoveSpeed);
     }
 
     public void SetTarget(GameObject newTarget)
     {
-        if (newTarget != null)
-        {
-            currentTarget = newTarget;
-        }
-        else
-        {
-            FindNewTarget(); // 타겟이 null이면 기본 타겟을 찾도록 변경
-        }
+        if (newTarget != null) currentTarget = newTarget;
     }
 
     public void SetCameraSize(float newSize)
     {
-        if (cam != null)
-        {
-            cam.orthographicSize = newSize;
-        }
+        if (cam != null) cam.orthographicSize = newSize;
     }
 
     public void EnableStoryMode(bool enable)
@@ -84,31 +57,8 @@ public class CameraFollow : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        FindNewTarget();
-    }
-
-    private void FindNewTarget()
-    {
-        // 플레이어나 공주를 자동으로 찾기 (씬 전환 후에도 유지)
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        GameObject princess = GameObject.FindGameObjectWithTag("Princess");
-
-        if (player != null)
-        {
-            SetTarget(player);
-        }
-        else if (princess != null)
-        {
-            SetTarget(princess);
-        }
-        else if (defaultTarget != null)
-        {
-            SetTarget(defaultTarget);
-        }
-        else
-        {
-            Debug.LogError("[CameraFollow] No target found in the scene!");
-        }
+        //*수정: 자동 타깃 검색 제거 → 외부에서 SetTarget 호출
+        currentTarget = defaultTarget;
     }
 
     private void OnDestroy()

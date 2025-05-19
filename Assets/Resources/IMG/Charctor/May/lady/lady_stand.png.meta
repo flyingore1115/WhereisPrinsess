@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      lady_stand_0: 2958837808740501964
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

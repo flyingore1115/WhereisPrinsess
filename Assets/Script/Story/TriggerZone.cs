@@ -23,11 +23,14 @@ public class TriggerZone : MonoBehaviour
         // 대사 시작
         manager.StartDialogueForTrigger(triggerID);
 
+        if (Player.Instance != null)
+   {
+       Player.Instance.ignoreInput = true;
+       // P_Movement.ResetInput 을 호출하면 속도와 대시 상태를 초기화합니다
+       Player.Instance.movement.ResetInput();
+   }
+
         // 다시는 이 존에서 안 불리도록 꺼 버린다
         col.enabled = false;
-        // 선택 사항: 스크립트 자체를 꺼버리고 싶다면
-        // this.enabled = false;
-        // 또는 완전히 삭제하려면
-        // Destroy(this);
     }
 }
