@@ -3,7 +3,7 @@ using System.Collections;
 
 using TMPro;  // TextMeshPro 사용
 
-public class BaseEnemy : MonoBehaviour, ITimeAffectable
+public class BaseEnemy : MonoBehaviour, ITimeAffectable, IDamageable
 {
     // 기존 변수들
     protected Transform princess;
@@ -22,6 +22,8 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable
 
     [HideInInspector] public int currentHealth;  // 외부 TimePointManager가 접근 가능토
     public TMP_Text healthDisplay; // 적 위에 표시할 텍스트 (Inspector에서 할당)
+
+    public void Hit(int damage) => TakeDamage(damage);
 
     protected virtual void Awake()
     {

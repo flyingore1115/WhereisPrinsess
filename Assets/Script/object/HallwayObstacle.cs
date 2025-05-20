@@ -3,11 +3,13 @@ using System.Collections;
 using MyGame;  // ITimeAffectable 인터페이스가 정의된 네임스페이스
 
 [RequireComponent(typeof(SpriteRenderer), typeof(Collider2D))]
-public class HallwayObstacle : MonoBehaviour, ITimeAffectable
+public class HallwayObstacle : MonoBehaviour, ITimeAffectable, IDamageable
 {
     SpriteRenderer spriteRenderer;
     Collider2D col;
     bool isDeactivated = false;
+    public void Hit(int damage) => Deactivate();
+    
 
     void Awake()
     {
@@ -15,17 +17,7 @@ public class HallwayObstacle : MonoBehaviour, ITimeAffectable
         col = GetComponent<Collider2D>();
     }
 
-    void OnMouseDown()
-    {
-        // 시간정지 중이거나 되감기 중엔 클릭 무시
-        if ((TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
-            || (RewindManager.Instance != null && RewindManager.Instance.IsRewinding))
-            return;
-
-        Deactivate();
-    }
-
-    void Deactivate()
+    public void Deactivate()
     {
         if (isDeactivated) return;
         isDeactivated = true;

@@ -7,6 +7,7 @@ public class MySceneManager : MonoBehaviour
     public static MySceneManager Instance;
 
     public static bool IsStoryScene => SceneManager.GetActiveScene().name.Contains("Story");
+    public static bool IsMainMenu => SceneManager.GetActiveScene().name.Contains("MainMenu");
 
 
     void Awake()

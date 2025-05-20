@@ -24,7 +24,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     public float timeEnergy = 100f;
 
     private bool preparedAttack = false;
-    private GameObject preparedTarget = null;
+    private IDamageable preparedTarget = null;
 
     private void Awake()
     {
@@ -123,11 +123,11 @@ public class Player : MonoBehaviour, ITimeAffectable
             {
                 Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0;
                 RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
-                BaseEnemy enemy = hit.collider ? hit.collider.GetComponent<BaseEnemy>() : null;
-                if (enemy != null && !enemy.isDead)
+                IDamageable target = hit.collider ? hit.collider.GetComponent<IDamageable>() : null;
+                if (target != null)
                 {
                     preparedAttack = true;
-                    preparedTarget = enemy.gameObject;
+                    preparedTarget = target;
                     animator.SetTrigger("prepareAttack"); // 준비 포즈
                 }
             }
@@ -186,10 +186,17 @@ public class Player : MonoBehaviour, ITimeAffectable
             Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0f;
             var hit = Physics2D.Raycast(wp, Vector2.zero);
 
-            if (hit.collider != null && (hit.collider.GetComponent<BaseEnemy>() != null || hit.collider.GetComponent<HallwayObstacle>() != null))
+            var ho = hit.collider ? hit.collider.GetComponent<HallwayObstacle>() : null;
+
+            if (hit.collider && hit.collider.GetComponent<IDamageable>() != null)
+            {
                 attack.HandleAttack();         // 일반 공격
+                Debug.Log("인식함");
+            }
             else
+            {
                 shooting.HandleShooting();    // 일반 사격
+            }
         }
         else if (Input.GetMouseButtonDown(1))
         {

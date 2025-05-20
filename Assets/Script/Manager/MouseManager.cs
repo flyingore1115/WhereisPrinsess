@@ -1,57 +1,82 @@
 using UnityEngine;
 
+public enum CursorModeType { Default, Attack, Shoot }
+
 public class MouseManager : MonoBehaviour
 {
-    // 커서 이미지 설정
-    public Texture2D defaultCursor;      // 기본 커서 이미지
-    public Texture2D clickableCursor;   // 클릭 가능한 커서 이미지
-    private Texture2D currentCursor;    // 현재 사용 중인 커서
-    public Camera mainCamera;           // 메인 카메라
+    public static MouseManager Instance { get; private set; }
 
+    readonly string RES_PATH = "IMG/";      // Resources/IMG 폴더
 
-    void Start()
+    Texture2D cursorDefault;  // D_Mouse
+    Texture2D cursorAttack;   // A_Mouse
+    Texture2D cursorShoot;    // S_Mouse
+    Texture2D currentCursor;
+
+    void Awake()
     {
-        // 카메라 초기화
-        if (mainCamera == null)
+        if (Instance == null)
         {
-            mainCamera = Camera.main;
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            LoadResources();
         }
-
-        // 기본 커서 설정
-        if (defaultCursor != null)
+        else
         {
-            Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.Auto);
-            currentCursor = defaultCursor;
+            Destroy(gameObject);
         }
     }
 
-    void Update()
+    void LoadResources()
     {
-        UpdateCursor();      // 마우스 커서 업데이트
+        cursorDefault = Resources.Load<Texture2D>(RES_PATH + "D_Mouse");
+        cursorAttack  = Resources.Load<Texture2D>(RES_PATH + "A_Mouse");
+        cursorShoot   = Resources.Load<Texture2D>(RES_PATH + "S_Mouse");
+
+        SetCursor(CursorModeType.Default);   // 시작 커서
     }
 
-    void UpdateCursor()
+void Update()
+{
+    // 1) 스토리씬 또는 메인메뉴면 기본 커서
+    if (MySceneManager.IsStoryScene || MySceneManager.IsMainMenu)
     {
-        // 마우스 위치를 월드 좌표로 변환
-        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(
-            new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
+        SetCursor(CursorModeType.Default);
+        return;
+    }
 
-        // 2D에서 OverlapPoint로 충돌 감지
-        Collider2D hit = Physics2D.OverlapPoint(mouseWorldPos);
+    // 2) 월드 좌표 계산
+    Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    wp.z = 0f;
 
-        // 기본 커서와 클릭 가능한 커서를 전환
-        Texture2D newCursor = defaultCursor;
+    // 3) 단일 Raycast
+    RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
 
-        if (hit != null && hit.CompareTag("Enemy"))
+    // 4) 태그 비교로 모드 결정
+    if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+    {
+        SetCursor(CursorModeType.Attack);
+    }
+    else
+    {
+        SetCursor(CursorModeType.Shoot);
+    }
+}
+
+
+    public void SetCursor(CursorModeType mode)
+    {
+        Texture2D tex = mode switch
         {
-            newCursor = clickableCursor;
-        }
+            CursorModeType.Attack  => cursorAttack,
+            CursorModeType.Shoot   => cursorShoot,
+            _                      => cursorDefault
+        };
 
-        // 커서 변경
-        if (currentCursor != newCursor)
+        if (tex != null && tex != currentCursor)
         {
-            Cursor.SetCursor(newCursor, Vector2.zero, CursorMode.Auto);
-            currentCursor = newCursor;
+            Cursor.SetCursor(tex, Vector2.zero, UnityEngine.CursorMode.Auto);
+            currentCursor = tex;
         }
     }
 }
