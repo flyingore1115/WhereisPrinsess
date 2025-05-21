@@ -11,6 +11,7 @@ public class CanvasManager : MonoBehaviour
 
     [Header("Ammo UI (텍스트)")]
     public TMP_Text bulletText;            // 탄약 수를 표시할 TMP 텍스트
+    public GameObject bulletUI;
 
     [Header("플레이어 체력 (슬라이더)")]
     public Slider playerHealthSlider;      // 플레이어 체력을 표시할 슬라이더

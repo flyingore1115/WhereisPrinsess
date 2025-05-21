@@ -43,7 +43,8 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public bool isHeld = false; //손잡기
     public float followSpeed = 5f; // 공주가 따라오는 속도
 
-
+private string _prevAnimState; //손잡기 애니
+     private float  _prevAnimTime;
 
 
 
@@ -121,6 +122,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
         if (animator != null)
         {
             animator.speed = 1;
+            var st = animator.GetCurrentAnimatorStateInfo(0);
+            _prevAnimState = st.shortNameHash.ToString();
+            _prevAnimTime  = st.normalizedTime;
         }
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
@@ -143,26 +147,19 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
     }
 
-public void StopBeingHeld()
-{
-    isHeld = false;
-    if (spriteRenderer != null) spriteRenderer.flipX = false;
-
-    // ★ Boss 씬이면 다시 isScared 트리거
-    string scn = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-    if (animator != null)
+    public void StopBeingHeld()
     {
-        if (scn.Contains("Boss"))
+        isHeld = false;
+        if (spriteRenderer != null) spriteRenderer.flipX = false;
+
+        // 이전에 저장한 애니메이션 상태로 복귀
+        if (animator != null && !string.IsNullOrEmpty(_prevAnimState))
         {
-            animator.ResetTrigger("isRun");
-            animator.SetTrigger("isScared");
-        }
-        else
-        {
-            animator.SetTrigger("isRun");
+            int hash = int.Parse(_prevAnimState);
+            animator.Play(hash, 0, _prevAnimTime);
+            animator.speed = 1f;
         }
     }
-}
 
 
     void OnTriggerEnter2D(Collider2D other)

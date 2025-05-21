@@ -133,8 +133,7 @@ void Update()
     {
         if (target == null) return;
         currentTarget = target;
-        if (newSize.HasValue)
-            cam.orthographicSize = newSize.Value;
+         cam.orthographicSize = newSize.HasValue ? newSize.Value : defaultSize;
     }
 
     /// <summary>

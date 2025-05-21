@@ -25,12 +25,14 @@ public class P_Shooting : MonoBehaviour
     private float allowedAngle = 15f;
 
     private Coroutine hideBulletUICoroutine;
-    
 
-     void Awake()          // 탄 UI 자동 연결(인스펙터 미설정 대비)
- {
-     if (ammoText == null && CanvasManager.Instance != null)
-         ammoText = CanvasManager.Instance.bulletText;
+
+    void Awake()          // 탄 UI 자동 연결(인스펙터 미설정 대비)
+    {
+        if (ammoText == null && CanvasManager.Instance != null)
+            ammoText = CanvasManager.Instance.bulletText;
+        if (bulletUI == null && CanvasManager.Instance != null)
+            bulletUI = CanvasManager.Instance.bulletUI;
  }
 
     void Update()
@@ -99,6 +101,14 @@ public class P_Shooting : MonoBehaviour
         SoundManager.Instance?.PlaySFX("PlayerGunSound");
         currentAmmo--;
         UpdateAmmoUI();
+
+        if (bulletUI != null)
+    {
+        bulletUI.SetActive(true);
+        if (hideBulletUICoroutine != null)
+            StopCoroutine(hideBulletUICoroutine);
+        hideBulletUICoroutine = StartCoroutine(HideBulletUIAfterDelay());
+    }
     }
 
 
@@ -155,13 +165,16 @@ public class P_Shooting : MonoBehaviour
     private IEnumerator HideBulletUIAfterDelay()
     {
         yield return new WaitForSecondsRealtime(bulletUIDisplayDuration);
-        if (bulletUI != null)
-            bulletUI.SetActive(false);
+        HideBulletUI();
     }
 
     public void HideBulletUI()
     {
-        bulletUI.SetActive(false);
+        if (bulletUI != null)
+        {
+            bulletUI.SetActive(false);
+            Debug.Log("불렛UI 비활성화함+++++++++++++++++++++");
+        }
     }
 
     private void Reload()

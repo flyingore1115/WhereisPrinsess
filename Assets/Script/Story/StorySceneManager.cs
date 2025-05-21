@@ -38,6 +38,12 @@ public class StorySceneManager : MonoBehaviour
     private Vector2 panelVisiblePos;
     private Vector2 panelHiddenPos;
 
+    //손잡기 튜토용
+
+    private bool isInsideGrabPoint = false;
+    public void SetInsideGrabPoint(bool inside) => isInsideGrabPoint = inside;
+    public bool IsInsideGrabPoint => isInsideGrabPoint;
+
     // 데이터 분리용 맵
     private Dictionary<string, DialogueEntryData[]> dataMap;
     // 액션 호출용 맵
@@ -372,25 +378,56 @@ public class StorySceneManager : MonoBehaviour
     BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
     Transform target = enemy.transform;
 
-   // 0) 재장전부터 강제
-   CanvasManager.Instance?.SetGameUIActive(true);          // 탄 UI 켜기
+    // 0) 재장전부터 강제
+    if (CanvasManager.Instance != null)
+    {
+        // 모든 게임 UI 끔
+        CanvasManager.Instance.SetGameUIActive(false);
+        // 총알 텍스트만 활성화
+        CanvasManager.Instance.bulletText.gameObject.SetActive(true);          // 탄 UI 켜기
+    }
     pl.shooting.SetTutorialMode(true);                      // 입력 해제 방지
     pl.shooting.currentAmmo = 0;
     pl.shooting.UpdateAmmoUI();
+    
+    //일반공격 X
+    Player.Instance.attack.enabled = false;
     StoryCanvasManager.Instance.TutorialText.text = "우클릭으로 재장전하세요!";
-    pl.ignoreInput = false;
-    yield return new WaitUntil(() => pl.shooting.currentAmmo == pl.shooting.maxAmmo);
+    pl.ignoreInput = true;
+
+    // 튜토리얼 코드에서만 재장전 처리
+    while (pl.shooting.currentAmmo < pl.shooting.maxAmmo)
+    {
+        if (Input.GetMouseButtonDown(1))
+            pl.shooting.HandleShooting(); // 재장전
+        yield return null;
+    }
 
     // 1) 각도 제한 켜고 사격 유도
     pl.shooting.EnableAngleLimit(target, 15f);
     StoryCanvasManager.Instance.TutorialText.text = "적을 향해 사격하세요!";
-    yield return new WaitUntil(() => enemy == null || enemy.isDead);
+
+
+    while (enemy != null && !enemy.isDead)
+    {
+        if (Input.GetMouseButtonDown(0))
+            pl.shooting.HandleShooting(); // 사격
+        yield return null;
+    }
 
     // 2) 해제 및 종료
     pl.shooting.DisableAngleLimit();
+
     pl.shooting.SetTutorialMode(false);                     // 입력 제한 복구
+    Player.Instance.attack.enabled = true;
+
     StoryCanvasManager.Instance.TutorialText.enabled = false;
-    CanvasManager.Instance?.SetGameUIActive(false);         // 게임 UI 다시 숨김
+    // 게임 UI 다시 숨김하고 총알 텍스트도 끄기
+    if (CanvasManager.Instance != null)
+    {
+        CanvasManager.Instance.bulletText.gameObject.SetActive(false);
+        CanvasManager.Instance.SetGameUIActive(false);
+    }
     pl.ignoreInput = false;
     StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
 }
@@ -429,12 +466,14 @@ private IEnumerator GrabTutorial()
         Vector2.Distance(Princess.Instance.transform.position, safe.position) < 0.3f);
 
     // 4) 시간 해제 안내
-    StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
+    //StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
     bool resumed = false;
     while (!resumed)
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {   // 조건 만족 → 직접 해제
+        // GrabPoint 안에 있을 때만 해제 가능
+        if (StorySceneManager.Instance.IsInsideGrabPoint &&
+            Input.GetKeyDown(KeyCode.Space))
+        {
             TimeStopController.Instance.ResumeTime();
             resumed = true;
         }

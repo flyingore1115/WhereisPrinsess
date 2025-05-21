@@ -39,12 +39,9 @@ public class GameOverManager : MonoBehaviour
             RewindManager.Instance.SetGameOver(true);
         }
 
-        // 총알 UI 숨김
-        P_Shooting shooting = FindFirstObjectByType<P_Shooting>();
-        if (shooting != null)
-        {
-            shooting.HideBulletUI();
-        }
+        //UI 숨김
+        CanvasManager.Instance?.SetGameUIActive(false);
+
 
         // 모든 ITimeAffectable 오브젝트에 흑백 효과 적용 (게임오버 모드에서는 플레이어 애니메이션도 멈춤)
         FindTimeAffectedObjects();
@@ -69,9 +66,9 @@ public class GameOverManager : MonoBehaviour
 
         Debug.Log("게임오버 상태: 클릭하면 되감기 시작합니다.");
         // 6) 게임오버 상태 안내 메시지 출력
-        StatusTextManager.Instance?.ShowMessage("좌클릭으로 재시작");
+        StatusTextManager.Instance?.ShowMessage("아무 키나 눌러 재시작");
 
-        while (!Input.GetMouseButtonDown(0))
+        while (!Input.anyKeyDown)
         {
             yield return null;
         }
@@ -113,6 +110,8 @@ public class GameOverManager : MonoBehaviour
         {
             RewindManager.Instance.SetGameOver(false);
         }
+        //캔버스도
+        CanvasManager.Instance?.SetGameUIActive(true);
 
         // 카메라 기본 상태 복귀
         if (cameraFollow != null)
