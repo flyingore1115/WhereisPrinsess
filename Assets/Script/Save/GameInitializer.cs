@@ -9,7 +9,7 @@ public class GameInitializer : MonoBehaviour
         if (TimePointManager.Instance.HasCheckpoint() && TimePointManager.Instance.GetLastCheckpointData() != null)
         {
             StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(
-                TimePointManager.Instance.GetLastCheckpointData(), 
+                TimePointManager.Instance.GetLastCheckpointData(),
                 false
             ));
         }
@@ -24,6 +24,17 @@ public class GameInitializer : MonoBehaviour
                 princess.ResetToDefaultPosition();
             }
             // 플레이어는 씬에 배치된 위치 그대로 사용 (또는 필요하면 별도 초기화)
+
+            // 씬 진입 시 자동 저장
+    Player p = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
+    Princess pr = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
+    if (p != null && pr != null)
+    {
+        TimePointManager.Instance.SaveCheckpoint(pr.transform.position, p.transform.position);
+        Debug.Log("[GameInitializer] 씬 진입 시 자동 체크포인트 저장 완료");
+    }
+
+
         }
     }
 }

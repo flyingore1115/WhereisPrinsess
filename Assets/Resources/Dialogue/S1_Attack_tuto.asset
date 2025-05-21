@@ -35,12 +35,12 @@ MonoBehaviour:
     dialogueText: "\uADF8\uC73C... \uAC8C \uB9D0\uC774\uC9C0, \uC7A0\uAE50 \uC880
       \uC9C4\uC815\uD558\uACE0 \uC598\uAE30\uB97C..."
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Ms_Sprout:1.0
   - type: 0
     characterName: ???
     dialogueText: "\uAEBC\uC838!!!"
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Player:1.0
   - type: 2
     characterName: 
     dialogueText: 

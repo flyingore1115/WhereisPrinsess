@@ -22,7 +22,7 @@ public class TimePointManager : MonoBehaviour
     }
 
     private TimePointData lastCheckpointData = null;
-    private GameStateData lastGameStateData = null; // 새로 추가된 플레이어 상태 데이터
+    public GameStateData lastGameStateData = null; // 새로 추가된 플레이어 상태 데이터
     private bool hasCheckpoint = false;
 
     public float rewindDuration = 0.5f;
@@ -87,7 +87,10 @@ public class TimePointManager : MonoBehaviour
             gameState.playerBulletCount = player.shooting.currentAmmo;
             gameState.playerGauge = 0; // gauge 관련 값은 필요에 따라
             gameState.playerHealth = player.health;
-            gameState.playerTimeEnergy = player.timeEnergy;
+
+            var tsc = TimeStopController.Instance;
+            gameState.playerTimeEnergy = (tsc != null) ? tsc.CurrentGauge : player.timeEnergy;
+
             gameState.unlockedSkills = new List<string>(); // 필요시 처리
         }
         lastGameStateData = gameState;
@@ -182,6 +185,30 @@ public class TimePointManager : MonoBehaviour
         var prRb = player.GetComponent<Rigidbody2D>();
         if (prRb != null) prRb.linearVelocity = Vector2.zero;
         player.GetComponent<P_Movement>().ResetInput();
+
+        // ▶ 플레이어 상태 복원 (체력, 에너지 등)
+        if (lastGameStateData != null)
+        {
+            var playerOver = player.GetComponent<PlayerOver>();
+            if (playerOver != null)
+            {
+                playerOver.ForceSetHealth(lastGameStateData.playerHealth);  // 아래 정의
+            }
+
+            player.health = lastGameStateData.playerHealth;
+            player.timeEnergy = lastGameStateData.playerTimeEnergy;
+            player.shooting.currentAmmo = lastGameStateData.playerBulletCount;
+            player.shooting.UpdateAmmoUI();
+            Debug.Log($"[TPM] 체력/에너지 복원 완료: 체력={player.health}, 에너지={player.timeEnergy}, 탄={player.shooting.currentAmmo}");
+    TimeStopController tsc = TimeStopController.Instance;
+if (tsc != null)
+{
+    tsc.SetGauge(player.timeEnergy);  // ← 강제 동기화
+    Debug.Log($"[TPM] 에너지 게이지 동기화 완료: {player.timeEnergy}");
+}
+
+}
+
     }
     /// <summary>
     /// 죽은 적을 다시 활성화하는 함수

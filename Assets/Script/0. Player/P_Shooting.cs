@@ -13,8 +13,7 @@ public class P_Shooting : MonoBehaviour
     public int maxAmmo = 6;
     public TMP_Text ammoText;
 
-    public float reloadEnergyCost = 10f;
-
+    public float reloadEnergyCost;
     [Tooltip("총알 UI가 보여지는 시간 (초)")]
     public float bulletUIDisplayDuration = 0.5f;
     [Tooltip("총알 UI 오브젝트 (평소에는 비활성화)")]
@@ -26,13 +25,20 @@ public class P_Shooting : MonoBehaviour
     private float allowedAngle = 15f;
 
     private Coroutine hideBulletUICoroutine;
+    
+
+     void Awake()          // 탄 UI 자동 연결(인스펙터 미설정 대비)
+ {
+     if (ammoText == null && CanvasManager.Instance != null)
+         ammoText = CanvasManager.Instance.bulletText;
+ }
 
     void Update()
     {
         UpdateFirePointPosition();
     }
 
-     public void EnableAngleLimit(Transform target, float angleDeg)
+    public void EnableAngleLimit(Transform target, float angleDeg)
     {
         tutorialMode = true;
         tutorialTarget = target;
@@ -50,7 +56,7 @@ public class P_Shooting : MonoBehaviour
     public void HandleShooting()
     {
         if (MySceneManager.IsStoryScene && !tutorialMode)
-        return;
+            return;
         if (Player.Instance.holdingPrincess)
             return;
 
@@ -75,6 +81,18 @@ public class P_Shooting : MonoBehaviour
             SoundManager.Instance?.PlaySFX("EmptyGunSound");
             return;
         }
+
+        // ▸ 튜토리얼 각도 체크
+        if (tutorialMode && tutorialTarget != null)
+        {
+            float ang = Vector2.Angle((tutorialTarget.position - firePoint.position), dir);
+            if (ang > allowedAngle)
+            {   // 빗맞음 처리
+                SoundManager.Instance?.PlaySFX("EmptyGunSound");
+                return;
+            }
+        }
+
         GameObject b = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         var bs = b.GetComponent<Bullet>();
         if (bs != null) bs.SetDirection(dir);
@@ -149,7 +167,8 @@ public class P_Shooting : MonoBehaviour
     private void Reload()
     {
         var tsc = TimeStopController.Instance;
-        if (tsc == null || !tsc.TrySpendGauge(reloadEnergyCost))
+
+        if (!tsc.TrySpendGauge(reloadEnergyCost))
         {
             Debug.Log("에너지 부족! 재장전 불가");
             return;
@@ -160,9 +179,14 @@ public class P_Shooting : MonoBehaviour
         SoundManager.Instance?.PlaySFX("RevolverSpin");
     }
 
-    private void UpdateAmmoUI()
+    public void UpdateAmmoUI()
     {
         if (ammoText != null)
             ammoText.text = $"{currentAmmo} / {maxAmmo}";
     }
+    public void SetTutorialMode(bool active)
+ {
+     tutorialMode = active;
+     if (!active) tutorialTarget = null;   // 종료 시 각도 제한도 해제
+ }
 }

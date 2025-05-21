@@ -35,6 +35,9 @@ public class CanvasManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        if (!UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("Story"))
+    SetGameUIActive(true);
     }
 
     private void Update()

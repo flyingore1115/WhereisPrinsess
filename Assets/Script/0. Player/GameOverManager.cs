@@ -22,7 +22,11 @@ public class GameOverManager : MonoBehaviour
     IEnumerator GameOverRoutine()
     {
         // 게임오버 시 플레이어 입력 무시 및 게임오버 상태 설정
-        Player playerScript = player.GetComponent<Player>();
+        // 0) 파괴되었거나 할당 안 됐으면 다시 찾기
+    if (player == null || !player)
+        player = GameObject.FindGameObjectWithTag("Player");
+
+    Player playerScript = player != null ? player.GetComponent<Player>() : null;
         if (playerScript != null)
         {
             playerScript.ignoreInput = true;
@@ -64,6 +68,9 @@ public class GameOverManager : MonoBehaviour
         }
 
         Debug.Log("게임오버 상태: 클릭하면 되감기 시작합니다.");
+        // 6) 게임오버 상태 안내 메시지 출력
+        StatusTextManager.Instance?.ShowMessage("좌클릭으로 재시작");
+
         while (!Input.GetMouseButtonDown(0))
         {
             yield return null;
@@ -110,7 +117,8 @@ public class GameOverManager : MonoBehaviour
         // 카메라 기본 상태 복귀
         if (cameraFollow != null)
         {
-            cameraFollow.SetTarget(cameraFollow.defaultTarget);
+            if (cameraFollow.defaultTarget == null && princess != null)
+                cameraFollow.defaultTarget = princess;
             yield return StartCoroutine(SmoothCameraTransition(mainCamera, cameraFollow.defaultTarget.transform.position, cameraFollow.defaultSize, 1f));
             Debug.Log("카메라가 기본 상태로 부드럽게 복귀됨.");
         }

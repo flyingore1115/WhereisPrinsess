@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
+  m_Name: End
+  m_EditorClassIdentifier: 
+  triggerID: End
+  entries:
+  - type: 0
+    characterName: 
+    dialogueText: "\uC640! \uD14C\uB514\uB97C \uC7A1\uC558\uC5B4!!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uAC8C\uC784 \uB05D!"
+    options: []
+    actionKey: 

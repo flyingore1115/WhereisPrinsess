@@ -38,7 +38,7 @@ public class PlayerOver : MonoBehaviour
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
     }
-    
+
     // 체력바를 부드럽게 업데이트하는 코루틴 (duration은 조절 가능)
     private IEnumerator LerpHealthBar(int fromHealth, int toHealth, float duration)
     {
@@ -62,7 +62,7 @@ public class PlayerOver : MonoBehaviour
             healthSlider.value = health;
         }
     }
-    
+
     // 체력을 복원할 때 (예: 부활시)
     public void RestoreHealth(int amount)
     {
@@ -70,7 +70,7 @@ public class PlayerOver : MonoBehaviour
         UpdateHealthBar(currentHealth);
         Debug.Log($"[PlayerOver] 체력 복원: {currentHealth}/{maxHealth}");
     }
-    
+
     public void TakeDamage(int damage)
     {
         int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
@@ -81,14 +81,14 @@ public class PlayerOver : MonoBehaviour
         // 0.5초 동안 부드럽게 체력을 줄임
         healthLerpCoroutine = StartCoroutine(LerpHealthBar(currentHealth, newHealth, 0.5f));
         currentHealth = newHealth;
-        
+
         // 체력이 0 이하이면 플레이어 비활성화 처리
         if (currentHealth <= 0)
         {
             DisablePlayer();
         }
     }
-    
+
     public void DisablePlayer()
     {
         if (isDisabled) return;
@@ -106,7 +106,7 @@ public class PlayerOver : MonoBehaviour
             cf.SetTarget(princess.gameObject);
         }
     }
-    
+
     // 부활 시 호출 – 플레이어 위치, 체력 복원, 카메라 재설정
     public void OnRewindComplete(Vector2 restoredPosition)
     {
@@ -121,7 +121,7 @@ public class PlayerOver : MonoBehaviour
             player.ignoreInput = false;
             Debug.Log("[PlayerOver] OnRewindComplete -> ignoreInput=false, isDisabled=false");
         }
-        CameraFollow cf = FindFirstObjectByType<CameraFollow>();;
+        CameraFollow cf = FindFirstObjectByType<CameraFollow>(); ;
         if (cf != null)
         {
             cf.SetTarget(gameObject);
@@ -129,7 +129,7 @@ public class PlayerOver : MonoBehaviour
         }
         isDisabled = false;
     }
-    
+
     // 키 입력 후, 정상 플레이 재개
     public void ResumeAfterRewind()
     {
@@ -147,4 +147,10 @@ public class PlayerOver : MonoBehaviour
             Debug.Log("[PlayerOver] 공주 조종 플래그 해제");
         }
     }
+public void ForceSetHealth(int value)
+{
+    currentHealth = Mathf.Clamp(value, 0, maxHealth);
+    UpdateHealthBar(currentHealth);
+}
+
 }

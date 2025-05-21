@@ -79,12 +79,17 @@ MonoBehaviour:
     dialogueText: "\uADF8\uB7F0 \uC77C\uC774 \uC544\uB2C8\uC57C! \uC815\uB9D0 \uC5C4\uCCAD\uB098\uAC8C
       \uD070\uC77C,"
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Self_Enemy:1.0
   - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: ...!
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Player:1.0
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: GrabTutorial
   - type: 2
     characterName: 
     dialogueText: 

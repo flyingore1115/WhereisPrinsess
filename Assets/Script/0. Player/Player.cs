@@ -87,7 +87,8 @@ public class Player : MonoBehaviour, ITimeAffectable
             // 0-1. Shift + 좌클릭 → 정지된 총알 생성
             if (Input.GetMouseButtonDown(0))
             {
-                shooting.HandleShooting();
+                if (!PointerOverTagged("Enemy", "Princess"))
+                    shooting.HandleShooting();
             }
 
             // 0-2. Ctrl + 좌클릭 → 손잡기 or 적 시간 해제
@@ -137,9 +138,9 @@ public class Player : MonoBehaviour, ITimeAffectable
             {
                 bool cancel =
                     Input.GetMouseButtonDown(1) ||
-                    Input.GetKeyDown(KeyCode.Escape) ||
-                    Input.GetKeyDown(KeyCode.Q) ||
-                    Input.GetKeyDown(KeyCode.E) ||
+                    Input.GetKeyDown(KeyCode.A) ||
+                    Input.GetKeyDown(KeyCode.W) ||
+                    Input.GetKeyDown(KeyCode.D) ||
                     Input.GetKeyDown(KeyCode.R);
 
                 if (cancel)
@@ -190,12 +191,15 @@ public class Player : MonoBehaviour, ITimeAffectable
 
             if (hit.collider && hit.collider.GetComponent<IDamageable>() != null)
             {
-                attack.HandleAttack();         // 일반 공격
-                Debug.Log("인식함");
+                // ▸ 손잡기 중이면 공격 자체를 막는다
+                if (!holdingPrincess)
+                    attack.HandleAttack();
             }
             else
             {
-                shooting.HandleShooting();    // 일반 사격
+                // ▸ IDamageable이 없고, 손잡기· 아님 ⇒ 사격
+                if (!holdingPrincess)
+                    shooting.HandleShooting();
             }
         }
         else if (Input.GetMouseButtonDown(1))
@@ -249,4 +253,11 @@ public class Player : MonoBehaviour, ITimeAffectable
         if (PostProcessingManager.Instance != null)
             PostProcessingManager.Instance.SetDefaultEffects();
     }
+
+    bool PointerOverTagged(params string[] tags)
+{
+    Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition); wp.z = 0;
+    RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
+    return hit.collider && System.Array.Exists(tags, t => hit.collider.CompareTag(t));
+}
 }

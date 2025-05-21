@@ -84,6 +84,7 @@ public class StorySceneManager : MonoBehaviour
             { "LadyDoorSeq",     LadyDoorSequence },
             { "HallwayTutorial", HallwayTutorial },
             { "ShootingTutorial", ShootingTutorial},
+            { "GrabTutorial",   GrabTutorial },
             { "LoadNextScene", LoadNextScene }
             // ...추가 액션
         };
@@ -362,30 +363,91 @@ public class StorySceneManager : MonoBehaviour
     }
 
     public IEnumerator ShootingTutorial()
+{
+    StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
+    StoryCanvasManager.Instance.TutorialText.enabled = true;
+    Player pl = Player.Instance;
+    pl.ignoreInput = true;
+
+    BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
+    Transform target = enemy.transform;
+
+   // 0) 재장전부터 강제
+   CanvasManager.Instance?.SetGameUIActive(true);          // 탄 UI 켜기
+    pl.shooting.SetTutorialMode(true);                      // 입력 해제 방지
+    pl.shooting.currentAmmo = 0;
+    pl.shooting.UpdateAmmoUI();
+    StoryCanvasManager.Instance.TutorialText.text = "우클릭으로 재장전하세요!";
+    pl.ignoreInput = false;
+    yield return new WaitUntil(() => pl.shooting.currentAmmo == pl.shooting.maxAmmo);
+
+    // 1) 각도 제한 켜고 사격 유도
+    pl.shooting.EnableAngleLimit(target, 15f);
+    StoryCanvasManager.Instance.TutorialText.text = "적을 향해 사격하세요!";
+    yield return new WaitUntil(() => enemy == null || enemy.isDead);
+
+    // 2) 해제 및 종료
+    pl.shooting.DisableAngleLimit();
+    pl.shooting.SetTutorialMode(false);                     // 입력 제한 복구
+    StoryCanvasManager.Instance.TutorialText.enabled = false;
+    CanvasManager.Instance?.SetGameUIActive(false);         // 게임 UI 다시 숨김
+    pl.ignoreInput = false;
+    StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+}
+
+
+    // ─────────────────────────────
+private IEnumerator GrabTutorial()
+{
+    cameraFollow.enabled = true; // ★ 꺼졌던 컴포넌트 다시 켜기
+
+    StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
+    StoryCanvasManager.Instance.TutorialText.enabled = true;
+
+    // 0) 세팅
+    Player pl = Player.Instance;
+    pl.ignoreInput      = true;
+    pl.attack.enabled   = false;
+    pl.shooting.enabled = false;
+
+    // 1) 적 투척(연출용) + 시간정지
+    //나중에 애니
+    yield return new WaitForSeconds(0.5f);
+    StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 멈추세요!";
+    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+    TimeStopController.Instance.StopTime();
+
+    // 2) 공주 선택
+    StoryCanvasManager.Instance.TutorialText.text = "Ctrl + 좌클릭으로 공주를 잡으세요.";
+    pl.ignoreInput = false;                   // Ctrl 입력 허용
+    yield return new WaitUntil(() => pl.holdingPrincess);
+
+    // 3) 지정 위치로 이동
+    Transform safe = GameObject.FindWithTag("GrabPoint").transform;
+    StoryCanvasManager.Instance.TutorialText.text = "공주를 끌고 표시된 위치로 이동하세요.";
+    yield return new WaitUntil(() =>
+        Vector2.Distance(Princess.Instance.transform.position, safe.position) < 0.3f);
+
+    // 4) 시간 해제 안내
+    StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
+    bool resumed = false;
+    while (!resumed)
     {
-        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
-        StoryCanvasManager.Instance.TutorialText.enabled = true;
-        Player.Instance.ignoreInput = true;
-
-        // ① 적 스폰(혹은 미리 배치된 Enemy 찾기)
-        BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
-        Transform target = enemy.transform;
-
-        // ② 플레이어 총알 각도 제한 켜기
-        Player.Instance.shooting.EnableAngleLimit(target, 15f);
-
-        Player.Instance.ignoreInput = false;
-
-        StoryCanvasManager.Instance.TutorialText.text = "적이 있는 방향으로 사격하세요!";
-        // ③ 적이 죽을 때까지 대기
-        yield return new WaitUntil(() => enemy == null || enemy.isDead);
-
-        // ④ 제한 해제 및 마무리
-        Player.Instance.shooting.DisableAngleLimit();
-        StoryCanvasManager.Instance.TutorialText.enabled = false;
-        Player.Instance.ignoreInput = false;
-        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+        if (Input.GetKeyDown(KeyCode.Space))
+        {   // 조건 만족 → 직접 해제
+            TimeStopController.Instance.ResumeTime();
+            resumed = true;
+        }
+        yield return null;
     }
+
+    // 5) 마무리
+    StoryCanvasManager.Instance.TutorialText.enabled = false;
+    pl.attack.enabled   = true;
+    pl.shooting.enabled = true;
+    StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+}
+
 
     // ─────────────────────────────────────────
     public void ShowTutorialMessage(string message)
@@ -468,7 +530,9 @@ public class StorySceneManager : MonoBehaviour
         {cameraFollow = FindFirstObjectByType<CameraFollow>();}
         StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
         cameraFollow.EnableStoryMode(false);
+        cameraFollow.enabled = true; // ★ 꺼졌던 컴포넌트 다시 켜기
         cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"));
+        CanvasManager.Instance?.SetGameUIActive(true);
 
         isDialogueActive = false;
         skipEnabled = false;

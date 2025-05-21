@@ -73,6 +73,14 @@ public class P_Movement : MonoBehaviour
     {
         if (attackIsActive) return;
 
+        // ─ 1) 점프 먼저 처리 ─
+        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);      // 잔여 Y 제거
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            SoundManager.Instance?.PlaySFX("playerJumpSound");
+        }
+
         float moveInput = Input.GetAxisRaw("Horizontal");
     // holding 상태면 속도 50% 적용
         float speedMultiplier = Player.Instance.holdingPrincess ? 0.5f : 1f;
@@ -92,15 +100,6 @@ public class P_Movement : MonoBehaviour
         else
         {
             animator.SetBool("isRun", false);
-        }
-
-        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
-        {
-            if (SoundManager.Instance != null)
-            {
-                SoundManager.Instance.PlaySFX("playerJumpSound");
-            }
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
     }
 

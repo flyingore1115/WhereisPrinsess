@@ -19,8 +19,12 @@ public class Interactable : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
+        // Lady가 달리는 중이면 인터랙트 차단
+        var lady = FindFirstObjectByType<Lady>();
+        if (lady != null && lady.mode == Lady.LadyMode.HallwayAutoRun)
+       return;
         isPlayerInside = true;
-        if (!Player.Instance.ignoreInput && !StorySceneManager.Instance?.IsDialogueActive == true)
+        if (!Player.Instance.ignoreInput && !StorySceneManager.Instance.IsDialogueActive)
             icon.Show();
     }
 
@@ -36,6 +40,9 @@ public class Interactable : MonoBehaviour
         if (!isPlayerInside) return;                      // 범위 밖이면 무시
         if (Player.Instance.ignoreInput) return;          // 이동/대화 중이면 무시
         if (StorySceneManager.Instance != null && StorySceneManager.Instance.IsDialogueActive) return;
+        // Lady 달리기 중이면 E키 무시
+        var lady = FindFirstObjectByType<Lady>();
+        if (lady != null && lady.mode == Lady.LadyMode.HallwayAutoRun) return;
         if (Input.GetKeyDown(KeyCode.E))
             Interact();
     }

@@ -8,6 +8,7 @@ public class MySceneManager : MonoBehaviour
 
     public static bool IsStoryScene => SceneManager.GetActiveScene().name.Contains("Story");
     public static bool IsMainMenu => SceneManager.GetActiveScene().name.Contains("MainMenu");
+    
 
 
     void Awake()
@@ -80,19 +81,29 @@ public class MySceneManager : MonoBehaviour
             else
                 CanvasManager.Instance.SetGameUIActive(true);   // 인게임 씬이면 표시
         }
+        
+        // 0) 이전 체크포인트 무효화
+    if (TimePointManager.Instance != null)
+        TimePointManager.Instance.ClearCheckpointFlag();
 
-        // 플레이어 위치 리셋
-        if (Player.Instance != null)
-        {
-            Player.Instance.transform.position = Vector3.zero;
-            var rb = Player.Instance.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.linearVelocity = Vector2.zero;
-        }
+    // 1) 페이드/UI 분기 (기존)
 
+    // 2) 플레이어 위치 리셋
+    if (Player.Instance != null)
+    {
+        Player.Instance.transform.position = Vector3.zero;
+        var rb = Player.Instance.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+    }
+
+        // 3) 공주 위치 리셋 (추가)
         if (Princess.Instance != null)
         {
+            Princess.Instance.ResetToDefaultPosition();
+            // 그리고 모드·애니 초기화
             Princess.Instance.RefreshSceneBehavior();
         }
+
     }
 
 

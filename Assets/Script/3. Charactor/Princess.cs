@@ -43,9 +43,9 @@ public class Princess : MonoBehaviour, ITimeAffectable
     public bool isHeld = false; //손잡기
     public float followSpeed = 5f; // 공주가 따라오는 속도
 
-    
 
-    
+
+
 
     void Awake()
     {
@@ -60,10 +60,12 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
         Debug.Log($"[Princess] Awake() => transform.position = {transform.position}");
         defaultStartPosition = transform.position; //현재 위치를 기본 시작 위치로
-    
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        RefreshSceneBehavior();
     }
 
     void Start()
@@ -71,7 +73,7 @@ public class Princess : MonoBehaviour, ITimeAffectable
         // 기존 persistentExtraLives 값 적용
         extraLives = persistentExtraLives;
         
-    Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
+        Debug.Log($"[Princess] Start() initial transform.position={transform.position}");
     }
 
 
@@ -141,13 +143,27 @@ public class Princess : MonoBehaviour, ITimeAffectable
         }
     }
 
-    public void StopBeingHeld()
-    {
-        isHeld = false;
+public void StopBeingHeld()
+{
+    isHeld = false;
+    if (spriteRenderer != null) spriteRenderer.flipX = false;
 
-        if (spriteRenderer != null)
-        spriteRenderer.flipX = false;
+    // ★ Boss 씬이면 다시 isScared 트리거
+    string scn = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+    if (animator != null)
+    {
+        if (scn.Contains("Boss"))
+        {
+            animator.ResetTrigger("isRun");
+            animator.SetTrigger("isScared");
+        }
+        else
+        {
+            animator.SetTrigger("isRun");
+        }
     }
+}
+
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -301,7 +317,17 @@ public void RefreshSceneBehavior()
         if (animator != null) animator.speed = 1f;
 
         // ── 씬별 설정 ──
-        if (sceneName.Contains("Story"))
+        if (sceneName.Contains("Boss"))
+        {
+            // 보스 씬에선 겁에 질린 상태
+            moveSpeed = bossMoveSpeed;
+            isControlled = true;
+            animator?.ResetTrigger("isStand");
+            animator?.ResetTrigger("isRun");
+            animator.Play("Princess_Run", 0, 0f);
+            animator?.SetTrigger("isScared");
+        }
+        else if (sceneName.Contains("Story"))
         {
             // 대사 씬에선 서 있기만
             moveSpeed = storyMoveSpeed;
@@ -309,15 +335,6 @@ public void RefreshSceneBehavior()
             animator?.ResetTrigger("isScared");
             animator?.ResetTrigger("isRun");
             animator?.SetTrigger("isStand");
-        }
-        else if (sceneName.Contains("Boss"))
-        {
-            // 보스 씬에선 겁에 질린 상태
-            moveSpeed = bossMoveSpeed;
-            isControlled = true;
-            animator?.ResetTrigger("isStand");
-            animator?.ResetTrigger("isRun");
-            animator?.SetTrigger("isScared");
         }
         else
         {
@@ -414,21 +431,33 @@ public void RefreshSceneBehavior()
         }
     }
 
-    // Princess.cs
-    public void ResumeAfterRewind()
+public void ResumeAfterRewind()
+{
+    isGameOver = false;
+
+    if (animator != null)
     {
-        isGameOver = false;
+        animator.speed = 1f;
+        animator.ResetTrigger("isDie");
 
-        if (animator != null)
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+        // 현재 씬에 따라 애니메이션 트리거 결정
+        if (sceneName.Contains("Boss"))
         {
-            animator.speed = 1f;
-            animator.ResetTrigger("isDie");
-            animator.SetTrigger("isRun"); // 걷기 애니메이션 재시작
+            animator.ResetTrigger("isRun");
+            animator.SetTrigger("isScared");
         }
-
-        isControlled = false;
-        ResumeTime();
+        else
+        {
+            animator.SetTrigger("isRun");
+        }
     }
+
+    isControlled = false;
+    ResumeTime();
+}
+
 
 
     // 추가: 여벌 목숨을 외부에서 바로 추가할 수 있는 메서드

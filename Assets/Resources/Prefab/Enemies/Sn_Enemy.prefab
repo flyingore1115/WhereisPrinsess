@@ -296,7 +296,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.1, y: 0.51, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7215796630880100556}
@@ -345,9 +345,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -18605577
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 382d51329d4e5d648bb16542c0407411, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6779c51db0606ac49bf62a69f7756b1c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -375,7 +375,6 @@ MonoBehaviour:
   isDead: 0
   maxHealth: 1
   currentHealth: 0
-  uiPrefab: {fileID: 7043522463114936429, guid: 968f4b2cf9cc5bc44a890c521247a597, type: 3}
   healthDisplay: {fileID: 1240916322511759906}
   bulletPrefab: {fileID: 6717218329738146862, guid: a70ec634e563aef408be84cab7447cf0, type: 3}
   firePoint: {fileID: 7215796630880100556}
@@ -545,7 +544,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 6.4, y: 6.4}
+    oldSize: {x: 3.2, y: 4.8}
     newSize: {x: 6.4, y: 6.4}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

@@ -48,7 +48,7 @@ public class Bomb : MonoBehaviour, ITimeAffectable
         {
             if (c.CompareTag("Player"))
             {
-                // c.GetComponent<PlayerOver>()?.TakeDamage(1);
+                 c.GetComponent<PlayerOver>()?.TakeDamage(1);
             }
         }
 

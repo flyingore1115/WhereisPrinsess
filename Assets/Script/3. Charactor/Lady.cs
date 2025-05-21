@@ -58,6 +58,9 @@ public class Lady : MonoBehaviour, ITimeAffectable
     Vector2 cachedVel;
     float cachedAnimSpeed;
 
+    [Header("Start Sitting?")]
+    public bool startSitting = true;
+
     bool    cachedVelValid  = false;   // ← 새 플래그 추가
 
     void Awake()
@@ -88,8 +91,10 @@ void FixedUpdate()
             case LadyMode.Idle:
                 rb.linearVelocity = Vector2.zero;
                 SetRun(false);
-                SetStand(true);
-                SetSit(false);
+                if (startSitting)            // ★첫 병실 대기 중
+                {   SetSit(true);  SetStand(false); }
+                else                          // 이동을 한번이라도 했다면
+                {   SetSit(false); SetStand(true);  }
                 break;
         }
     }
@@ -97,6 +102,7 @@ void FixedUpdate()
     // ── 병실에서 문까지 걷기 ──
     public IEnumerator MoveToDoor()
     {
+        startSitting = false;
         mode = LadyMode.MovingToDoor;
         isStopped = false;
         SetRun(true); SetStand(false); SetSit(false);

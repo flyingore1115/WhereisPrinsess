@@ -9,25 +9,25 @@ public class TimeStopController : MonoBehaviour
     public static TimeStopController Instance;
 
     [Header("Gauge Settings")]
-    public float maxTimeGauge      = 100f;
-    public float passiveChargeRate = 0.5f;
-    public float timeStopDrainRate = 1f;
-    public float enemyKillGain     = 5f;
+    public float maxTimeGauge = 1f;
+    public float passiveChargeRate = 0.001f;
+    public float timeStopDrainRate = 0.01f;
+    public float enemyKillGain = 0.3f;
 
     [Header("UI")]
     public Slider timeGaugeSlider;
-    public Image  fillImage;
+    public Image fillImage;
 
     /*──────────────────────────────*/
     public float CurrentGauge { get; private set; }   // 읽기 전용
-    public bool  IsTimeStopped => _isTimeStopped;
+    public bool IsTimeStopped => _isTimeStopped;
 
     bool _isTimeStopped = false;
-    bool _inputBlocked  = true;               // 스토리 씬 기본 봉인
-    readonly List<ITimeAffectable> _objs = new ();
+    bool _inputBlocked = true;               // 스토리 씬 기본 봉인
+    readonly List<ITimeAffectable> _objs = new();
 
-    
-    public float MaxGauge     => maxTimeGauge;        // 읽기 전용
+
+    public float MaxGauge => maxTimeGauge;        // 읽기 전용
 
     /*──────────────────────────────*/
     void Awake()
@@ -37,6 +37,9 @@ public class TimeStopController : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            CurrentGauge = maxTimeGauge;
+            UpdateGaugeUI();
         }
         else { Destroy(gameObject); }
     }
@@ -44,8 +47,6 @@ public class TimeStopController : MonoBehaviour
     void Start()
     {
         RefreshList();
-        CurrentGauge = maxTimeGauge;
-        UpdateGaugeUI();
     }
 
     /*──────────────────────────────*/
@@ -66,7 +67,7 @@ public class TimeStopController : MonoBehaviour
         bool isRewinding = RewindManager.Instance != null &&
                            RewindManager.Instance.IsRewinding;
 
-        bool isGameOver  = RewindManager.Instance != null &&
+        bool isGameOver = RewindManager.Instance != null &&
                            RewindManager.Instance.IsGameOver();
 
         if (!_inputBlocked && !inDialogue && !isRewinding && !isGameOver &&
@@ -98,7 +99,7 @@ public class TimeStopController : MonoBehaviour
         else
         {
             CurrentGauge += passiveChargeRate * Time.deltaTime;
-            CurrentGauge  = Mathf.Clamp(CurrentGauge, 0f, maxTimeGauge);
+            CurrentGauge = Mathf.Clamp(CurrentGauge, 0f, maxTimeGauge);
         }
     }
 
@@ -121,7 +122,7 @@ public class TimeStopController : MonoBehaviour
         SoundManager.Instance?.PlaySFX("TimeStopRelease");
         _isTimeStopped = false;
         foreach (var o in _objs) if (o != null) o.ResumeTime();
-        
+
         //손잡기 상태 자동 해제
         if (Player.Instance?.holdingPrincess == true)
         {
@@ -167,5 +168,11 @@ public class TimeStopController : MonoBehaviour
         CurrentGauge = Mathf.Clamp(CurrentGauge + amount, 0f, maxTimeGauge);
         UpdateGaugeUI();
     }
+    
+    public void SetGauge(float value)
+{
+    CurrentGauge = Mathf.Clamp(value, 0f, maxTimeGauge);
+    UpdateGaugeUI(); // 게이지 UI 갱신 함수가 있다면 호출
+}
 
 }

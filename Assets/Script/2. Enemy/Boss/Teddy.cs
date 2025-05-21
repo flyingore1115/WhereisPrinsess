@@ -192,7 +192,7 @@ public class Teddy : BaseEnemy
         {
             if (c.CompareTag("Player"))
             {
-                // c.GetComponent<PlayerOver>()?.TakeDamage(1);
+                 c.GetComponent<PlayerOver>()?.TakeDamage(1);
             }
         }
         yield return null;
@@ -270,7 +270,7 @@ public class Teddy : BaseEnemy
         if (bossHealthUI != null)
             bossHealthUI.UpdateHP(currentHealth);
 
-        Debug.Log($"[Teddy] took damage {damage}, HP={currentHealth}");
+        //Debug.Log($"[Teddy] took damage {damage}, HP={currentHealth}");
 
         if (currentHealth <= 0)
         {
@@ -282,6 +282,7 @@ public class Teddy : BaseEnemy
     {
         base.Die();
         Debug.Log("[Teddy] Boss defeated!");
+        MySceneManager.Instance.LoadNextScene();
         // 추가 종료 로직
     }
 }

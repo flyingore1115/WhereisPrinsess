@@ -23,5 +23,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/InGame/Boss.unity
     guid: 8e69b4c24983eeb48b838907da9c5cbe
+  - enabled: 1
+    path: Assets/Scenes/InGame/Story_end.unity
+    guid: f5e4c9431ebaa13419b3a35d9d6b794d
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
