@@ -9,10 +9,10 @@ public class PlayerOver : MonoBehaviour
     private int currentHealth;
 
     [Header("Health Bar UI")]
-    public Slider healthSlider;       // 인스펙터에서 할당 (메인 캔버스 하위에 배치)
+    public Slider healthSlider;
 
-    public Transform princess;
-    public Transform playerTransform; // 본인 transform
+    public Transform princess;         // 동적 할당
+    public Transform playerTransform;  // 필요 없으면 제거 가능
 
     private bool isDisabled = false;
     public bool IsDisabled => isDisabled;
@@ -20,59 +20,47 @@ public class PlayerOver : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private Player player;
-    private float originalGravityScale;
 
-    // 피해 애니메이션 효과를 부드럽게 적용하기 위한 코루틴 변수
+    // 외부 컴포넌트
+    private CameraFollow cameraFollow;
+    private StatusTextManager statusTextManager;
+
+    private float originalGravityScale;
     private Coroutine healthLerpCoroutine;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         originalGravityScale = rb.gravityScale;
+
+        // 씬에 있는 매니저들 캐시
+        cameraFollow = FindFirstObjectByType<CameraFollow>();
+        statusTextManager = FindFirstObjectByType<StatusTextManager>();
     }
 
     void Start()
     {
         currentHealth = maxHealth;
-        UpdateHealthBar(currentHealth);  // 초기 체력바 업데이트
+        UpdateHealthBar(currentHealth);
+
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
     }
 
     void Update()
     {
-        // 체력이 0 이하이면 플레이어 비활성화 처리
         if (currentHealth <= 0)
         {
             DisablePlayer();
         }
     }
 
-    // 체력바를 부드럽게 업데이트하는 코루틴 (duration은 조절 가능)
-    private IEnumerator LerpHealthBar(int fromHealth, int toHealth, float duration)
-    {
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-            int lerpedHealth = Mathf.RoundToInt(Mathf.Lerp(fromHealth, toHealth, t));
-            UpdateHealthBar(lerpedHealth);
-            yield return null;
-        }
-        UpdateHealthBar(toHealth);
-    }
-
-    // 체력바 UI 업데이트 함수
     private void UpdateHealthBar(int health)
     {
         if (healthSlider != null)
-        {
             healthSlider.value = health;
-        }
     }
 
-    // 체력을 복원할 때 (예: 부활시)
     public void RestoreHealth(int amount)
     {
         currentHealth = maxHealth;
@@ -84,67 +72,100 @@ public class PlayerOver : MonoBehaviour
     {
         int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
         if (healthLerpCoroutine != null)
-        {
             StopCoroutine(healthLerpCoroutine);
-        }
-        // 0.5초 동안 부드럽게 체력을 줄임
         healthLerpCoroutine = StartCoroutine(LerpHealthBar(currentHealth, newHealth, 0.5f));
         currentHealth = newHealth;
-
-        
     }
 
-public void DisablePlayer()
-{
-    if (isDisabled) return;
-    Debug.Log("플레이어 행동불능!");
-    isDisabled = true;
-
-    rb.linearVelocity = Vector2.zero;
-
-    if (player != null)
+    private IEnumerator LerpHealthBar(int fromH, int toH, float dur)
     {
-        player.ignoreInput = true;
-        Debug.Log("[PlayerOver] Player input ignored.");
+        float t = 0f;
+        while (t < dur)
+        {
+            t += Time.deltaTime;
+            int v = Mathf.RoundToInt(Mathf.Lerp(fromH, toH, t / dur));
+            UpdateHealthBar(v);
+            yield return null;
+        }
+        UpdateHealthBar(toH);
     }
 
-    // 📌 상태 메시지 출력
-    StatusTextManager stm = FindFirstObjectByType<StatusTextManager>();
-    if (stm != null)
+    public void DisablePlayer()
     {
-        stm.ShowMessage("플레이어가 행동불능 상태가 되었습니다!");
+        if (isDisabled) return;
+        isDisabled = true;
+
+        // 1) princess 항상 재탐색
+        if (princess == null)
+        {
+            var prObj = GameObject.FindGameObjectWithTag("Princess");
+            if (prObj != null)
+                princess = prObj.transform;
+        }
+
+        // 2) 카메라 타겟 전환
+        if (cameraFollow != null && princess != null)
+        {
+            cameraFollow.SetTarget(princess.gameObject);
+            Debug.Log("[PlayerOver] 카메라 타겟: Princess");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerOver] CameraFollow 또는 Princess 미할당");
+        }
+
+        // 3) 상태 텍스트 표시
+        // 3) 상태 텍스트 매니저 재탐색 (필요 시)
+        if (statusTextManager == null)
+        {
+            statusTextManager = FindFirstObjectByType<StatusTextManager>();
+        }
+
+        if (statusTextManager != null)
+        {
+            statusTextManager.ShowMessage("플레이어가 행동불능 상태가 되었습니다!");
+            Debug.Log("[PlayerOver] 상태 텍스트 출력 성공");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerOver] StatusTextManager 미발견");
+        }
+
+        // 4) 플레이어 입력 무시 및 정지
+        rb.linearVelocity = Vector2.zero;
+        if (player != null)
+        {
+            player.ignoreInput = true;
+            Debug.Log("[PlayerOver] Player input ignored.");
+        }
+
+        Debug.Log("플레이어 행동불능 처리 완료");
     }
 
-    // 📌 카메라 타겟을 공주로 전환
-    CinemachineAutoTarget.SetCinemachineTarget(princess.gameObject);
-
-}
-
-
-    // 부활 시 호출 – 플레이어 위치, 체력 복원, 카메라 재설정
     public void OnRewindComplete(Vector2 restoredPosition)
     {
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
         transform.position = restoredPosition;
-        Debug.Log($"[PlayerOver] OnRewindComplete: 위치 => {restoredPosition}");
         RestoreHealth(0);
         rb.gravityScale = originalGravityScale;
+
         if (player != null)
         {
             player.ignoreInput = false;
-            Debug.Log("[PlayerOver] OnRewindComplete -> ignoreInput=false, isDisabled=false");
+            Debug.Log("[PlayerOver] 입력 복원");
         }
-        CameraFollow cf = FindFirstObjectByType<CameraFollow>(); ;
-        if (cf != null)
+
+        // 카메라 플레이어로 복귀
+        if (cameraFollow != null)
         {
-            cf.SetTarget(gameObject);
-            Debug.Log("[PlayerOver] 카메라 타겟이 플레이어로 재설정됨");
+            cameraFollow.SetTarget(gameObject);
+            Debug.Log("[PlayerOver] 카메라 타겟: Player");
         }
+
         isDisabled = false;
     }
 
-    // 키 입력 후, 정상 플레이 재개
     public void ResumeAfterRewind()
     {
         isDisabled = false;
@@ -152,19 +173,24 @@ public void DisablePlayer()
         if (player != null)
         {
             player.ignoreInput = false;
-            Debug.Log("[PlayerOver] 플레이어 입력 복원");
+            Debug.Log("[PlayerOver] 입력 복원");
         }
-        Princess princessScript = princess.GetComponent<Princess>();
-        if (princessScript != null)
+
+        // 공주 컨트롤 플래그 해제
+        if (princess != null)
         {
-            princessScript.isControlled = false;
-            Debug.Log("[PlayerOver] 공주 조종 플래그 해제");
+            var ps = princess.GetComponent<Princess>();
+            if (ps != null)
+            {
+                ps.isControlled = false;
+                Debug.Log("[PlayerOver] Princess 컨트롤 해제");
+            }
         }
     }
-public void ForceSetHealth(int value)
-{
-    currentHealth = Mathf.Clamp(value, 0, maxHealth);
-    UpdateHealthBar(currentHealth);
-}
 
+    public void ForceSetHealth(int value)
+    {
+        currentHealth = Mathf.Clamp(value, 0, maxHealth);
+        UpdateHealthBar(currentHealth);
+    }
 }

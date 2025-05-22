@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Unity.Cinemachine;  // Cinemachine 3.x namespace
+using Unity.Cinemachine;
+using System.Collections;  // Cinemachine 3.x namespace
 
 /// <summary>
 /// 씬 로드·Awake 시 자동으로 "Player" 태그 객체를 Follow / LookAt 으로 지정합니다.
@@ -50,18 +51,38 @@ public class CinemachineAutoTarget : MonoBehaviour
         }
     }
 
-    public static void SetCinemachineTarget(GameObject target)
+public static void SetCinemachineTarget(GameObject target)
+{
+    if (target == null) return;
+
+    CinemachineCamera cam = Object.FindFirstObjectByType<CinemachineCamera>();
+    if (cam != null)
     {
-        CinemachineCamera cam = Object.FindFirstObjectByType<CinemachineCamera>();
-        if (cam != null && target != null)
-        {
-            cam.Follow = target.transform;
-            cam.LookAt = target.transform;
-            Debug.Log("[CinemachineHelper] 카메라 타겟을 " + target.name + " 으로 변경");
-        }
-        else
-        {
-            Debug.LogWarning("[CinemachineHelper] 타겟 지정 실패");
-        }
+        cam.Follow = target.transform;
+        cam.LookAt = target.transform;
+        Debug.Log("[CinemachineHelper] 카메라 타겟을 " + target.name + " 으로 변경");
     }
+    else
+    {
+        // 시점 늦게 초기화되는 경우를 대비해 재시도
+        Object.FindFirstObjectByType<MonoBehaviour>().StartCoroutine(RetrySetTarget(target));
+    }
+}
+
+private static IEnumerator RetrySetTarget(GameObject target)
+{
+    yield return new WaitForSeconds(0.1f); // 1 프레임 대기
+    CinemachineCamera cam = Object.FindFirstObjectByType<CinemachineCamera>();
+    if (cam != null)
+    {
+        cam.Follow = target.transform;
+        cam.LookAt = target.transform;
+        Debug.Log("[Retry] 카메라 타겟 재설정 성공: " + target.name);
+    }
+    else
+    {
+        Debug.LogWarning("[Retry] 카메라 타겟 재설정 실패");
+    }
+}
+
 }
