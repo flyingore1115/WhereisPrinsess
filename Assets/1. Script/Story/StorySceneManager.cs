@@ -328,6 +328,10 @@ public class StorySceneManager : MonoBehaviour
         Player.Instance.attack.enabled = false;
         StoryCanvasManager.Instance.TutorialText.enabled = true;
 
+        cameraFollow.EnableStoryMode(false);
+        cameraFollow.SetCameraSize(cameraFollow.defaultSize);
+        cameraFollow.SetTarget(Player.Instance.gameObject);
+
         lady.StartThrowing();
         yield return new WaitForSeconds(0.3f);
 

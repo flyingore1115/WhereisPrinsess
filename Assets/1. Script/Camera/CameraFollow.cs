@@ -26,6 +26,7 @@ public class CameraFollow : MonoBehaviour
 
     [Header("Follow Offset")]
     public Vector3 followOffset = new Vector3(-2f, 1f, 0f);
+    public Vector3 storyModeOffset = new Vector3(-2f, 0f, 0f);
 
     private Camera cam;
     private Transform currentTarget;
@@ -89,7 +90,9 @@ void Update()
         if (currentTarget == null) return;
 
         // 기존 target 위치 대신 offset을 더한 위치 사용
-        Vector3 tgt = currentTarget.position + followOffset;
+        Vector3 offset = storyMode ? storyModeOffset : followOffset;
+        Vector3 tgt = currentTarget.position + offset;
+
         tgt.z = transform.position.z;
 
         if (!storyMode && immediateFollowInGame)

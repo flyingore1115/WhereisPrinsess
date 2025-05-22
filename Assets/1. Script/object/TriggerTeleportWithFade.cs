@@ -26,6 +26,7 @@ public class TriggerTeleportWithFade : MonoBehaviour
     {
         if (isPlayerInside && !isTeleporting && Input.GetKeyDown(KeyCode.E))
         {
+            
             StartCoroutine(TeleportWithFade());
         }
     }
@@ -57,6 +58,7 @@ private IEnumerator TeleportWithFade()
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("플레이어 감지함");
             isPlayerInside = true;
             icon.Show();
         }

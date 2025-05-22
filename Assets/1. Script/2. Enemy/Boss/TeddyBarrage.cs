@@ -21,7 +21,7 @@ public class TeddyBarrage : MonoBehaviour, ITimeAffectable
     [Header("Explosion Effect")]
     public GameObject explosionEffectPrefab; // 탄막 파괴 시 폭발 이펙트 (Inspector에 할당)
 
-    
+    private float currentLifetime;
     
 
     private GameObject continuousEffectInstance; // 생성된 지속 이펙트 인스턴스
@@ -40,9 +40,8 @@ public class TeddyBarrage : MonoBehaviour, ITimeAffectable
                 StopTime();
             }
         }
-        
-        // 탄막 수명 후 자동 제거
-        Destroy(gameObject, lifetime);
+
+        currentLifetime = lifetime;
         
         // 발사 효과 실행 (한번만 실행)
         if (fireEffectPrefab != null)
@@ -57,6 +56,19 @@ public class TeddyBarrage : MonoBehaviour, ITimeAffectable
             continuousEffectInstance = Instantiate(continuousEffectPrefab, transform.position, Quaternion.identity, transform);
         }
     }
+
+    void Update()
+{
+    if (isTimeStopped) return;
+
+    currentLifetime -= Time.deltaTime;
+    if (currentLifetime <= 0f)
+    {
+        SpawnExplosionEffect();
+        Destroy(gameObject);
+    }
+}
+
 
     /// <summary>
     /// 탄막 발사 방향 설정
