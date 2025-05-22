@@ -47,6 +47,8 @@ public class GameOverManager : MonoBehaviour
         FindTimeAffectedObjects();
         foreach (var obj in timeAffectedObjects)
         {
+            if (obj is Princess) 
+                continue;
             obj.StopTime();
         }
         PostProcessingManager.Instance.ApplyGameOver();
@@ -138,12 +140,12 @@ public class GameOverManager : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = elapsed / duration;
-            cam.transform.position = Vector3.Lerp(startPos, new Vector3(targetPos.x, targetPos.y, startPos.z), t);
-            cam.orthographicSize = Mathf.Lerp(startSize, targetSize, t);
+            CameraFollow.Instance.transform.position = Vector3.Lerp(startPos, new Vector3(targetPos.x, targetPos.y, startPos.z), t);
+            CameraFollow.Instance.SetCameraSize(Mathf.Lerp(startSize, targetSize, t));
             yield return null;
         }
-        cam.transform.position = new Vector3(targetPos.x, targetPos.y, startPos.z);
-        cam.orthographicSize = targetSize;
+        CameraFollow.Instance.transform.position = new Vector3(targetPos.x, targetPos.y, startPos.z);
+        CameraFollow.Instance.SetCameraSize(targetSize);
     }
 
     void FindTimeAffectedObjects()

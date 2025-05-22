@@ -167,6 +167,7 @@ void FixedUpdate()
                 // 지정된 멈춤 지점에 닿으면 정지
                 isStopped = true;
                 rb.linearVelocity = Vector2.zero;
+                CanvasManager.Instance.timeStopSlider.gameObject.SetActive(false);
             }
         }
     }

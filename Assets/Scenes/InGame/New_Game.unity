@@ -893,6 +893,7 @@ MonoBehaviour:
   followSmooth: 5
   immediateFollowInGame: 1
   defaultSize: 5
+  followOffset: {x: -2, y: 1, z: 0}
 --- !u!114 &519420036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1824,6 +1825,10 @@ PrefabInstance:
     - target: {fileID: 2737549752632554845, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
       propertyPath: m_Name
       value: StoryCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 2737549752632554845, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6198334130714757513, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
       propertyPath: m_Pivot.x

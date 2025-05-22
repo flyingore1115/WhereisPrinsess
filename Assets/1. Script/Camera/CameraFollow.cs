@@ -24,9 +24,14 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("평상시 카메라 크기")]
     public float defaultSize = 5f;
 
+    [Header("Follow Offset")]
+    public Vector3 followOffset = new Vector3(-2f, 1f, 0f);
+
     private Camera cam;
     private Transform currentTarget;
     private bool storyMode = false;
+
+    public float GetCurrentSize() => cam.orthographicSize;
 
     void Awake()
     {
@@ -42,7 +47,7 @@ public class CameraFollow : MonoBehaviour
         }
 
         cam = GetComponent<Camera>();
-        cam.orthographicSize = defaultSize;
+        SetCameraSize(defaultSize);
 
         if (defaultTarget != null)
             currentTarget = defaultTarget.transform;
@@ -83,22 +88,14 @@ void Update()
     {
         if (currentTarget == null) return;
 
-        Vector3 tgt = currentTarget.position;
+        // 기존 target 위치 대신 offset을 더한 위치 사용
+        Vector3 tgt = currentTarget.position + followOffset;
         tgt.z = transform.position.z;
 
         if (!storyMode && immediateFollowInGame)
-        {
-            // 게임 플레이 모드: 즉시 위치 동기화 (블러/모션블러 방지)
             transform.position = tgt;
-        }
         else
-        {
-            // 스토리/다이얼로그 모드: 부드럽게 보간
-            transform.position = Vector3.Lerp(
-                transform.position,
-                tgt,
-                Time.deltaTime * followSmooth);
-        }
+            transform.position = Vector3.Lerp(transform.position, tgt, Time.deltaTime * followSmooth);
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -114,44 +111,44 @@ void Update()
         // StoryMode 해제 시 플레이어로 자동 복귀
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         currentTarget = playerObj ? playerObj.transform : null;
-        cam.orthographicSize = defaultSize;
+        SetCameraSize(defaultSize);
     }
-
-    /// <summary>
-    /// 임시로 카메라 타깃을 지정 (GameObject 버전)
-    /// </summary>
-    public void SetTarget(GameObject go, float? newSize = null)
+    //게임오브젝트 버전
+   public void SetTarget(GameObject go, float? newSize = null, bool forceDefaultSize = false)
     {
         if (go == null) return;
-        SetTarget(go.transform, newSize);
+        SetTarget(go.transform, newSize, forceDefaultSize);
     }
-
-    /// <summary>
-    /// 임시로 카메라 타깃을 지정 (Transform 버전)
-    /// </summary>
-    public void SetTarget(Transform target, float? newSize = null)
+    //트랜스폼 버전
+    public void SetTarget(Transform target, float? newSize = null, bool forceDefaultSize = false)
     {
         if (target == null) return;
         currentTarget = target;
-         cam.orthographicSize = newSize.HasValue ? newSize.Value : defaultSize;
+
+        if (forceDefaultSize || !newSize.HasValue)
+            SetCameraSize(defaultSize);
+        else
+            cam.orthographicSize = newSize.Value;
     }
+
 
     /// <summary>
     /// StoryMode on/off 설정
     /// </summary>
-    public void EnableStoryMode(bool enable)
+public void EnableStoryMode(bool enable, bool keepSize = false)
+{
+    storyMode = enable;
+    if (enable && defaultTarget != null)
+        currentTarget = defaultTarget.transform;
+    else if (!enable)
     {
-        storyMode = enable;
-        if (enable && defaultTarget != null)
-            currentTarget = defaultTarget.transform;
-        else if (!enable)
-        {
-            // 다이얼로그 종료 시 자동 복귀
-            GameObject p = GameObject.FindGameObjectWithTag("Player");
-            currentTarget = p ? p.transform : null;
-            cam.orthographicSize = defaultSize;
-        }
+        GameObject p = GameObject.FindGameObjectWithTag("Player");
+        currentTarget = p ? p.transform : null;
+        if (!keepSize)                       
+            SetCameraSize(defaultSize);
     }
+}
+
 
     /// <summary>
     /// 즉시 카메라 크기만 변경

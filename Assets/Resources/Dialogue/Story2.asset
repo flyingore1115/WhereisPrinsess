@@ -24,6 +24,11 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: ShootingTutorial
+  - type: 0
+    characterName: 
+    dialogueText: "\uC544\uC2AC\uC544\uC2AC\uD588\uC5B4"
+    options: []
+    actionKey: 
   - type: 2
     characterName: 
     dialogueText: 

@@ -105,8 +105,9 @@ public class P_Shooting : MonoBehaviour
         if (bulletUI != null)
     {
         bulletUI.SetActive(true);
+        UpdateAmmoUI();
         if (hideBulletUICoroutine != null)
-            StopCoroutine(hideBulletUICoroutine);
+                StopCoroutine(hideBulletUICoroutine);
         hideBulletUICoroutine = StartCoroutine(HideBulletUIAfterDelay());
     }
     }
@@ -148,6 +149,7 @@ public class P_Shooting : MonoBehaviour
         if (bulletUI != null)
         {
             bulletUI.SetActive(true);
+            UpdateAmmoUI();
             if (hideBulletUICoroutine != null)
             {
                 StopCoroutine(hideBulletUICoroutine);

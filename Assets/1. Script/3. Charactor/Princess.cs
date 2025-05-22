@@ -210,22 +210,31 @@ private string _prevAnimState; //손잡기 애니
 
         if (animator != null)
         {
-            animator.speed = 1f; // 애니메이션 정지되어 있으면 풀어주고
+            animator.speed = 1f;
+            animator.ResetTrigger("isRun");
             animator.SetTrigger("isDie");
             Debug.Log("공주 사망 애니메이션 실행됨");
         }
 
-        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
-        if (gameOverManager != null)
-        {
-            gameOverManager.TriggerGameOver();
-        }
-        else
-        {
-            Debug.LogError("GameOverManager를 찾을 수 없습니다!");
-        }
+        // 코루틴으로 시간 딜레이 후 트리거
+        StartCoroutine(DelayedGameOverTrigger());
     }
 
+    private IEnumerator DelayedGameOverTrigger()
+{
+    // 한 프레임 혹은 0.1초 정도 대기
+    yield return new WaitForSecondsRealtime(0.1f);
+
+    GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
+    if (gameOverManager != null)
+    {
+        gameOverManager.TriggerGameOver();
+    }
+    else
+    {
+        Debug.LogError("GameOverManager를 찾을 수 없습니다!");
+    }
+}
 
     private IEnumerator CoRewindThenCheckpoint()
     {
@@ -265,21 +274,6 @@ private string _prevAnimState; //손잡기 애니
         rb.linearVelocity = Vector2.zero;
         Time.timeScale = 1f;
         TimePointManager.Instance.RewindToCheckpoint();
-    }
-
-    private void TriggerGameOverSequence()
-    {
-        isGameOver = true;
-        if (animator != null)
-        {
-            animator.SetTrigger("isDie");
-        }
-        Debug.Log("Game Over");
-        GameOverManager gameOverManager = FindFirstObjectByType<GameOverManager>();
-        if (gameOverManager != null)
-        {
-            //StartCoroutine(gameOverManager.TriggerGameOverAfterAnimation(animator, this));
-        }
     }
 
     private bool CheckGrounded()

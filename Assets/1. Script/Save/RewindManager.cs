@@ -184,6 +184,7 @@ public class RewindManager : MonoBehaviour
 
         if (!isRewinding)
         {
+            GameManager.Instance.rewindCount++;
             int n = Mathf.Min(Mathf.RoundToInt(recordTime / snapshotInterval), snapshots.Count);
             if (n > 0)
             {

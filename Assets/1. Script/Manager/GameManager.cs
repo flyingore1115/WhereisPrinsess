@@ -7,7 +7,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public static TimePointData LoadedCheckpoint;
 
-    
+    public int rewindCount = 0;
+    public float totalPlayTime = 0f;
 
     void Awake()
     {
@@ -22,12 +23,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void Update()
+    {
+         if (!MySceneManager.IsStoryScene)
+            totalPlayTime += Time.unscaledDeltaTime;
+    }
+
     public void NewGame()
     {
         // 1) 체크포인트 파일 삭제 및 이전 체크포인트 데이터 클리어
 
         Debug.Log("[GameInitializer] Start, hasCheckpoint=" + TimePointManager.Instance.HasCheckpoint());
-        
+
         SaveLoadManager.DeleteCheckpoint();
         LoadedCheckpoint = null;
         TimePointManager.Instance.SetCheckpointData(null);

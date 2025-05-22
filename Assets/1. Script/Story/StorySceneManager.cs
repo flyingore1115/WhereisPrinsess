@@ -50,19 +50,20 @@ public class StorySceneManager : MonoBehaviour
     private Dictionary<string, Func<IEnumerator>> actionMap;
 
     private bool isDialogueActive = false;
+
     public bool IsDialogueActive => isDialogueActive;
 
     private Coroutine dialogueCoroutine;
 
     void OnEnable()
-   {
-       UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-   }
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
-   void OnDisable()
-   {
-       UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-   }
+    void OnDisable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
 
     void Awake()
     {
@@ -98,7 +99,7 @@ public class StorySceneManager : MonoBehaviour
         if (StoryCanvasManager.Instance != null && StoryCanvasManager.Instance.DialogueContainer != null)
         {
             panelVisiblePos = StoryCanvasManager.Instance.DialogueContainer.anchoredPosition;
-            panelHiddenPos  = new Vector2(panelVisiblePos.x, -450f);
+            panelHiddenPos = new Vector2(panelVisiblePos.x, -450f);
             StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
         }
         else
@@ -111,7 +112,7 @@ public class StorySceneManager : MonoBehaviour
 
     void Start()
     {
-        
+
         StoryCanvasManager.Instance.DialoguePanel?.SetActive(false);
         StoryCanvasManager.Instance.ChoicePanel?.SetActive(false);
         StoryCanvasManager.Instance.TutorialText.enabled = false;
@@ -142,25 +143,25 @@ public class StorySceneManager : MonoBehaviour
 
     private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
                               UnityEngine.SceneManagement.LoadSceneMode mode)
-   {
-       // 1) 캔버스 위치 재초기화
-       if (StoryCanvasManager.Instance != null &&
-           StoryCanvasManager.Instance.DialogueContainer != null)
-       {
-           StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
-       }
+    {
+        // 1) 캔버스 위치 재초기화
+        if (StoryCanvasManager.Instance != null &&
+            StoryCanvasManager.Instance.DialogueContainer != null)
+        {
+            StoryCanvasManager.Instance.DialogueContainer.anchoredPosition = panelHiddenPos;
+        }
 
-       // 2) 씬 내 IntroDialogueMarker 찾기
-       IntroDialogueMarker marker = FindFirstObjectByType<IntroDialogueMarker>();
-       if (marker != null && !string.IsNullOrEmpty(marker.triggerID))
-       {
-           // 만약 대화가 진행중이면 먼저 종료
-           if (isDialogueActive) StopAllCoroutines();
-           isDialogueActive = false;
+        // 2) 씬 내 IntroDialogueMarker 찾기
+        IntroDialogueMarker marker = FindFirstObjectByType<IntroDialogueMarker>();
+        if (marker != null && !string.IsNullOrEmpty(marker.triggerID))
+        {
+            // 만약 대화가 진행중이면 먼저 종료
+            if (isDialogueActive) StopAllCoroutines();
+            isDialogueActive = false;
 
-           StartDialogueForTrigger(marker.triggerID);
-       }
-   }
+            StartDialogueForTrigger(marker.triggerID);
+        }
+    }
 
     private IEnumerator BeginIntroNextFrame(string triggerID)
     {
@@ -361,134 +362,154 @@ public class StorySceneManager : MonoBehaviour
         lady.transform.position += Vector3.right * 5f;
     }
 
-    public IEnumerator HallwayTutorial()
+    public IEnumerator HallwayTutorial()//복도튜토
     {
+        // 메인캔버스 전체 끄기
+        CanvasManager.Instance.SetGameUIActive(false);
+        // 타임 게이지만 켜기
+        CanvasManager.Instance.timeStopSlider.gameObject.SetActive(true);
         lady.ResumeAutoRun();
         TimeStopController.Instance.SetInputBlocked(false);
+
         yield return null;
+
+        //lady.cs에서 스탑태그 닿으면 캔버스 끄게함
     }
 
-    public IEnumerator ShootingTutorial()
-{
-    StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
-    StoryCanvasManager.Instance.TutorialText.enabled = true;
-    Player pl = Player.Instance;
-    pl.ignoreInput = true;
-
-    BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
-    Transform target = enemy.transform;
-
-    // 0) 재장전부터 강제
-    if (CanvasManager.Instance != null)
+    private IEnumerator GrabTutorial()//잡기튜토
     {
-        // 모든 게임 UI 끔
+        //다음이 사격이니까 굳이 끄지 않음
+
+        //메인캔버스 끄고 타임게이지랑 총알만
         CanvasManager.Instance.SetGameUIActive(false);
-        // 총알 텍스트만 활성화
-        CanvasManager.Instance.bulletText.gameObject.SetActive(true);          // 탄 UI 켜기
-    }
-    pl.shooting.SetTutorialMode(true);                      // 입력 해제 방지
-    pl.shooting.currentAmmo = 0;
-    pl.shooting.UpdateAmmoUI();
-    
-    //일반공격 X
-    Player.Instance.attack.enabled = false;
-    StoryCanvasManager.Instance.TutorialText.text = "우클릭으로 재장전하세요!";
-    pl.ignoreInput = true;
 
-    // 튜토리얼 코드에서만 재장전 처리
-    while (pl.shooting.currentAmmo < pl.shooting.maxAmmo)
-    {
-        if (Input.GetMouseButtonDown(1))
-            pl.shooting.HandleShooting(); // 재장전
-        yield return null;
-    }
-
-    // 1) 각도 제한 켜고 사격 유도
-    pl.shooting.EnableAngleLimit(target, 15f);
-    StoryCanvasManager.Instance.TutorialText.text = "적을 향해 사격하세요!";
+        CanvasManager.Instance.timeStopSlider.gameObject.SetActive(true);
+        CanvasManager.Instance.bulletUI.SetActive(true);
 
 
-    while (enemy != null && !enemy.isDead)
-    {
-        if (Input.GetMouseButtonDown(0))
-            pl.shooting.HandleShooting(); // 사격
-        yield return null;
-    }
-
-    // 2) 해제 및 종료
-    pl.shooting.DisableAngleLimit();
-
-    pl.shooting.SetTutorialMode(false);                     // 입력 제한 복구
-    Player.Instance.attack.enabled = true;
-
-    StoryCanvasManager.Instance.TutorialText.enabled = false;
-    // 게임 UI 다시 숨김하고 총알 텍스트도 끄기
-    if (CanvasManager.Instance != null)
-    {
-        CanvasManager.Instance.bulletText.gameObject.SetActive(false);
-        CanvasManager.Instance.SetGameUIActive(false);
-    }
-    pl.ignoreInput = false;
-    StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
-}
+        // Grab 튜토 시작 직후: 스토리 모드 해제 → 인게임 모드로 전환
+        cameraFollow.EnableStoryMode(false);
+        cameraFollow.SetCameraSize(cameraFollow.defaultSize);
+        cameraFollow.SetTarget(Player.Instance.gameObject);
+        // (optional) 즉시 따라오도록
+        cameraFollow.immediateFollowInGame = true;
 
 
-    // ─────────────────────────────
-private IEnumerator GrabTutorial()
-{
-    cameraFollow.enabled = true; // ★ 꺼졌던 컴포넌트 다시 켜기
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
+        StoryCanvasManager.Instance.TutorialText.enabled = true;
 
-    StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
-    StoryCanvasManager.Instance.TutorialText.enabled = true;
+        // 0) 세팅
+        Player pl = Player.Instance;
+        pl.ignoreInput = true;
+        pl.attack.enabled = false;
+        pl.shooting.enabled = false;
 
-    // 0) 세팅
-    Player pl = Player.Instance;
-    pl.ignoreInput      = true;
-    pl.attack.enabled   = false;
-    pl.shooting.enabled = false;
+        // 1) 적 투척(연출용) + 시간정지
+        //나중에 애니
+        yield return new WaitForSeconds(0.5f);
+        StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 멈추세요!";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        TimeStopController.Instance.StopTime();
 
-    // 1) 적 투척(연출용) + 시간정지
-    //나중에 애니
-    yield return new WaitForSeconds(0.5f);
-    StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 멈추세요!";
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
-    TimeStopController.Instance.StopTime();
+        // 2) 공주 선택
+        StoryCanvasManager.Instance.TutorialText.text = "Ctrl + 좌클릭으로 공주를 잡으세요.";
+        pl.ignoreInput = false;                   // Ctrl 입력 허용
+        yield return new WaitUntil(() => pl.holdingPrincess);
 
-    // 2) 공주 선택
-    StoryCanvasManager.Instance.TutorialText.text = "Ctrl + 좌클릭으로 공주를 잡으세요.";
-    pl.ignoreInput = false;                   // Ctrl 입력 허용
-    yield return new WaitUntil(() => pl.holdingPrincess);
+        // 3) 지정 위치로 이동
+        Transform safe = GameObject.FindWithTag("GrabPoint").transform;
+        StoryCanvasManager.Instance.TutorialText.text = "공주를 끌고 표시된 위치로 이동하세요.";
+        yield return new WaitUntil(() =>
+            Vector2.Distance(Princess.Instance.transform.position, safe.position) < 0.3f);
 
-    // 3) 지정 위치로 이동
-    Transform safe = GameObject.FindWithTag("GrabPoint").transform;
-    StoryCanvasManager.Instance.TutorialText.text = "공주를 끌고 표시된 위치로 이동하세요.";
-    yield return new WaitUntil(() =>
-        Vector2.Distance(Princess.Instance.transform.position, safe.position) < 0.3f);
-
-    // 4) 시간 해제 안내
-    //StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
-    bool resumed = false;
-    while (!resumed)
-    {
-        // GrabPoint 안에 있을 때만 해제 가능
-        if (StorySceneManager.Instance.IsInsideGrabPoint &&
-            Input.GetKeyDown(KeyCode.Space))
+        // 4) 시간 해제 안내
+        //StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
+        bool resumed = false;
+        while (!resumed)
         {
-            TimeStopController.Instance.ResumeTime();
-            resumed = true;
+            // GrabPoint 안에 있을 때만 해제 가능
+            if (StorySceneManager.Instance.IsInsideGrabPoint &&
+                Input.GetKeyDown(KeyCode.Space))
+            {
+                TimeStopController.Instance.ResumeTime();
+                resumed = true;
+            }
+            yield return null;
         }
-        yield return null;
-    }
 
-    // 5) 마무리
-    StoryCanvasManager.Instance.TutorialText.enabled = false;
-    pl.attack.enabled   = true;
-    pl.shooting.enabled = true;
-    StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
-}
+        // 5) 마무리
+        StoryCanvasManager.Instance.TutorialText.enabled = false;
+        pl.attack.enabled = true;
+        pl.shooting.enabled = true;
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+    }
 
 
     // ─────────────────────────────────────────
+
+    public IEnumerator ShootingTutorial() //사격튜토 
+    {
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
+        StoryCanvasManager.Instance.TutorialText.enabled = true;
+
+
+
+        Player pl = Player.Instance;
+        pl.ignoreInput = true;
+
+        BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
+        Transform target = enemy.transform;
+
+        // 0) 재장전부터 강제
+        pl.shooting.SetTutorialMode(true);                      // 입력 해제 방지
+        pl.shooting.currentAmmo = 0;
+        pl.shooting.UpdateAmmoUI();
+
+        //일반공격 X
+        Player.Instance.attack.enabled = false;
+        StoryCanvasManager.Instance.TutorialText.text = "우클릭으로 재장전하세요!";
+        pl.ignoreInput = true;
+
+        // 튜토리얼 코드에서만 재장전 처리
+        while (pl.shooting.currentAmmo < pl.shooting.maxAmmo)
+        {
+            if (Input.GetMouseButtonDown(1))
+                pl.shooting.HandleShooting(); // 재장전
+            yield return null;
+        }
+
+        // 1) 각도 제한 켜고 사격 유도
+        pl.shooting.EnableAngleLimit(target, 15f);
+        StoryCanvasManager.Instance.TutorialText.text = "적을 향해 사격하세요!";
+
+
+        while (enemy != null && !enemy.isDead)
+        {
+            if (Input.GetMouseButtonDown(0))
+                pl.shooting.HandleShooting(); // 사격
+            yield return null;
+        }
+
+        // 2) 해제 및 종료
+        pl.shooting.DisableAngleLimit();
+
+        pl.shooting.SetTutorialMode(false);                     // 입력 제한 복구
+        Player.Instance.attack.enabled = true;
+
+        StoryCanvasManager.Instance.TutorialText.enabled = false;
+        pl.ignoreInput = false;
+        StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
+
+        //수동끄기
+        CanvasManager.Instance.timeStopSlider.gameObject.SetActive(false);
+        CanvasManager.Instance.bulletUI.SetActive(false);
+        CanvasManager.Instance.SetGameUIActive(false);
+
+    }
+
+
+    // ─────────────────────────────
+    
     public void ShowTutorialMessage(string message)
     {
         StoryCanvasManager.Instance.TutorialText.text = message;
@@ -529,10 +550,10 @@ private IEnumerator GrabTutorial()
         // 2) CameraFollow 켜고 스토리 모드 활성
         cameraFollow.enabled = true;
         cameraFollow.EnableStoryMode(true);
-        cameraFollow.SetTarget(target);
+        cameraFollow.SetTarget(target, dialogueCameraSize);
         yield return new WaitForSeconds(waitTime);
         // 3) 원상 복구
-        cameraFollow.EnableStoryMode(false);
+        cameraFollow.EnableStoryMode(false, keepSize: true);
         cameraFollow.enabled = false;
         if (vcam != null) vcam.enabled = true;
     }
@@ -540,15 +561,15 @@ private IEnumerator GrabTutorial()
     private IEnumerator SmoothZoomCamera(float targetSize, float duration)
     {
         if (cameraFollow == null) yield break;
-        var cam = cameraFollow.GetComponent<Camera>();
-        if (cam == null) yield break;
 
-        float start = cam.orthographicSize;
+
+        float start = cameraFollow.GetCurrentSize();
         float t = 0f;
         while (t < duration)
         {
             t += Time.deltaTime;
-            cameraFollow.SetCameraSize(Mathf.Lerp(start, targetSize, t / duration));
+            float interpolatedSize = Mathf.Lerp(start, targetSize, t / duration);
+            cameraFollow.SetCameraSize(interpolatedSize);
             yield return null;
         }
         cameraFollow.SetCameraSize(targetSize);
@@ -566,12 +587,13 @@ private IEnumerator GrabTutorial()
 
         Player.Instance.ignoreInput = false;
         if (cameraFollow == null)
-        {cameraFollow = FindFirstObjectByType<CameraFollow>();}
+        { cameraFollow = FindFirstObjectByType<CameraFollow>(); }
         StartCoroutine(SmoothZoomCamera(cameraFollow.defaultSize, cameraZoomDuration));
         cameraFollow.EnableStoryMode(false);
         cameraFollow.enabled = true; // ★ 꺼졌던 컴포넌트 다시 켜기
-        cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"));
-        CanvasManager.Instance?.SetGameUIActive(true);
+        cameraFollow.SetTarget(GameObject.FindGameObjectWithTag("Player"), null, true);
+        if (!MySceneManager.IsStoryScene)
+            CanvasManager.Instance?.SetGameUIActive(true);
 
         isDialogueActive = false;
         skipEnabled = false;
@@ -636,8 +658,8 @@ private IEnumerator GrabTutorial()
         }
     }
     private IEnumerator LoadNextScene()
-{
-    yield return new WaitForSeconds(0.3f); // 연출 텀
-    MySceneManager.Instance.LoadNextScene();
-}
+    {
+        yield return new WaitForSeconds(0.3f); // 연출 텀
+        MySceneManager.Instance.LoadNextScene();
+    }
 }
