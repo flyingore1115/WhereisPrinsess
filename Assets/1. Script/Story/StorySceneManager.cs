@@ -38,6 +38,10 @@ public class StorySceneManager : MonoBehaviour
     private Vector2 panelVisiblePos;
     private Vector2 panelHiddenPos;
 
+    [Header("튜토리얼 완료 상태")]
+public bool isAttackTutorialComplete = false;
+
+
     //손잡기 튜토용
 
     private bool isInsideGrabPoint = false;
@@ -321,7 +325,7 @@ public class StorySceneManager : MonoBehaviour
     }
 
     // ─────────────────────────────────────────
-    private IEnumerator AttackTutorial()
+    private IEnumerator AttackTutorial() //공격
     {
         StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
         Player.Instance.ignoreInput = true;
@@ -354,6 +358,8 @@ public class StorySceneManager : MonoBehaviour
         Player.Instance.attack.enabled = false;
         Player.Instance.ignoreInput = false;
         StoryCanvasManager.Instance.TutorialText.enabled = false;
+
+        isAttackTutorialComplete = true;
 
         StoryCanvasManager.Instance.DialoguePanel.SetActive(true);
         yield return null;

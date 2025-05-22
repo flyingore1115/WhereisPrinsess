@@ -1,8 +1,12 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(InteractionIcon))]
+
 public class Lever : MonoBehaviour
 {
+    InteractionIcon icon;
+    
     [Tooltip("이 레버가 제어하는 오브젝트")]
     public MovingPlatform connectedPlatform;
 
@@ -18,15 +22,43 @@ public class Lever : MonoBehaviour
     private bool isActivated = false; // 레버 상태
     private Coroutine rotationCoroutine;
 
+    private bool isPlayerInRange = false;
+
     void Start()
     {
         // 레버를 기본 상태로 설정
         transform.localRotation = Quaternion.Euler(0, 0, deactivatedAngle);
     }
 
-    void OnMouseDown()
+    void Awake()
     {
-        ToggleLever();
+        icon = GetComponent<InteractionIcon>();
+    }
+
+    void Update()
+    {
+        if (isPlayerInRange && Input.GetKeyDown(KeyCode.E))
+        {
+            ToggleLever();
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerInRange = true;
+            icon?.Show();
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerInRange = false;
+            icon?.Hide();
+        }
     }
 
     void ToggleLever()

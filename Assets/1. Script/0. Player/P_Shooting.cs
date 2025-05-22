@@ -175,7 +175,6 @@ public class P_Shooting : MonoBehaviour
         if (bulletUI != null)
         {
             bulletUI.SetActive(false);
-            Debug.Log("불렛UI 비활성화함+++++++++++++++++++++");
         }
     }
 

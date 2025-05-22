@@ -681,6 +681,7 @@ MonoBehaviour:
   immediateFollowInGame: 1
   defaultSize: 5
   followOffset: {x: -2, y: 1, z: 0}
+  storyModeOffset: {x: -2, y: 0, z: 0}
 --- !u!114 &519420036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1214,7 +1215,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 10.032848
+      value: 5.63
       objectReference: {fileID: 0}
     - target: {fileID: 8749589993480530636, guid: 73e33bf6061085240a1c6395f57a3b6b, type: 3}
       propertyPath: m_LocalPosition.y

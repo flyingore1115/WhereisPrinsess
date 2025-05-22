@@ -12,6 +12,8 @@ TagManager:
   - TutorialTarget
   - LadyStop
   - GrabPoint
+  - Spike
+  - Lever
   layers:
   - Default
   - TransparentFX

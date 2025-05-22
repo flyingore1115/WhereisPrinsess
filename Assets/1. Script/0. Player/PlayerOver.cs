@@ -39,6 +39,15 @@ public class PlayerOver : MonoBehaviour
         player = GetComponent<Player>();
     }
 
+    void Update()
+    {
+        // 체력이 0 이하이면 플레이어 비활성화 처리
+        if (currentHealth <= 0)
+        {
+            DisablePlayer();
+        }
+    }
+
     // 체력바를 부드럽게 업데이트하는 코루틴 (duration은 조절 가능)
     private IEnumerator LerpHealthBar(int fromHealth, int toHealth, float duration)
     {
@@ -82,30 +91,35 @@ public class PlayerOver : MonoBehaviour
         healthLerpCoroutine = StartCoroutine(LerpHealthBar(currentHealth, newHealth, 0.5f));
         currentHealth = newHealth;
 
-        // 체력이 0 이하이면 플레이어 비활성화 처리
-        if (currentHealth <= 0)
-        {
-            DisablePlayer();
-        }
+        
     }
 
-    public void DisablePlayer()
+public void DisablePlayer()
+{
+    if (isDisabled) return;
+    Debug.Log("플레이어 행동불능!");
+    isDisabled = true;
+
+    rb.linearVelocity = Vector2.zero;
+
+    if (player != null)
     {
-        if (isDisabled) return;
-        isDisabled = true;
-        rb.linearVelocity = Vector2.zero;
-        if (player != null)
-        {
-            player.ignoreInput = true;
-            Debug.Log("[PlayerOver] Player input ignored.");
-        }
-        // 카메라 타겟을 공주로 전환
-        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
-        if (cf != null && princess != null)
-        {
-            cf.SetTarget(princess.gameObject);
-        }
+        player.ignoreInput = true;
+        Debug.Log("[PlayerOver] Player input ignored.");
     }
+
+    // 📌 상태 메시지 출력
+    StatusTextManager stm = FindFirstObjectByType<StatusTextManager>();
+    if (stm != null)
+    {
+        stm.ShowMessage("플레이어가 행동불능 상태가 되었습니다!");
+    }
+
+    // 📌 카메라 타겟을 공주로 전환
+    CinemachineAutoTarget.SetCinemachineTarget(princess.gameObject);
+
+}
+
 
     // 부활 시 호출 – 플레이어 위치, 체력 복원, 카메라 재설정
     public void OnRewindComplete(Vector2 restoredPosition)

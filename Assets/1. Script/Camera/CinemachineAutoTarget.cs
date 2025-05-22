@@ -49,4 +49,19 @@ public class CinemachineAutoTarget : MonoBehaviour
             Debug.LogWarning("[CinemachineAutoTarget] Player 태그 오브젝트를 찾을 수 없습니다.");
         }
     }
+
+    public static void SetCinemachineTarget(GameObject target)
+    {
+        CinemachineCamera cam = Object.FindFirstObjectByType<CinemachineCamera>();
+        if (cam != null && target != null)
+        {
+            cam.Follow = target.transform;
+            cam.LookAt = target.transform;
+            Debug.Log("[CinemachineHelper] 카메라 타겟을 " + target.name + " 으로 변경");
+        }
+        else
+        {
+            Debug.LogWarning("[CinemachineHelper] 타겟 지정 실패");
+        }
+    }
 }
