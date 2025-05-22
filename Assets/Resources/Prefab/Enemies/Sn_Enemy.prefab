@@ -73,8 +73,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -18605577
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 0.74509805}
@@ -275,10 +275,11 @@ GameObject:
   m_Component:
   - component: {fileID: 7339816906877541190}
   - component: {fileID: 391425832482392828}
-  - component: {fileID: 8471337925311121681}
   - component: {fileID: 754000851618715653}
   - component: {fileID: 3164661927164855113}
-  - component: {fileID: 1138203583255423748}
+  - component: {fileID: 6501710255548376206}
+  - component: {fileID: 6032944521282732439}
+  - component: {fileID: 3461082542516146030}
   m_Layer: 0
   m_Name: Sn_Enemy
   m_TagString: Enemy
@@ -358,30 +359,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &8471337925311121681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7200021815836974548}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 289a368fb82fe26489b00078ddfc0387, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  prefabName: Self_Enemy
-  enemyID: -1
-  isDead: 0
-  maxHealth: 1
-  currentHealth: 0
-  healthDisplay: {fileID: 1240916322511759906}
-  bulletPrefab: {fileID: 6717218329738146862, guid: a70ec634e563aef408be84cab7447cf0, type: 3}
-  firePoint: {fileID: 7215796630880100556}
-  fireRate: 0.5
-  bulletSpeed: 20
-  attackRange: 20
-  firePointOffset: 1
 --- !u!50 &754000851618715653
 Rigidbody2D:
   serializedVersion: 5
@@ -506,8 +483,8 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!61 &1138203583255423748
-BoxCollider2D:
+--- !u!70 &6501710255548376206
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -541,14 +518,52 @@ BoxCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3.2, y: 4.8}
-    newSize: {x: 6.4, y: 6.4}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1.5, y: 6.2}
-  m_EdgeRadius: 0
+  m_Size: {x: 2, y: 3}
+  m_Direction: 0
+--- !u!114 &6032944521282732439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7200021815836974548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 289a368fb82fe26489b00078ddfc0387, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabName: Sn_Enemy
+  enemyID: -1
+  isDead: 0
+  maxHealth: 1
+  currentHealth: 0
+  healthDisplay: {fileID: 1240916322511759906}
+  bulletPrefab: {fileID: 6717218329738146862, guid: a70ec634e563aef408be84cab7447cf0, type: 3}
+  firePoint: {fileID: 7215796630880100556}
+  fireRate: 1
+  bulletSpeed: 20
+  attackRange: 10
+  firePointOffset: 1
+  moveSpeed: 1.5
+--- !u!95 &3461082542516146030
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7200021815836974548}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 35ad1adef71dfe34a8b581e015a4f958, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

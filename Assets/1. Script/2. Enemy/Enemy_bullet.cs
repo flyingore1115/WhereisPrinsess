@@ -3,6 +3,10 @@ using UnityEngine;
 public class Enemy_bullet : MonoBehaviour, ITimeAffectable
 {
     public float lifetime = 5f;
+    private float elapsedLifetime = 0f;
+
+    private Vector2 storedVelocity = Vector2.zero;
+
     private Rigidbody2D rb;
     private bool isTimeStopped = false;
 
@@ -24,8 +28,19 @@ public class Enemy_bullet : MonoBehaviour, ITimeAffectable
 
     void Start()
     {
-        Destroy(gameObject, lifetime);
+        
     }
+
+    void Update()
+{
+    if (isTimeStopped) return;
+
+    elapsedLifetime += Time.deltaTime;
+    if (elapsedLifetime >= lifetime)
+    {
+        Destroy(gameObject);
+    }
+}
 
     void FixedUpdate()
     {
@@ -34,6 +49,12 @@ public class Enemy_bullet : MonoBehaviour, ITimeAffectable
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+
+        if (collision.CompareTag("CameraBoundary"))
+    {
+        // 무시
+        return;
+    }
         Debug.Log($"Bullet collided with: {collision.name}");
 
         if (collision.CompareTag("Player"))
@@ -77,22 +98,25 @@ public class Enemy_bullet : MonoBehaviour, ITimeAffectable
     }
 
     // 시간 정지 기능 추가
-    public void StopTime()
+public void StopTime()
+{
+    isTimeStopped = true;
+    if (rb != null)
     {
-        isTimeStopped = true;
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-            rb.simulated = false;
-        }
+        storedVelocity = rb.linearVelocity; // 현재 속도 저장
+        rb.linearVelocity = Vector2.zero;
+        rb.simulated = false;
     }
+}
 
-    public void ResumeTime()
+public void ResumeTime()
+{
+    isTimeStopped = false;
+    if (rb != null)
     {
-        isTimeStopped = false;
-        if (rb != null)
-        {
-            rb.simulated = true;
-        }
+        rb.simulated = true;
+        rb.linearVelocity = storedVelocity; // 정지 전 속도로 복원
     }
+}
+
 }

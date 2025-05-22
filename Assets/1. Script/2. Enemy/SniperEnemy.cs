@@ -9,12 +9,31 @@ public class SniperEnemy : BaseEnemy
     public float attackRange = 10f;
     public float firePointOffset = 1.0f; // 적 중심으로부터 firePoint의 거리
 
+    public float moveSpeed = 1.5f; // 이동 속도 (천천히)
+
     private float nextFireTime;
+
+    protected override void Awake()
+{
+    base.Awake(); // BaseEnemy 초기화
+
+    // 여기에 추가적으로 필요 시 firePoint 등의 검사 가능
+}
+
+void Start()
+{
+    if (princess == null)
+        princess = GameObject.FindGameObjectWithTag("Princess")?.transform;
+
+    if (player == null)
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+}
+
 
     void Update()
     {
         if (isTimeStopped) return;
-        
+
         // 어그로 상태일 경우 플레이어를, 아닐 경우 공주를 타겟으로 사용
         Transform target = (isAggroOnPlayer && player != null) ? player : princess;
         if (target == null) return;
@@ -28,6 +47,27 @@ public class SniperEnemy : BaseEnemy
             FireAtTarget(target);
             nextFireTime = Time.time + 1f / fireRate;
         }
+        
+         // ─────────────────────────────
+    // 이동 로직 (거리가 멀면 접근)
+    // ─────────────────────────────
+    if (distanceToTarget > attackRange)
+    {
+        Vector2 direction = (target.position - transform.position).normalized;
+        transform.position += (Vector3)(direction * moveSpeed * Time.deltaTime);
+
+        if (animator != null) animator.SetTrigger("isRun");
+    }
+    else
+    {
+        // 사거리 안이면 사격
+        if (Time.time >= nextFireTime)
+        {
+            FireAtTarget(target);
+            nextFireTime = Time.time + 1f / fireRate;
+        }
+        if (animator != null) animator.ResetTrigger("isRun");
+    }
     }
 
     // 타겟을 인자로 받아 firePoint를 업데이트
@@ -46,7 +86,7 @@ public class SniperEnemy : BaseEnemy
         // 필요시, 적의 flip 설정 (예: 타겟이 왼쪽에 있으면 flipX=true)
         if (spriteRenderer != null)
         {
-            spriteRenderer.flipX = (target.position.x < transform.position.x);
+            spriteRenderer.flipX = (target.position.x > transform.position.x);
         }
     }
 

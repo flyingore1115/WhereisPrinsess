@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Princess
   - Enemy
-  - fall
   - MainCanvas
   - FxTemporaire
   - TutorialTarget
@@ -14,6 +13,7 @@ TagManager:
   - GrabPoint
   - Spike
   - Lever
+  - CameraBoundary
   layers:
   - Default
   - TransparentFX
