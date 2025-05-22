@@ -55,8 +55,19 @@ public class Teddy : BaseEnemy
         if (bossHealthUI != null)
             bossHealthUI.InitBossUI("테디", bossMaxHP);
 
-        // 패턴 루프 시작
-        StartCoroutine(MainPatternLoop());
+        var intro = FindFirstObjectByType<BossIntroUI>();
+        if (intro != null)
+        {
+            intro.OnIntroEnd = () =>
+            {
+                StartCoroutine(MainPatternLoop());
+            };
+        }
+        else
+        {
+            // 인트로가 없으면 바로 시작
+            StartCoroutine(MainPatternLoop());
+        };
     }
 
     void Update()
