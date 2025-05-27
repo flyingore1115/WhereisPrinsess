@@ -16,7 +16,7 @@ MonoBehaviour:
   entries:
   - type: 0
     characterName: ???
-    dialogueText: "\uC65C \uC790\uAFB8 \uB530\uB77C\uC624\uB294\uAC74\uB370?"
+    dialogueText: ...?
     options: []
     actionKey: 
   - type: 0
@@ -28,18 +28,29 @@ MonoBehaviour:
     characterName: 
     dialogueText: 
     options:
-    - "\uC544\uB2C8... \uADF8\uB7F0\uAC74 \uC544\uB2C8\uACE0..."
+    - "\uC5B4...\uC5B4, \uC548\uB155"
     actionKey: 
   - type: 0
     characterName: ???
-    dialogueText: "\uD558, \uC6C3\uAE30\uB294 \uC18C\uB9AC."
+    dialogueText: "...\uD558,"
     options: []
     actionKey: 
   - type: 0
     characterName: ???
-    dialogueText: "...\uC5B4, \uC5B4\uB77C?!"
+    dialogueText: ...
     options: []
     actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uB098\uD55C\uD14C\uC11C \uBCFC\uC77C \uB2E4 \uBD24\uC73C\uBA74
+      \uADF8\uB9CC \uC77C\uC5B4\uB098\uC9C0 \uADF8\uB798?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC5B4\uC11C, ...\uB098\uB77C\uACE0."
+    options: []
+    actionKey: LoadNextScene
   - type: 2
     characterName: 
     dialogueText: 

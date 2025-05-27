@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
   m_Name: Intro
   m_EditorClassIdentifier: 
-  triggerID: Intro
+  triggerID: 
   entries:
   - type: 0
     characterName: 
@@ -42,7 +42,7 @@ MonoBehaviour:
     actionKey: HideCG
   - type: 0
     characterName: ???
-    dialogueText: "\uB300\uCDA9 \uC77C\uC5B4\uB0A8"
+    dialogueText: ...
     options: []
     actionKey: 
   - type: 0
@@ -78,7 +78,7 @@ MonoBehaviour:
     characterName: 
     dialogueText: 
     options:
-    - "\uB124\uC5D0..."
+    - "\uB124..."
     actionKey: 
   - type: 0
     characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
@@ -96,11 +96,5 @@ MonoBehaviour:
   - type: 0
     characterName: "Mr. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
     dialogueText: "\uBD84\uBA85 \uAC19\uC774 \uC798 \uC9C0\uB0BC \uC218 \uC788\uC744\uAC70\uC57C"
-    options: []
-    actionKey: 
-  - type: 0
-    characterName: 
-    dialogueText: "\uB2F9\uC2E0\uC740 \uC54C\uC558\uB2E4\uB294 \uB4EF \uC2AC\uBA70\uC2DC
-      \uACE0\uAC1C\uB97C \uB044\uB355\uAC70\uB838\uB2E4."
     options: []
     actionKey: 

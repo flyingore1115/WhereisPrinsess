@@ -308,7 +308,7 @@ MonoBehaviour:
   isControlled: 0
   storyMoveSpeed: 0
   bossMoveSpeed: 0
-  stageMoveSpeed: 7
+  stageMoveSpeed: 6
   isHeld: 0
   followSpeed: 5
 --- !u!95 &2591716326159224052
@@ -346,7 +346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   princessTransform: {fileID: 6030777257114084806}
-  moveSpeed: 5
+  moveSpeed: 7
   controlDuration: 5
   toggleCooldownTime: 0.5
 --- !u!114 &1360905523981151321

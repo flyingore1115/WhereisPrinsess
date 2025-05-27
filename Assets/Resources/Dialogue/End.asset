@@ -14,6 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   triggerID: End
   entries:
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: HideCG
   - type: 0
     characterName: 
     dialogueText: "\uC640! \uD14C\uB514\uB97C \uC7A1\uC558\uC5B4!!!"
@@ -24,3 +29,8 @@ MonoBehaviour:
     dialogueText: "\uAC8C\uC784 \uB05D!"
     options: []
     actionKey: 
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: ShowEndingStats

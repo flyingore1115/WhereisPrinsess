@@ -39,7 +39,7 @@ public class BossIntroUI : MonoBehaviour
 
     void Start()
     {
-        PlayIntro("테디", "곰인형 집정관");
+        PlayIntro("테디", "곰인형 집행관");
     }
 
     public void PlayIntro(string bossName, string bossTitle)

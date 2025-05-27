@@ -25,12 +25,15 @@ public class GameManager : MonoBehaviour
 
     public void Update()
     {
-         if (!MySceneManager.IsStoryScene)
-            totalPlayTime += Time.unscaledDeltaTime;
+         totalPlayTime += Time.unscaledDeltaTime;
     }
 
     public void NewGame()
     {
+        totalPlayTime = 0f;
+        rewindCount = 0;
+
+        Debug.Log("[GameManager] 새 게임 시작 → 시간 및 리와인드 수 초기화");
         // 1) 체크포인트 파일 삭제 및 이전 체크포인트 데이터 클리어
 
         Debug.Log("[GameInitializer] Start, hasCheckpoint=" + TimePointManager.Instance.HasCheckpoint());

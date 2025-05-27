@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
   m_Name: S2_Shooting_tuto
   m_EditorClassIdentifier: 
-  triggerID: 
+  triggerID: Shooting_tuto
   entries:
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: ShowCG:fade
   - type: 0
     characterName: ???
     dialogueText: "...\uC774, \uBA54...\uC774, ..."
@@ -33,25 +38,42 @@ MonoBehaviour:
     characterName: ???
     dialogueText: "\uC5B4\uB514 \uC544\uD508\uAC70\uC57C?"
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Princess:1.0
   - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: "\uACE0, \uACF5\uC8FC\uB2D8...?!"
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Player:1.0
   - type: 0
     characterName: ???
     dialogueText: "\uC544, \uC77C\uC5B4\uB0AC\uB2E4!"
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Princess:1.0
   - type: 2
     characterName: 
     dialogueText: 
     options: []
     actionKey: HideCG
   - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uBB54\uAC00 \uC5C4\uCCAD\uB098\uAC8C \uC774\uC0C1\uD55C \uAFC8\uC744
+      \uAFD4\uC11C\uC694..."
+    options: []
+    actionKey: FocusCameraOnTarget:Player:1.0
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uBC29\uC5D0 \uB4E4\uC5B4\uAC00\uC790\uB9C8\uC790 \uC5EC\uC790\uC560\uD55C\uD14C
+      \uBC14\uB85C \uC695\uC744 \uC5BB\uC5B4\uBA39\uB294,"
+    options: []
+    actionKey: 
+  - type: 0
     characterName: "\uD504\uB9B4"
-    dialogueText: "\uADF8\uAC83\uBCF4\uB2E4\uB3C4 \uC77C\uB2E8 \uB4E4\uC5B4\uBD10,
+    dialogueText: "\uAFC8\uC774 \uC911\uC694\uD55C\uAC8C \uC544\uB2C8\uC57C!!!"
+    options: []
+    actionKey: FocusCameraOnTarget:Princess:1.0
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "... \uADF8\uAC83\uBCF4\uB2E4\uB3C4 \uC77C\uB2E8 \uB4E4\uC5B4\uBD10,
       \uBA54\uC774!"
     options: []
     actionKey: 
@@ -81,6 +103,47 @@ MonoBehaviour:
     options: []
     actionKey: FocusCameraOnTarget:Self_Enemy:1.0
   - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uC5D1"
+    options: []
+    actionKey: FocusCameraOnTarget:Princess:1.0
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uAE84\uC557!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uD504\uB9B4"
+    dialogueText: "\uC73C\uC544\uC544\uC544\uC544\uC544\uC557?!!!!!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uB3C4\uB300\uCCB4 \uBB58 \uBCF4\uACE0 \uB180\uB77C\uC2DC\uB294\uAC74\uAC00\uC694...?"
+    options: []
+    actionKey: FocusCameraOnTarget:Player
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uADF8\uB0E5 \uACF0\uC778\uD615 \uBD80\uD558\uC796\uC544\uC694."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uD3ED\uD0C4\uC744 \uB450\uB974\uACE0 \uC788\uB294 \uAC83\uB9CC
+      \uBE7C\uBA74 \uBCC4\uB2E4\uB978 \uD2B9\uC9D5\uC774..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uD2B9\uC9D5\uC774..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uBA54\uC774"
+    dialogueText: "\uC5D1"
+    options: []
+    actionKey: FocusCameraOnTarget:Self_Enemy:1.0
+  - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: ...!
     options: []
@@ -95,13 +158,13 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: ShootingTutorial
-  - type: 0
-    characterName: "\uD504\uB9B4"
-    dialogueText: "\uAE84\uC557!!"
-    options: []
-    actionKey: 
   - type: 2
     characterName: 
     dialogueText: 
     options: []
     actionKey: LoadNextScene
+  - type: 0
+    characterName: 
+    dialogueText: "(\uD29C\uD1A0\uB9AC\uC5BC \uC885\uB8CC)"
+    options: []
+    actionKey: 

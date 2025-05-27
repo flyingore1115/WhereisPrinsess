@@ -1,75 +1,78 @@
+// TriggerTeleportWithFade.cs
 using UnityEngine;
 using System.Collections;
 
-
-[RequireComponent(typeof(InteractionIcon))]
-
+[RequireComponent(typeof(InteractionUIController))]
 public class TriggerTeleportWithFade : MonoBehaviour
 {
-    InteractionIcon icon;
-
+    private InteractionUIController ui;
 
     [Header("이동 좌표 (새 위치)")]
     public Vector2 targetPosition;
+
+    [Tooltip("인터랙션 시 표시할 행동 텍스트 (예: '이동')")]
+    public string actionDescription = "이동";
 
     private bool isPlayerInside = false;
     private bool isTeleporting = false;
 
     void Awake()
     {
-        icon = GetComponent<InteractionIcon>();
-        if (icon == null)
-        Debug.LogError("[TriggerTeleportWithFade] InteractionIcon 컴포넌트가 없습니다!");
+        ui = GetComponent<InteractionUIController>();
+        if (ui == null)
+            Debug.LogError($"[TriggerTeleportWithFade] InteractionUIController 컴포넌트를 찾을 수 없습니다: {name}");
     }
 
-    private void Update()
+    void Start()
+    {
+        // 처음에는 UI 숨김
+        ui.Hide();
+    }
+
+    void Update()
     {
         if (isPlayerInside && !isTeleporting && Input.GetKeyDown(KeyCode.E))
         {
-            
             StartCoroutine(TeleportWithFade());
         }
     }
 
-private IEnumerator TeleportWithFade()
-{
-    isTeleporting = true;
-
-    if (Player.Instance != null) //입력 차단
-        Player.Instance.ignoreInput = true;
-
-    FadeManager.Instance.StartFadeInOut(() =>
-    {
-        if (Player.Instance != null)
-            Player.Instance.transform.position = targetPosition;
-            Player.Instance.movement.ResetInput();
-    });
-
-    // 딜레이 끝나기까지 대기
-    yield return new WaitForSeconds(FadeManager.Instance.fadeDuration * 2f);
-
-    if (Player.Instance != null)
-        Player.Instance.ignoreInput = false;
-
-    isTeleporting = false;
-}
-
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("플레이어 감지함");
-            isPlayerInside = true;
-            icon.Show();
-        }
+        if (!other.CompareTag("Player")) return;
+        isPlayerInside = true;
+        ui.Show("E", actionDescription);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (!other.CompareTag("Player")) return;
+        isPlayerInside = false;
+        ui.Hide();
+    }
+
+    private IEnumerator TeleportWithFade()
+    {
+        isTeleporting = true;
+
+        if (Player.Instance != null)
+            Player.Instance.ignoreInput = true;
+
+        FadeManager.Instance.StartFadeInOut(() =>
         {
-            isPlayerInside = false;
-            icon.Hide();
-        }
+            if (Player.Instance != null)
+            {
+                Player.Instance.transform.position = targetPosition;
+                Player.Instance.movement.ResetInput();
+            }
+        });
+
+        // 페이드 인·아웃이 두 배 딜레이 만큼 걸리므로
+        yield return new WaitForSeconds(FadeManager.Instance.fadeDuration * 2f);
+
+        if (Player.Instance != null)
+            Player.Instance.ignoreInput = false;
+
+        isTeleporting = false;
     }
 }

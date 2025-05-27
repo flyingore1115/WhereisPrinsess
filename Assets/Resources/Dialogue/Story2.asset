@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
   m_Name: Story2
   m_EditorClassIdentifier: 
-  triggerID: Shooting_tuto
+  triggerID: 
   entries:
   - type: 2
     characterName: 
