@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Cinemachine;
+using UnityEngine.SceneManagement;
 
 public class StorySceneManager : MonoBehaviour
 {
@@ -59,22 +60,13 @@ public bool isAttackTutorialComplete = false;
 
     private Coroutine dialogueCoroutine;
 
-    void OnEnable()
-    {
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    void OnDisable()
-    {
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -397,11 +389,10 @@ public bool isAttackTutorialComplete = false;
     CanvasManager.Instance.timeStopSlider.gameObject.SetActive(true);
     CanvasManager.Instance.bulletUI.SetActive(true);
 
-    // 2) 카메라: 스토리 모드 해제 → 공주 따라가도록
+    // 2) 카메라: 스토리 모드 해제
     cameraFollow.EnableStoryMode(false);
     cameraFollow.SetCameraSize(cameraFollow.defaultSize);
-    if (Princess.Instance != null)
-        cameraFollow.SetTarget(Princess.Instance.gameObject);
+    cameraFollow.SetTarget(Player.Instance.gameObject);
     cameraFollow.immediateFollowInGame = true;
 
     StoryCanvasManager.Instance.DialoguePanel.SetActive(false);
@@ -596,8 +587,6 @@ private IEnumerator ShowEndingStatsDialogue()//엔딩
         cameraFollow.SetTarget(target, dialogueCameraSize);
         yield return new WaitForSeconds(waitTime);
         // 3) 원상 복구
-        cameraFollow.EnableStoryMode(false, keepSize: true);
-        cameraFollow.enabled = false;
         if (vcam != null) vcam.enabled = true;
     }
 

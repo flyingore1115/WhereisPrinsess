@@ -7,6 +7,8 @@ public class StoryCanvasManager : MonoBehaviour
 {
     public static StoryCanvasManager Instance { get; private set; }
 
+    [SerializeField] private Canvas rootCanvas;          // ⬅️ 최상위 Canvas
+
     [Header("Dialogue UI")]
     [SerializeField] private RectTransform dialogueContainer;
     [SerializeField] private GameObject dialoguePanel;
@@ -31,6 +33,7 @@ public class StoryCanvasManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -48,11 +51,21 @@ public class StoryCanvasManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 스토리 씬일 때만 활성화, 아니면 비활성화
         bool isStory = scene.name.Contains("Story");
-        gameObject.SetActive(isStory);
+
+        // ✅ 오브젝트는 그대로 두고, Canvas 만 on/off
+        if (rootCanvas != null)
+            rootCanvas.enabled = isStory;
+
+        // 필요하면 세부 패널도 함께 조정
+        if (!isStory)
+        {
+            dialoguePanel.SetActive(false);
+            choicePanel.SetActive(false);
+            if (cgImage != null) cgImage.enabled = false;
+        }
     }
 
     // 공개 프로퍼티들 (필요하면 추가)
