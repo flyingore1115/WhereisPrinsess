@@ -26,7 +26,7 @@ public class TimeStopController : MonoBehaviour
     bool _inputBlocked = true;               // 스토리 씬 기본 봉인
     readonly List<ITimeAffectable> _objs = new();
 
-
+Material _fillMat; //마테리얼
     public float MaxGauge => maxTimeGauge;        // 읽기 전용
 
     /*──────────────────────────────*/
@@ -42,6 +42,16 @@ public class TimeStopController : MonoBehaviour
             UpdateGaugeUI();
         }
         else { Destroy(gameObject); }
+
+        // ① FillImage 머티리얼 복제
+        if (fillImage != null)
+        {
+            _fillMat = Instantiate(fillImage.material);
+            fillImage.material = _fillMat;
+        }
+
+        CurrentGauge = maxTimeGauge;
+        UpdateGaugeUI();
     }
 
     void Start()
@@ -114,6 +124,15 @@ public class TimeStopController : MonoBehaviour
     {
         SoundManager.Instance?.PlaySFX("TimeStopSound");
         _isTimeStopped = true;
+        if (PostProcessingManager.Instance != null)
+        {
+            PostProcessingManager.Instance.ApplyTimeStop();
+        }
+        else
+        {
+            Debug.LogWarning("포스트프로세싱적용안됨!!!!");
+        }
+            
         foreach (var o in _objs) o.StopTime();
     }
 
@@ -121,6 +140,9 @@ public class TimeStopController : MonoBehaviour
     {
         SoundManager.Instance?.PlaySFX("TimeStopRelease");
         _isTimeStopped = false;
+        if (PostProcessingManager.Instance != null)
+            PostProcessingManager.Instance.SetDefaultEffects();
+
         foreach (var o in _objs) if (o != null) o.ResumeTime();
 
         //손잡기 상태 자동 해제
@@ -150,9 +172,21 @@ public class TimeStopController : MonoBehaviour
     }
 
     /*──────────────────────────────*/
-    void UpdateGaugeUI()
+void UpdateGaugeUI()
     {
-        if (timeGaugeSlider) timeGaugeSlider.value = CurrentGauge;
+        if (timeGaugeSlider != null)
+        {
+            timeGaugeSlider.maxValue = maxTimeGauge;
+            timeGaugeSlider.value    = CurrentGauge;
+        }
+
+        // ② 셰이더 _FillAmount 바인딩
+        if (_fillMat != null)
+        {
+            // 슬라이더 값이 0~maxTimeGauge → 0~1 범위로 정규화
+            float normalized = Mathf.Clamp01(CurrentGauge / maxTimeGauge);
+            _fillMat.SetFloat("_FillAmount", normalized);
+        }
     }
 
     public bool TrySpendGauge(float amount)

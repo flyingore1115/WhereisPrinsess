@@ -94,9 +94,9 @@ public class RewindManager : MonoBehaviour
             return;
 
         // R키 누르면 바로 되감기 실행 (이미 되감기 중이 아니면)
-        if (Input.GetKeyDown(KeyCode.R) && !isRewinding)
+        if (Input.GetKeyDown(KeyCode.Tab) && !isRewinding)
         {
-            //StartRewind();
+            StartRewind();
         }
     }
 

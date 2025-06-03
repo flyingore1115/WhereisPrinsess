@@ -129,7 +129,7 @@ public class Player : MonoBehaviour, ITimeAffectable
                 {
                     preparedAttack = true;
                     preparedTarget = target;
-                    animator.SetTrigger("prepareAttack"); // 준비 포즈
+                    animator.SetTrigger("isPrepareAttack"); // 준비 포즈
                 }
             }
 
@@ -147,7 +147,7 @@ public class Player : MonoBehaviour, ITimeAffectable
                 {
                     preparedAttack = false;
                     preparedTarget = null;
-                    animator.ResetTrigger("prepareAttack");
+                    animator.ResetTrigger("isPrepareAttack");
                 }
             }
 
@@ -167,8 +167,8 @@ public class Player : MonoBehaviour, ITimeAffectable
             }
 
             // 공격 애니메이션
-            animator.ResetTrigger("prepareAttack");
-            animator.SetTrigger("attack");
+            animator.ResetTrigger("isPrepareAttack");
+            animator.SetTrigger("isAttack");
 
             if (preparedTarget != null)
                 StartCoroutine(attack.MoveToEnemyAndAttack(preparedTarget));
@@ -236,8 +236,6 @@ public class Player : MonoBehaviour, ITimeAffectable
 
     public void StopTime()
     {
-        if (PostProcessingManager.Instance != null)
-            PostProcessingManager.Instance.ApplyTimeStop();
         if (animator != null && isGameOver)
         {
             animator.speed = 0;
@@ -250,8 +248,6 @@ public class Player : MonoBehaviour, ITimeAffectable
         {
             animator.speed = 1;
         }
-        if (PostProcessingManager.Instance != null)
-            PostProcessingManager.Instance.SetDefaultEffects();
     }
 
     bool PointerOverTagged(params string[] tags)

@@ -7,6 +7,7 @@ public class PlayerOver : MonoBehaviour
 {
     public int maxHealth = 3;
     private int currentHealth;
+    
 
     [Header("Health Bar UI")]
     public Slider healthSlider;
@@ -30,21 +31,21 @@ public class PlayerOver : MonoBehaviour
 
     void Awake()
     {
+        currentHealth = maxHealth;
+        UpdateHealthBar(currentHealth);
         rb = GetComponent<Rigidbody2D>();
         originalGravityScale = rb.gravityScale;
-
-        // 씬에 있는 매니저들 캐시
         cameraFollow = FindFirstObjectByType<CameraFollow>();
         statusTextManager = FindFirstObjectByType<StatusTextManager>();
     }
 
+
     void Start()
     {
-        currentHealth = maxHealth;
-        UpdateHealthBar(currentHealth);
 
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
+        
     }
 
     void Update()
@@ -70,6 +71,7 @@ public class PlayerOver : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        Debug.Log($"받는 피해: {damage}, 남은 체력: {currentHealth}");
         int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
         if (healthLerpCoroutine != null)
             StopCoroutine(healthLerpCoroutine);

@@ -340,6 +340,7 @@ GameObject:
   - component: {fileID: 6089204121672315167}
   - component: {fileID: 1678615733877358607}
   - component: {fileID: 9161545276362091732}
+  - component: {fileID: 2610171436415487461}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -469,7 +470,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 1.5
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 3
@@ -559,8 +560,8 @@ MonoBehaviour:
   firePoint: {fileID: 8079595983352426538}
   player: {fileID: 3566354105507724445}
   firePointRadius: 1
-  currentAmmo: 6
-  maxAmmo: 6
+  currentAmmo: 3
+  maxAmmo: 3
   ammoText: {fileID: 0}
   reloadEnergyCost: 0.2
   bulletUIDisplayDuration: 0.5
@@ -577,8 +578,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a4ae38a810636489025cf858791a69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 12
-  jumpForce: 15
+  moveSpeed: 10
+  jumpForce: 19
   groundCheck: {fileID: 6151729481240101826}
   groundCheckRadius: 0.2
   groundLayer:
@@ -634,3 +635,21 @@ MonoBehaviour:
   interactableLayer:
     serializedVersion: 2
     m_Bits: 1
+--- !u!114 &2610171436415487461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2411688868015697623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1c93580110371439d4da29d0591f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxTimeGauge: 1
+  passiveChargeRate: 0
+  timeStopDrainRate: 0.01
+  enemyKillGain: 0.3
+  timeGaugeSlider: {fileID: 0}
+  fillImage: {fileID: 0}
