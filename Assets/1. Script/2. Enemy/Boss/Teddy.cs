@@ -6,8 +6,8 @@ using System.Collections;
 /// “테디” 보스 AI
 ///
 ///  ● 1 사이클 = [경고+폭발] → [폭탄낙하] → [탄막]
-///  ● 사이클이 끝나면 0.5초 대기 후 순간이동 + 공주 추적 유도탄 발사
-///  ● HP 30 % 이하부터 Phase 2 (폭탄/탄막 개수 증가)
+///  ● 사이클이 끝나면 0.5초 대기 후 순간이동 + 공주 추적 유도탄 발사 (지정 좌표에서)
+///  ● HP 30 % 이하부터 Phase 2 (유도탄 발사 지점이 0,1,2 → 일반 시 0,2 위치)
 ///
 ///  ⚠️ 2025-06-03: 폭발 경고·카운트다운·실제 폭발 로직을
 ///                 별도 프리팹(ExplosionWarning)으로 완전히 분리했다.
@@ -41,7 +41,6 @@ public class Teddy : BaseEnemy
 
     [Header("Explosion Pattern Settings")]
     public GameObject explosionWarningPrefab;   // ExplosionWarning 프리팹
-    public float explosionRadius = 2f;          // 데미지 반경
     public float explosionDelay = 1.5f;         // 경고 지속·폭발까지 남은 시간
     public Vector2[] explosionPositions;        // 폭발 위치 후보
 
@@ -51,15 +50,16 @@ public class Teddy : BaseEnemy
     public GameObject bulletPrefab;
 
     [Header("Teleport Settings")]
-    public Vector2[] movePoints;
+    public Vector2[] movePoints;               // 순간이동 지점 리스트
     public float teleportDelay = 0.5f;
     public float vanishTime = 0.1f;
     public GameObject teleportEffectPrefab;
 
     [Header("Homing Missile Settings")]
-    public GameObject homingMissilePrefab;
-    public int homingMissileCount = 3;
-    public float homingInterval = 0.2f;
+    public GameObject homingMissilePrefab;      // 공주를 추적할 유도탄 프리팹
+    public Vector2[] missileSpawnPoints;        // 유도탄 생성 좌표 리스트
+    public int homingInterval = 1;              // 생성 간격 (프레임 단위, 1프레임 단위로 대기)
+                                                // → 한 번에 연속 생성 시 1프레임씩 대기
 
     /*──────────────────────────────────────────────
      * 2. 내부 상태 변수
@@ -87,7 +87,7 @@ public class Teddy : BaseEnemy
     }
 
     /// <summary>
-    /// Start: UI 초기화 후 보스 인트로 종료 시 메인 루프 시작
+    /// Start: UI 초기화 후 메인 루프 시작
     /// </summary>
     void Start()
     {
@@ -107,7 +107,7 @@ public class Teddy : BaseEnemy
         FacePlayer();
         BasicMovement();
 
-        // Phase 2 전환
+        // Phase 2 전환 (HP 30% 이하)
         if (!isPhase2 && currentHealth <= bossMaxHP * 0.3f)
         {
             isPhase2 = true;
@@ -206,10 +206,7 @@ public class Teddy : BaseEnemy
     private IEnumerator SpawnExplosionWarning()
     {
         if (explosionWarningPrefab == null || explosionPositions.Length == 0)
-        {
             yield break;
-        }
-            
 
         yield return StartCoroutine(WaitWhileTimeStopped());
 
@@ -219,17 +216,13 @@ public class Teddy : BaseEnemy
         // (2) 프리팹 인스턴스화
         var warning = Instantiate(explosionWarningPrefab, pos, Quaternion.identity);
 
-        // (3) 프리팹 파라미터 덮어쓰기 (반경·지속시간 등을 필요 시 전달)
+        // (3) 프리팹 파라미터 덮어쓰기 (딜레이 등)
         var ew = warning.GetComponent<ExplosionWarning>();
         if (ew != null)
         {
             ew.warningDuration = explosionDelay;
-            // BaseSprite의 bounds를 쓰지 않고 직접 반경을 지정하고 싶다면
-            // ew.SetRadius(explosionRadius);
         }
 
-        // 폭발 자체는 프리팹이 알아서 처리하므로 Teddy는 대기만
-        // (지연이 필요 없다면 바로 return)
         yield return null;
     }
 
@@ -274,13 +267,13 @@ public class Teddy : BaseEnemy
     }
 
     /*──────────────────────────────────────────────
-     * 7. 순간이동 + 유도탄
+     * 7. 순간이동 + 유도탄 (지정 좌표)
      *────────────────────────────────────────────*/
 
     /// <summary>
     /// TeleportAfterPattern:
     /// ① 0.5초 대기 → ② 사라짐 → ③ 신규 위치로 텔레포트
-    /// ④ 등장 이펙트 → ⑤ 공주 추적 유도탄 발사
+    /// ④ 등장 이펙트 → ⑤ 공주 추적 유도탄 발사 (지정 좌표)
     /// </summary>
     private IEnumerator TeleportAfterPattern()
     {
@@ -308,22 +301,55 @@ public class Teddy : BaseEnemy
             Instantiate(teleportEffectPrefab, transform.position, Quaternion.identity);
         spriteRenderer.enabled = true;
 
-        // 유도탄 연속 발사
-        yield return StartCoroutine(FireHomingMissilesAtPrincess());
+        // 유도탄 연속 발사 (지정 좌표 기반)
+        yield return StartCoroutine(FireHomingMissilesFromPoints());
     }
 
     /// <summary>
-    /// FireHomingMissilesAtPrincess: 유도탄을 ‘homingMissileCount’회 발사
+    /// FireHomingMissilesFromPoints:
+    ///  - Phase 1: missileSpawnPoints[0], missileSpawnPoints[2] 위치에서 각각 1개 발사
+    ///  - Phase 2 (HP ≤ 30%): missileSpawnPoints[0], missileSpawnPoints[1], missileSpawnPoints[2] 위치에서 각각 1개 발사
+    ///  - 각 발사 사이에 1프레임 대기 (homingInterval)
     /// </summary>
-    private IEnumerator FireHomingMissilesAtPrincess()
+    private IEnumerator FireHomingMissilesFromPoints()
     {
-        if (homingMissilePrefab == null || Princess.Instance == null) yield break;
+        if (homingMissilePrefab == null || missileSpawnPoints.Length < 3 || Princess.Instance == null)
+            yield break;
 
-        for (int i = 0; i < homingMissileCount; i++)
+        // Phase 1: 일반 상태(HP > 30%)
+        if (!isPhase2)
         {
-            var missile = Instantiate(homingMissilePrefab, transform.position, Quaternion.identity);
-            missile.GetComponent<HomingMissile>()?.Init(Princess.Instance.transform);
-            yield return new WaitForSeconds(homingInterval);
+            // 0번째 좌표에서 1개 발사
+            var m0 = Instantiate(
+                homingMissilePrefab,
+                (Vector3)missileSpawnPoints[0],
+                Quaternion.identity
+            );
+            m0.GetComponent<HomingMissile>()?.Init(Princess.Instance.transform);
+            yield return null;  // 1프레임 대기
+
+            // 2번째 좌표에서 1개 발사
+            var m2 = Instantiate(
+                homingMissilePrefab,
+                (Vector3)missileSpawnPoints[2],
+                Quaternion.identity
+            );
+            m2.GetComponent<HomingMissile>()?.Init(Princess.Instance.transform);
+            yield return null;  // 1프레임 대기
+        }
+        else
+        {
+            // Phase 2: HP ≤ 30% 인 경우, 0,1,2번째 좌표에서 각각 1개 발사
+            for (int i = 0; i < 3; i++)
+            {
+                var mi = Instantiate(
+                    homingMissilePrefab,
+                    (Vector3)missileSpawnPoints[i],
+                    Quaternion.identity
+                );
+                mi.GetComponent<HomingMissile>()?.Init(Princess.Instance.transform);
+                yield return null;  // 각 발사 사이 1프레임 대기
+            }
         }
     }
 
@@ -349,5 +375,26 @@ public class Teddy : BaseEnemy
         base.Die();
         Debug.Log("[Teddy] Boss defeated!");
         MySceneManager.Instance.LoadNextScene();
+    }
+
+    /// <summary>
+    /// Rewind이 시작되면 호출됩니다.
+    /// - 이미 실행 중이던 패턴 코루틴을 멈추고
+    /// - 체력, 상태 등은 그대로 두되, 패턴 순서는 처음으로 되돌립니다.
+    /// </summary>
+    public void ResetPatternOnRewind()
+    {
+        // ① 진행 중인 코루틴 전부 멈춤
+        StopAllCoroutines();
+
+        // ② isDead가 아니면 패턴 루프를 재시작
+        if (!isDead)
+        {
+            StartCoroutine(MainPatternLoop());
+        }
+
+        // ③ (원한다면) 패턴 관련 내부 플래그 초기화
+        isPhase2 = (currentHealth <= bossMaxHP * 0.3f);
+        // 만약 체력 ≤ 30%면 Phase2 상태여야 하므로 조건부 재설정합니다.
     }
 }

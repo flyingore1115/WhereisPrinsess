@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour, ITimeAffectable
 {
+    [Header("Bomb Settings")]
     public float fallSpeed = 3f;
     public float explodeRadius = 2f;
-    private float lifetime = 5f;
 
     private Rigidbody2D rb;
     private bool isTimeStopped = false;
@@ -14,7 +14,7 @@ public class Bomb : MonoBehaviour, ITimeAffectable
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        
+
         // 시간 정지 컨트롤러에 등록
         var tsc = FindFirstObjectByType<TimeStopController>();
         if (tsc != null)
@@ -25,38 +25,40 @@ public class Bomb : MonoBehaviour, ITimeAffectable
 
     void Start()
     {
-        Destroy(gameObject, lifetime);
+        // ● 자동 Destroy 기능 제거:
+        // Destroy(gameObject, lifetime);
     }
 
     void Update()
     {
-        // 만약 Bomb이 transform.Translate(...)로 떨어진다면,
-        // isTimeStopped 상태일 때는 동작하지 않도록:
+        // 시간정지 중이 아니면 낙하 속도 적용
         if (!isTimeStopped)
         {
-            // 또는 rigidbody2D.velocity를 쓰셔도 됩니다.
             transform.Translate(Vector2.down * fallSpeed * Time.deltaTime);
         }
     }
 
-    // 폭발 처리 (OnTriggerEnter2D 예시, OnCollisionEnter2D 등 상황에 맞게)
     void OnTriggerEnter2D(Collider2D collision)
     {
-        // 폭발 범위 피해
+        // 폭발 범위 내 데미지 판정
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explodeRadius);
         foreach (var c in hits)
         {
             if (c.CompareTag("Player"))
             {
-                 c.GetComponent<PlayerOver>()?.TakeDamage(1);
+                c.GetComponent<PlayerOver>()?.TakeDamage(1);
+            }
+            else if (c.CompareTag("Princess"))
+            {
+                c.GetComponent<Princess>()?.TakeDamage(1); // 공주에게도 데미지 적용
             }
         }
 
-        // 폭발 이펙트
+        // 폭발 이펙트 생성
         if (explosionParticlePrefab != null)
         {
             GameObject effect = Instantiate(explosionParticlePrefab, transform.position, Quaternion.identity);
-            // 필요하면 파티클 렌더링 순서 수정
+            // 필요하다면 파티클 크기나 순서를 조정
         }
 
         Destroy(gameObject);
@@ -82,5 +84,14 @@ public class Bomb : MonoBehaviour, ITimeAffectable
         {
             rb.simulated = true;
         }
+    }
+
+    /// <summary>
+    /// 씬 뷰에서 폭발 반경 시각화 (오브젝트 선택 시에만 원 그리기)
+    /// </summary>
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, explodeRadius);
     }
 }

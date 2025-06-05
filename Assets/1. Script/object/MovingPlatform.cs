@@ -76,4 +76,16 @@ public class MovingPlatform : MonoBehaviour
         }
         isMoving = false;
     }
+
+    /// <summary>
+    /// Rewind 시에 호출해서 플랫폼을 “초기 위치”로 곧장 되돌립니다.
+    /// 모션 중이던 코루틴을 멈추고, startPosition으로 즉시 복귀합니다.
+    /// </summary>
+    public void ResetOnRewind()
+    {
+        isActivated = false;
+        StopAllCoroutines();
+        transform.position = startPosition;
+        isMoving = false;
+    }
 }

@@ -182,6 +182,8 @@ public class RewindManager : MonoBehaviour
             return;
         }
 
+        //되감기 시작
+
         if (!isRewinding)
         {
             GameManager.Instance.rewindCount++;
@@ -193,7 +195,19 @@ public class RewindManager : MonoBehaviour
 
             StartCoroutine(RewindCoroutine());
         }
+
+        // ② 레버와 플랫폼 상태를 초기화
+        foreach (var lever in GameObject.FindObjectsByType<Lever>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            lever.ResetOnRewind();
+        }
+        foreach (var platform in GameObject.FindObjectsByType<MovingPlatform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            platform.ResetOnRewind();
+        }
     }
+
+    
 
     IEnumerator OnlyCheckpointRestore()
     {

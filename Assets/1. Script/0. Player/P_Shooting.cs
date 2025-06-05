@@ -178,7 +178,7 @@ public class P_Shooting : MonoBehaviour
         }
     }
 
-    private void Reload()
+    public void Reload()
     {
         var tsc = TimeStopController.Instance;
 

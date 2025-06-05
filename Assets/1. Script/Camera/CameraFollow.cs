@@ -64,24 +64,10 @@ public class CameraFollow : MonoBehaviour
 
 void Update()
 {
-    if (MySceneManager.Instance != null &&
-        (MySceneManager.IsStoryScene || MySceneManager.IsMainMenu))
-    {
-        MouseManager.Instance.SetCursor(CursorModeType.Default);
-        return;
-    }
-
     Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
     wp.z = 0f;
 
     RaycastHit2D hit = Physics2D.Raycast(wp, Vector2.zero);
-
-    // Enemy 인식 범위 확장 (부모도 검사)
-    bool isEnemy = hit.collider != null &&
-        (hit.collider.CompareTag("Enemy") ||
-         hit.collider.GetComponentInParent<Transform>()?.CompareTag("Enemy") == true);
-
-    MouseManager.Instance.SetCursor(isEnemy ? CursorModeType.Attack : CursorModeType.Shoot);
 }
 
 

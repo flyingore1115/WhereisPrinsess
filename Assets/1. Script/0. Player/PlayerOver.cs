@@ -7,7 +7,6 @@ public class PlayerOver : MonoBehaviour
 {
     public int maxHealth = 3;
     private int currentHealth;
-    
 
     [Header("Health Bar UI")]
     public Slider healthSlider;
@@ -15,8 +14,7 @@ public class PlayerOver : MonoBehaviour
     public Transform princess;         // 동적 할당
     public Transform playerTransform;  // 필요 없으면 제거 가능
 
-    private bool isDisabled = false;
-    public bool IsDisabled => isDisabled;
+    public bool IsDisabled; //일단 넣어둔거
 
     private Rigidbody2D rb;
     private Animator animator;
@@ -29,30 +27,41 @@ public class PlayerOver : MonoBehaviour
     private float originalGravityScale;
     private Coroutine healthLerpCoroutine;
 
+    private bool hasTriggeredGameOver = false; // 한 번만 호출하기 위한 플래그
+
     void Awake()
     {
         currentHealth = maxHealth;
         UpdateHealthBar(currentHealth);
+
         rb = GetComponent<Rigidbody2D>();
         originalGravityScale = rb.gravityScale;
+
         cameraFollow = FindFirstObjectByType<CameraFollow>();
         statusTextManager = FindFirstObjectByType<StatusTextManager>();
     }
 
-
     void Start()
     {
-
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
-        
     }
 
     void Update()
     {
-        if (currentHealth <= 0)
+        if (currentHealth <= 0 && !hasTriggeredGameOver)
         {
-            DisablePlayer();
+            hasTriggeredGameOver = true;
+            // 더 이상 DisablePlayer()를 부르지 않고, 바로 게임오버 매니저로 넘긴다.
+            var gm = FindFirstObjectByType<GameOverManager>();
+            if (gm != null)
+            {
+                gm.TriggerGameOver();
+            }
+            else
+            {
+                Debug.LogError("[PlayerOver] GameOverManager를 찾을 수 없습니다!");
+            }
         }
     }
 
@@ -71,11 +80,15 @@ public class PlayerOver : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        if (currentHealth <= 0) return;
+
         Debug.Log($"받는 피해: {damage}, 남은 체력: {currentHealth}");
         int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
+
         if (healthLerpCoroutine != null)
             StopCoroutine(healthLerpCoroutine);
         healthLerpCoroutine = StartCoroutine(LerpHealthBar(currentHealth, newHealth, 0.5f));
+
         currentHealth = newHealth;
     }
 
@@ -92,57 +105,17 @@ public class PlayerOver : MonoBehaviour
         UpdateHealthBar(toH);
     }
 
+    // 나중에 부활시키기
+    /*
     public void DisablePlayer()
     {
         if (isDisabled) return;
         isDisabled = true;
 
-        // 1) princess 항상 재탐색
-        if (princess == null)
-        {
-            var prObj = GameObject.FindGameObjectWithTag("Princess");
-            if (prObj != null)
-                princess = prObj.transform;
-        }
-
-        // 2) 카메라 타겟 전환
-        if (cameraFollow != null && princess != null)
-        {
-            cameraFollow.SetTarget(princess.gameObject);
-            Debug.Log("[PlayerOver] 카메라 타겟: Princess");
-        }
-        else
-        {
-            Debug.LogWarning("[PlayerOver] CameraFollow 또는 Princess 미할당");
-        }
-
-        // 3) 상태 텍스트 표시
-        // 3) 상태 텍스트 매니저 재탐색 (필요 시)
-        if (statusTextManager == null)
-        {
-            statusTextManager = FindFirstObjectByType<StatusTextManager>();
-        }
-
-        if (statusTextManager != null)
-        {
-            statusTextManager.ShowMessage("플레이어가 행동불능 상태가 되었습니다!");
-            Debug.Log("[PlayerOver] 상태 텍스트 출력 성공");
-        }
-        else
-        {
-            Debug.LogWarning("[PlayerOver] StatusTextManager 미발견");
-        }
-
-        // 4) 플레이어 입력 무시 및 정지
-        rb.linearVelocity = Vector2.zero;
-        if (player != null)
-        {
-            player.ignoreInput = true;
-            Debug.Log("[PlayerOver] Player input ignored.");
-        }
-
-        Debug.Log("플레이어 행동불능 처리 완료");
+        // 원래 있던 동작들 (카메라 포커스 전환, UI 메시지 등)을 모두 제거했습니다.
+        // 이제 플레이어가 죽으면 바로 GameOverManager로 넘어갑니다.
     }
+    */
 
     public void OnRewindComplete(Vector2 restoredPosition)
     {
@@ -165,12 +138,11 @@ public class PlayerOver : MonoBehaviour
             Debug.Log("[PlayerOver] 카메라 타겟: Player");
         }
 
-        isDisabled = false;
+        hasTriggeredGameOver = false; // 되감기 이후 다시 체크할 수 있도록 리셋
     }
 
     public void ResumeAfterRewind()
     {
-        isDisabled = false;
         rb.bodyType = RigidbodyType2D.Dynamic;
         if (player != null)
         {
@@ -178,7 +150,6 @@ public class PlayerOver : MonoBehaviour
             Debug.Log("[PlayerOver] 입력 복원");
         }
 
-        // 공주 컨트롤 플래그 해제
         if (princess != null)
         {
             var ps = princess.GetComponent<Princess>();
@@ -188,6 +159,8 @@ public class PlayerOver : MonoBehaviour
                 Debug.Log("[PlayerOver] Princess 컨트롤 해제");
             }
         }
+
+        hasTriggeredGameOver = false; // 되감기 이후 다시 체크할 수 있도록 리셋
     }
 
     public void ForceSetHealth(int value)

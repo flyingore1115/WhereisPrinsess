@@ -887,7 +887,6 @@ MonoBehaviour:
   bulletSpeed: 3
   bulletCenter: {x: 0, y: 0}
   explosionWarningPrefab: {fileID: 506847181720961763, guid: 28848e3066e3a0f4c9f31a57e2b1f73e, type: 3}
-  explosionRadius: 8
   explosionDelay: 1.5
   explosionPositions:
   - {x: -10, y: 3.5}
@@ -904,8 +903,11 @@ MonoBehaviour:
   vanishTime: 0.1
   teleportEffectPrefab: {fileID: 0}
   homingMissilePrefab: {fileID: 9158733042884824732, guid: 773ac8025208a7044bb09eb063183101, type: 3}
-  homingMissileCount: 1
-  homingInterval: 0.2
+  missileSpawnPoints:
+  - {x: -11, y: 5}
+  - {x: 0, y: 10}
+  - {x: 11, y: 5}
+  homingInterval: 1
 --- !u!114 &528229234
 MonoBehaviour:
   m_ObjectHideFlags: 0

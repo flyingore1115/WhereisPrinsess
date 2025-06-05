@@ -5,7 +5,7 @@ using System.Collections;
 /// <summary>
 /// 폭발 예고 + 실제 폭발 처리 스크립트
 ///   ● 베이스 스프라이트 크기에 맞춰 파티클 크기를 자동 조정
-///   ● 느낌표와 슬라이더는 베이스 오브젝트 중앙(로컬 0,0)에 위치시키고, 위아래로 흔들리도록 조정
+///   ● 느낌표와 슬라이더는 베이스 오브젝트 중앙(로컬 0,0) 기준으로 배치
 ///   ● 폭발 파티클은 베이스 스프라이트 위치에서 Y -1만큼 내려서 생성
 /// </summary>
 public class ExplosionWarning : MonoBehaviour
@@ -19,12 +19,12 @@ public class ExplosionWarning : MonoBehaviour
 
     [Header("느낌표 오브젝트 (자식으로 배치)")]
     // Hierarchy: ExplosionWarning → Exclamation
-    //   이 오브젝트는 로컬(0, yOffset, 0)에 위치시킵니다.
+    //   이 오브젝트는 베이스 중앙 로컬 X=0, Y=-0.7 위치로 설정됩니다.
     public GameObject exclamationObject;
 
     [Header("원형 슬라이더 (UI Image, Fill Method: Radial 360)")]
     // Hierarchy: ExplosionWarning → CircularSlider(Image)
-    //   이 오브젝트도 로컬(0, 0, 0)에 위치시킵니다.
+    //   이 오브젝트는 베이스 중앙 로컬 X=0, Y=0 위치로 설정됩니다.
     public Image circularSliderImage;
 
     [Header("위아래 흔들림 설정")]
@@ -61,11 +61,11 @@ public class ExplosionWarning : MonoBehaviour
             return;
         }
 
-        // ● 느낌표와 슬라이더를 베이스 중앙(로컬 0,0)으로 배치
-        //   * exclamationObject는 베이스보다 약간 위(y=+1)로 띄우되, 슬라이더는 베이스 바로 위(0,0)
-        exclamationStartLocalPos = new Vector3(0f, 1f, 0f);
+        // ● 느낌표를 베이스 중앙 로컬 Y = -0.7 위치에 배치
+        exclamationStartLocalPos = new Vector3(0f, -0.7f, 0f);
         exclamationObject.transform.localPosition = exclamationStartLocalPos;
 
+        // ● 슬라이더를 베이스 중앙 로컬 Y = 0 위치에 배치
         sliderStartLocalPos = Vector3.zero;
         circularSliderImage.rectTransform.localPosition = sliderStartLocalPos;
 
@@ -99,29 +99,29 @@ public class ExplosionWarning : MonoBehaviour
     /// 경고 루틴: warningDuration 동안 슬라이더를 줄여가며 시간 경과 후 폭발을 수행
     /// </summary>
     private IEnumerator WarningRoutine()
+{
+    elapsedTime = 0f;
+
+    while (elapsedTime < warningDuration)
     {
-        elapsedTime = 0f;
-
-        while (elapsedTime < warningDuration)
+        // ① 시간정지 중인 동안엔 elapsedTime을 추가하지 않고
+        if (!(TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped))
         {
-            // 시간정지 반영: 시간이 멈췄으면 경과 카운트 멈춤
-            if (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
-            {
-                yield return null;
-                continue;
-            }
-
+            // ② 시간이 흐르는 때에만 누적
             elapsedTime += Time.deltaTime;
-
-            // 남은 시간이 비율만큼 슬라이더 채움량 감소
-            circularSliderImage.fillAmount = 1f - Mathf.Clamp01(elapsedTime / warningDuration);
-            yield return null;
         }
+        // ③ 누적된 기준(elapsedTime)의 비율을 매 프레임 반영
+        float fill = 1f - Mathf.Clamp01(elapsedTime / warningDuration);
+        circularSliderImage.fillAmount = fill;
 
-        // 경고 시간 종료 → 폭발 처리
-        Explode();
-        Destroy(gameObject);
+        yield return null;
     }
+
+    // 경고 종료 → 폭발
+    Explode();
+    Destroy(gameObject);
+}
+
 
     /// <summary>
     /// 실제 폭발 생성 및 데미지 판정
