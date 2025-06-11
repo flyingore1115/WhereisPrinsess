@@ -284,6 +284,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2738698659305767164, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7142960434419275109, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -910,6 +914,10 @@ PrefabInstance:
     - target: {fileID: 2737549752632554845, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
       propertyPath: m_Name
       value: StoryCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 6113220635455415060, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6198334130714757513, guid: 8c1071723901cce4e8a4278d7733d096, type: 3}
       propertyPath: m_Pivot.x

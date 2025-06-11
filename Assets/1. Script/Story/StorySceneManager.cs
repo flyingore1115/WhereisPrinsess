@@ -118,7 +118,7 @@ public bool isAttackTutorialComplete = false;
         // CG 초기화
         if (StoryCanvasManager.Instance.CGImage != null)
         {
-            StoryCanvasManager.Instance.CGImage.gameObject.SetActive(true);
+            StoryCanvasManager.Instance.CGImage.gameObject.SetActive(false);
             StoryCanvasManager.Instance.CGImage.sprite = Resources.Load<Sprite>("IMG/CG/fade");
             StoryCanvasManager.Instance.CGImage.canvasRenderer.SetAlpha(0f);
             StoryCanvasManager.Instance.CGImage.type = Image.Type.Simple;
@@ -387,7 +387,6 @@ public bool isAttackTutorialComplete = false;
     // 1) UI 세팅
     CanvasManager.Instance.SetGameUIActive(false);
     CanvasManager.Instance.timeStopSlider.gameObject.SetActive(true);
-    CanvasManager.Instance.bulletUI.SetActive(true);
 
     // 2) 카메라: 스토리 모드 해제
     cameraFollow.EnableStoryMode(false);
@@ -519,7 +518,6 @@ public bool isAttackTutorialComplete = false;
 
     // UI 정리
     CanvasManager.Instance.timeStopSlider.gameObject.SetActive(false);
-    CanvasManager.Instance.bulletUI.SetActive(false);
     CanvasManager.Instance.SetGameUIActive(false);
 }
 

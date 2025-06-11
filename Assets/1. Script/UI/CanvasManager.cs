@@ -1,31 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 /// <summary>
-/// 여러 UI 요소(탄약 텍스트, 체력바, 시간정지 게이지)를 한 곳에서 통합 관리.
+/// 여러 UI 요소(체력바, 시간정지 게이지)를 한 곳에서 통합 관리.
+/// 탄약 UI는 World-Space UI로 분리하여 별도 prefab으로 처리합니다.
 /// </summary>
 public class CanvasManager : MonoBehaviour
 {
     public static CanvasManager Instance;
 
-    [Header("Ammo UI (텍스트)")]
-    public TMP_Text bulletText;            // 탄약 수를 표시할 TMP 텍스트
-    public GameObject bulletUI;
-
     [Header("플레이어 체력 (슬라이더)")]
-    public Slider playerHealthSlider;      // 플레이어 체력을 표시할 슬라이더
+    public Slider playerHealthSlider;
 
     [Header("TimeStop Gauge (슬라이더)")]
-    public Slider timeStopSlider;         // 타임스톱 게이지
+    public Slider timeStopSlider;
 
-
-    public GameObject[] gameOnlyUI;    // ← 인스펙터에서 bulletText, 슬라이더 등 등록
-    //public GameObject storyUI;      // ← 스토리 씬에서도 유지할 UI만 별도 지정
+    [Header("Game-only UI Elements")]
+    public GameObject[] gameOnlyUI;
 
     private void Awake()
     {
-        // 싱글톤
         if (Instance == null)
         {
             Instance = this;
@@ -38,7 +32,7 @@ public class CanvasManager : MonoBehaviour
         }
 
         if (!UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.Contains("Story"))
-    SetGameUIActive(true);
+            SetGameUIActive(true);
     }
 
     private void Update()
@@ -47,19 +41,7 @@ public class CanvasManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 탄약 UI 업데이트 (사격 스크립트에서 호출)
-    /// </summary>
-    public void UpdateBulletUI(int currentAmmo, int maxAmmo)
-    {
-        if (bulletText != null)
-        {
-            bulletText.text = $"{currentAmmo} / {maxAmmo}";
-        }
-    }
-
-    /// <summary>
     /// 플레이어 체력 UI 업데이트 (PlayerOver에서 호출)
-    /// 슬라이더의 최대값과 현재값을 설정합니다.
     /// </summary>
     public void UpdateHealthUI(int currentHealth, int maxHealth)
     {
@@ -71,9 +53,9 @@ public class CanvasManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 시간정지 게이지 UI 업데이트(슬라이더). TimeStopController.Instance를 직접 참조해서 처리.
+    /// 시간정지 게이지 UI 업데이트(슬라이더). TimeStopController 참조
     /// </summary>
-    void UpdateTimeStopUI()
+    private void UpdateTimeStopUI()
     {
         var tsc = TimeStopController.Instance;
         if (tsc == null || timeStopSlider == null) return;
@@ -81,16 +63,16 @@ public class CanvasManager : MonoBehaviour
         timeStopSlider.maxValue = tsc.MaxGauge;
         timeStopSlider.value = tsc.CurrentGauge;
     }
-    
+
+    /// <summary>
+    /// 게임 전용 UI를 전체 켜거나 끕니다.
+    /// </summary>
     public void SetGameUIActive(bool active)
     {
         foreach (var go in gameOnlyUI)
         {
-            if (go != null) go.SetActive(active);
+            if (go != null)
+                go.SetActive(active);
         }
-
-        //if (storyUI != null)
-            //storyUI.SetActive(true); // 항상 켜짐
     }
-
 }

@@ -34,6 +34,7 @@ public class PostProcessingManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -67,17 +68,23 @@ public class PostProcessingManager : MonoBehaviour
             postProcessVolume.profile.TryGet(out chromaticAberration);
             postProcessVolume.profile.TryGet(out filmGrain);
         }
-        
+
         // 만약 시간정지 중이면 시간정지 효과 적용, 아니면 기본 효과 적용
-        if(TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
+        if (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
         {
-            ApplyTimeStop();
+            StartCoroutine(ApplyTimeStopNextFrame());
         }
         else
         {
             SetDefaultEffects();
         }
     }
+
+    private IEnumerator ApplyTimeStopNextFrame()
+{
+    yield return null;          // 한 프레임 대기 (모든 오브젝트 로드 완료)
+    ApplyTimeStop();            // 확실히 적용
+}
 
 
     public void SetDefaultEffects()

@@ -73,11 +73,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -18605577
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 0}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -523,6 +523,7 @@ MonoBehaviour:
   healthSlider: {fileID: 0}
   princess: {fileID: 0}
   playerTransform: {fileID: 3566354105507724445}
+  IsDisabled: 0
 --- !u!114 &8065584074384330672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -559,13 +560,15 @@ MonoBehaviour:
   bulletPrefab: {fileID: 4058868085175983168, guid: e9f830939902cb1428aae01a332d7cfb, type: 3}
   firePoint: {fileID: 8079595983352426538}
   player: {fileID: 3566354105507724445}
-  firePointRadius: 1
+  minFirePointRadius: 0.5
+  maxFirePointRadius: 1.5
   currentAmmo: 3
   maxAmmo: 3
-  ammoText: {fileID: 0}
   reloadEnergyCost: 0.2
-  bulletUIDisplayDuration: 0.5
-  bulletUI: {fileID: 0}
+  ammoWorldUIPrefab: {fileID: 975546768711869224, guid: fc9951fdb2fec6441a52bdfc45ca4f28, type: 3}
+  worldUIOffset: {x: 1, y: 0.7, z: 0}
+  worldUIDisplayDuration: 1
+  worldUIScale: 0.01
 --- !u!114 &3195546745575133857
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -5243,10 +5243,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainCanvas
       objectReference: {fileID: 0}
-    - target: {fileID: 4059048869109801040, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 297
-      objectReference: {fileID: 0}
     - target: {fileID: 7142960434419275109, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -5334,6 +5330,22 @@ PrefabInstance:
     - target: {fileID: 7649771267744586924, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350020511199383214, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
+      propertyPath: bulletUI
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350020511199383214, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
+      propertyPath: bulletText
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350020511199383214, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
+      propertyPath: gameOnlyUI.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350020511199383214, guid: a3b7a3b930877eb4f9d644cb7772ee07, type: 3}
+      propertyPath: 'gameOnlyUI.Array.data[3]'
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

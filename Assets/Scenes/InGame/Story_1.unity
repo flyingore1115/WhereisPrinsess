@@ -2366,7 +2366,7 @@ Transform:
   m_GameObject: {fileID: 1168152615}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 150.15, y: -1.83, z: 0}
+  m_LocalPosition: {x: 30.3, y: -1.83, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -3320,7 +3320,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!4 &1466838334
@@ -3415,7 +3415,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c827512240fdffd48aa649ff0c20a088, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actionDescription: "\uBB38 \uC5F4\uAE30"
+  actionDescription: "\uB9D0\uAC78\uAE30"
   triggerID: Hallway_tuto
 --- !u!114 &1588472927
 MonoBehaviour:
@@ -3429,10 +3429,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a9c935f0acc3c14886bfd6d56e04425, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldOffset: {x: 1.5, y: 1, z: 0}
-  worldScale: 0.02
-  slideDistance: 30
-  slideDuration: 0.2
+  worldOffset: {x: 0.7, y: 0.8, z: 0}
+  worldScale: 0.008
+  slideDistance: 15
+  slideDuration: 0.1
 --- !u!58 &1588472928
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -3823,7 +3823,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1695983657
 Transform:
   m_ObjectHideFlags: 0
@@ -3942,7 +3942,7 @@ SpriteRenderer:
   m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 0}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -4171,7 +4171,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!4 &1967265849

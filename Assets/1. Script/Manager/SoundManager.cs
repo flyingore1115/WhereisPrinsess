@@ -192,26 +192,26 @@ public class SoundManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         EnsureAudioSources();
-        switch (scene.name)
-        {
-            case "MainMenu":
-                PlayBGM("BGM_Start");
-                break;
-            case "Story_1":
-                PlayBGM("BGM_Stroy_1");
-                break;
-            case "Story_2":
-                PlayBGM("BGM_Story_2");
-                break;
-            case "New_Game":
-                PlayBGM("BGM_InGame");
-                break;
-            case "Boss":
-                PlayBGM("BGM_Boss");
-                break;
-            default:
-                StopBGM();
-                break;
-        }
+        // switch (scene.name)
+        // {
+        //     case "MainMenu":
+        //         PlayBGM("BGM_Start");
+        //         break;
+        //     case "Story_1":
+        //         PlayBGM("BGM_Stroy_1");
+        //         break;
+        //     case "Story_2":
+        //         PlayBGM("BGM_Story_2");
+        //         break;
+        //     case "New_Game":
+        //         PlayBGM("BGM_InGame");
+        //         break;
+        //     case "Boss":
+        //         PlayBGM("BGM_Boss");
+        //         break;
+        //     default:
+        //         StopBGM();
+        //         break;
+        // }
     }
 }

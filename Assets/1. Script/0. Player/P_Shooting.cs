@@ -1,45 +1,78 @@
 using UnityEngine;
 using System.Collections;
-using TMPro;
 
+/// <summary>
+/// 플레이어 사격 로직 및 탄약 수 World-Space UI 표시
+/// - 마우스 거리 기반으로 FirePoint 반경이 변하고,
+/// - 사격 모드일 때만 FirePoint를 활성화합니다.
+/// </summary>
+[RequireComponent(typeof(P_Movement))]
 public class P_Shooting : MonoBehaviour
 {
+    [Header("Projectile")]
     public GameObject bulletPrefab;
     public Transform firePoint;
     public Transform player;
-    public float firePointRadius = 1.0f;
 
+    [Header("Fire Point Distance Settings")]
+    [Tooltip("마우스 거리와 비교할 최소 반경")]
+    public float minFirePointRadius = 0.5f;
+    [Tooltip("마우스 거리와 비교할 최대 반경")]
+    public float maxFirePointRadius = 2.0f;
+
+    [Header("Ammo Data")]
     public int currentAmmo = 6;
     public int maxAmmo = 6;
-    public TMP_Text ammoText;
 
+    [Header("Reload")]
     public float reloadEnergyCost;
-    [Tooltip("총알 UI가 보여지는 시간 (초)")]
-    public float bulletUIDisplayDuration = 0.5f;
-    [Tooltip("총알 UI 오브젝트 (평소에는 비활성화)")]
-    public GameObject bulletUI;
+
+    [Header("World-Space Ammo UI")]
+    [Tooltip("플레이어 근처에 떠서 사라지는 World-Space UI Prefab")]
+    public GameObject ammoWorldUIPrefab;
+    [Tooltip("World-Space UI 오프셋")]
+    public Vector3 worldUIOffset = new Vector3(0f, 1.5f, 0f);
+    [Tooltip("World-Space UI 표시 시간 (초)")]
+    public float worldUIDisplayDuration = 0.5f;
+    [Tooltip("World-Space UI 크기 배수")]
+    public float worldUIScale = 1f;
 
     // 튜토리얼 각도 제한
     private bool tutorialMode = false;
     private Transform tutorialTarget;
     private float allowedAngle = 15f;
 
-    private Coroutine hideBulletUICoroutine;
-
-
-    void Awake()          // 탄 UI 자동 연결(인스펙터 미설정 대비)
-    {
-        if (ammoText == null && CanvasManager.Instance != null)
-            ammoText = CanvasManager.Instance.bulletText;
-        if (bulletUI == null && CanvasManager.Instance != null)
-            bulletUI = CanvasManager.Instance.bulletUI;
- }
-
     void Update()
     {
+        // 사격 모드일 때만 FirePoint 활성화
+        bool shootingMode = Player.Instance != null && Player.Instance.IsShootingMode;
+        if (firePoint != null)
+            firePoint.gameObject.SetActive(shootingMode);
+
         UpdateFirePointPosition();
     }
 
+    /// <summary>
+    /// 튜토리얼 모드 설정 (StorySceneManager 호출용)
+    /// </summary>
+    public void SetTutorialMode(bool active)
+    {
+        tutorialMode = active;
+        if (!active)
+            tutorialTarget = null;
+    }
+
+    /// <summary>
+    /// HUD나 World UI 갱신 (StorySceneManager 호출용)
+    /// </summary>
+    public void UpdateAmmoUI()
+    {
+        ShowWorldAmmoUI();
+    }
+
+    /// <summary>
+    /// 각도 제한 모드 활성화
+    /// </summary>
     public void EnableAngleLimit(Transform target, float angleDeg)
     {
         tutorialMode = true;
@@ -47,14 +80,18 @@ public class P_Shooting : MonoBehaviour
         allowedAngle = angleDeg;
     }
 
+    /// <summary>
+    /// 각도 제한 모드 비활성화
+    /// </summary>
     public void DisableAngleLimit()
     {
         tutorialMode = false;
         tutorialTarget = null;
     }
 
-
-    // 반드시 public으로 정의된 HandleShooting() 메서드
+    /// <summary>
+    /// 사격 및 재장전 입력 처리
+    /// </summary>
     public void HandleShooting()
     {
         if (MySceneManager.IsStoryScene && !tutorialMode)
@@ -62,13 +99,13 @@ public class P_Shooting : MonoBehaviour
         if (Player.Instance.holdingPrincess)
             return;
 
-        Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        worldPoint.z = 0f;
-        Vector2 direction = (worldPoint - firePoint.position).normalized;
+        Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        wp.z = 0f;
+        Vector2 dir = (wp - firePoint.position).normalized;
 
         if (Input.GetMouseButtonDown(0))
         {
-            ShootBullet(direction);
+            ShootBullet(dir);
         }
         else if (Input.GetMouseButtonDown(1))
         {
@@ -76,6 +113,9 @@ public class P_Shooting : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 실제 탄발사 처리
+    /// </summary>
     private void ShootBullet(Vector2 dir)
     {
         if (currentAmmo <= 0)
@@ -84,104 +124,52 @@ public class P_Shooting : MonoBehaviour
             return;
         }
 
-        // ▸ 튜토리얼 각도 체크
+        // 튜토리얼 각도 체크
         if (tutorialMode && tutorialTarget != null)
         {
-            float ang = Vector2.Angle((tutorialTarget.position - firePoint.position), dir);
-            if (ang > allowedAngle)
-            {   // 빗맞음 처리
+            float angle = Vector2.Angle((tutorialTarget.position - firePoint.position), dir);
+            if (angle > allowedAngle)
+            {
                 SoundManager.Instance?.PlaySFX("EmptyGunSound");
                 return;
             }
         }
 
+        // 탄 생성
         GameObject b = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         var bs = b.GetComponent<Bullet>();
         if (bs != null) bs.SetDirection(dir);
         SoundManager.Instance?.PlaySFX("PlayerGunSound");
-        currentAmmo--;
-        UpdateAmmoUI();
 
-        if (bulletUI != null)
-    {
-        bulletUI.SetActive(true);
-        UpdateAmmoUI();
-        if (hideBulletUICoroutine != null)
-                StopCoroutine(hideBulletUICoroutine);
-        hideBulletUICoroutine = StartCoroutine(HideBulletUIAfterDelay());
-    }
+        // 탄약 갱신
+        currentAmmo = Mathf.Max(0, currentAmmo - 1);
+
+        // World-Space UI 표시
+        ShowWorldAmmoUI();
     }
 
-
-    private void UpdateFirePointPosition()
+    /// <summary>
+    /// 월드 공간에서 탄약 UI를 띄웁니다.
+    /// </summary>
+    private void ShowWorldAmmoUI()
     {
-        if (player == null || firePoint == null) return;
-
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = 0;
-        Vector2 direction = (mousePosition - player.position).normalized;
-        firePoint.position = player.position + (Vector3)direction * firePointRadius;
-
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        firePoint.rotation = Quaternion.Euler(0, 0, angle);
-    }
-
-    private void ShootBullet()
-    {
-        if (currentAmmo <= 0)
-        {
-            if (SoundManager.Instance != null)
-                SoundManager.Instance.PlaySFX("EmptyGunSound");
+        if (ammoWorldUIPrefab == null || player == null)
             return;
-        }
-
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = 0;
-        Vector2 shootDirection = (mousePosition - firePoint.position).normalized;
-
-        GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-        Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-        if (bulletScript != null)
+        var go = Instantiate(ammoWorldUIPrefab);
+        go.transform.localScale = Vector3.one * worldUIScale;
+        var ui = go.GetComponent<WorldAmmoUI>();
+        if (ui != null)
         {
-            bulletScript.SetDirection(shootDirection);
-        }
-
-        if (bulletUI != null)
-        {
-            bulletUI.SetActive(true);
-            UpdateAmmoUI();
-            if (hideBulletUICoroutine != null)
-            {
-                StopCoroutine(hideBulletUICoroutine);
-            }
-            hideBulletUICoroutine = StartCoroutine(HideBulletUIAfterDelay());
-        }
-
-        if (SoundManager.Instance != null)
-            SoundManager.Instance.PlaySFX("PlayerGunSound");
-
-        currentAmmo--;
-        UpdateAmmoUI();
-    }
-
-    private IEnumerator HideBulletUIAfterDelay()
-    {
-        yield return new WaitForSecondsRealtime(bulletUIDisplayDuration);
-        HideBulletUI();
-    }
-
-    public void HideBulletUI()
-    {
-        if (bulletUI != null)
-        {
-            bulletUI.SetActive(false);
+            ui.Init(currentAmmo, maxAmmo, player, worldUIOffset, worldUIDisplayDuration);
         }
     }
 
+    /// <summary>
+    /// 재장전 처리
+    /// </summary>
     public void Reload()
     {
         var tsc = TimeStopController.Instance;
-
         if (!tsc.TrySpendGauge(reloadEnergyCost))
         {
             Debug.Log("에너지 부족! 재장전 불가");
@@ -189,18 +177,29 @@ public class P_Shooting : MonoBehaviour
         }
 
         currentAmmo = maxAmmo;
-        UpdateAmmoUI();
         SoundManager.Instance?.PlaySFX("RevolverSpin");
+
+        // 재장전 후에도 UI로 표시
+        ShowWorldAmmoUI();
     }
 
-    public void UpdateAmmoUI()
+    /// <summary>
+    /// 파이어포인트 위치 및 회전 업데이트
+    /// </summary>
+    private void UpdateFirePointPosition()
     {
-        if (ammoText != null)
-            ammoText.text = $"{currentAmmo} / {maxAmmo}";
+        if (player == null || firePoint == null) return;
+
+        Vector3 mp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mp.z = 0f;
+        Vector2 dir = (mp - player.position).normalized;
+
+        // 마우스 거리 기반 동적 반경 계산
+        float dist = Vector2.Distance(mp, player.position);
+        float radius = Mathf.Clamp(dist, minFirePointRadius, maxFirePointRadius);
+        firePoint.position = player.position + (Vector3)dir * radius;
+
+        float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        firePoint.rotation = Quaternion.Euler(0, 0, ang);
     }
-    public void SetTutorialMode(bool active)
- {
-     tutorialMode = active;
-     if (!active) tutorialTarget = null;   // 종료 시 각도 제한도 해제
- }
 }

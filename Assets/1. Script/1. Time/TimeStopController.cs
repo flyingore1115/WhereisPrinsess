@@ -124,6 +124,7 @@ Material _fillMat; //마테리얼
     {
         SoundManager.Instance?.PlaySFX("TimeStopSound");
         _isTimeStopped = true;
+        
         if (PostProcessingManager.Instance != null)
         {
             PostProcessingManager.Instance.ApplyTimeStop();
