@@ -104,7 +104,14 @@ public bool isAttackTutorialComplete = false;
             Debug.Log("[SSM] Awake: CanvasManager 아직 준비 안됨, 위치 초기화는 Start에서 처리하세요.");
         }
 
+        if (TimeStopController.Instance != null)
+    {
         TimeStopController.Instance.SetInputBlocked(true);
+        }
+        else
+        {
+            Debug.LogWarning("[SSM] TimeStopController.Instance is null in Awake; delaying input block.");
+        }
     }
 
     void Start()

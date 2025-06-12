@@ -535,8 +535,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f204a0774dd8b4188cd079f7b96b65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pauseMenuPrefab: {fileID: 4653485013890213690, guid: 16245499d1be74e40958ff580749de68, type: 3}
-  settingMenuPrefab: {fileID: 1008315326000720613, guid: d57bd294e12abcb489c51866751d9d3e, type: 3}
+  pauseMenuPrefab: {fileID: 9122548530761669398, guid: 80a97de33bc10934b87ea7fcab610e43, type: 3}
+  settingMenuPrefab: {fileID: 35576472428017837, guid: 0ca99c21c8855d448be190f5c048f958, type: 3}
 --- !u!4 &1792253577
 Transform:
   m_ObjectHideFlags: 0

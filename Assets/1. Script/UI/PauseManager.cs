@@ -1,20 +1,21 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.EventSystems;
 
 public class PauseManager : MonoBehaviour
 {
     public static PauseManager Instance;
 
     [Header("Prefabs")]
-    public GameObject pauseMenuPrefab;   // 일시정지창 프리팹
-    public GameObject settingMenuPrefab; // 설정창 프리팹
+    public GameObject pauseMenuPrefab;    // 일시정지창 프리팹 (Canvas 포함 Prefab)
+    public GameObject settingMenuPrefab;  // 설정창 프리팹 (Canvas 포함 Prefab)
 
-    private GameObject pauseMenuInstance;   // 생성된 일시정지창 인스턴스
-    private GameObject settingMenuInstance; // 생성된 설정창 인스턴스
+    private GameObject pauseMenuInstance;
+    private GameObject settingMenuInstance;
 
     private bool isPaused = false;
-
-    // ★ 추가: 메인메뉴에서는 일시정지 불가
     private bool isPauseAllowed = false;
 
     void Awake()
@@ -23,31 +24,28 @@ public class PauseManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            SceneManager.sceneLoaded += OnSceneLoaded; // 씬 로드 시 마다 콜백
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 메인메뉴 씬 이름이 "TitleScene"이라고 가정
+        // 타이틀이나 메인 메뉴 씬에서는 일시정지 비허용
         if (scene.name == "TitleScene" || scene.name == "MainMenu")
         {
             isPauseAllowed = false;
-            // 혹시 열려있는 pauseMenu가 있다면 닫기
-            if (pauseMenuInstance != null)
-                pauseMenuInstance.SetActive(false);
-            if (settingMenuInstance != null)
-                settingMenuInstance.SetActive(false);
+            if (pauseMenuInstance != null)    pauseMenuInstance.SetActive(false);
+            if (settingMenuInstance != null)  settingMenuInstance.SetActive(false);
             isPaused = false;
+            Time.timeScale = 1f;
         }
         else
         {
-            // 인게임 씬이라면 일시정지 허용
             isPauseAllowed = true;
         }
     }
@@ -60,43 +58,56 @@ public class PauseManager : MonoBehaviour
 
     void Update()
     {
-        // ESC 키 입력
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && isPauseAllowed)
         {
-            // 메인메뉴(또는 허용되지 않는 씬)에서는 무시
-            if (!isPauseAllowed) 
-                return;
-
-            if (!isPaused)
-                Pause();
-            else
-                Resume();
+            if (!isPaused) Pause();
+            else          Resume();
         }
     }
 
-    // 게임 일시정지(메뉴 열기)
     public void Pause()
     {
-        // 이미 다른 pauseMenuInstance가 없으면 새로 생성
         if (pauseMenuInstance == null && pauseMenuPrefab != null)
         {
-            GameObject canvasRoot = GameObject.FindGameObjectWithTag("MainCanvas");
-            if (canvasRoot == null)
+            // 최상위에 그대로 인스턴스
+            pauseMenuInstance = Instantiate(pauseMenuPrefab);
+
+            // Canvas 설정 보강
+            var cv = pauseMenuInstance.GetComponent<Canvas>();
+            if (cv == null) cv = pauseMenuInstance.AddComponent<Canvas>();
+            cv.renderMode   = RenderMode.ScreenSpaceOverlay;
+            cv.sortingOrder = 2000;
+
+            // CanvasScaler
+            if (!pauseMenuInstance.TryGetComponent<CanvasScaler>(out var scaler))
             {
-                Debug.LogWarning("[PauseManager] MainCanvas 태그의 오브젝트가 없음");
-                return;
+                scaler = pauseMenuInstance.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920, 1080);
             }
-            pauseMenuInstance = Instantiate(pauseMenuPrefab, canvasRoot.transform);
+
+            // GraphicRaycaster
+            if (!pauseMenuInstance.TryGetComponent<GraphicRaycaster>(out _))
+            {
+                pauseMenuInstance.AddComponent<GraphicRaycaster>();
+            }
+
+            // EventSystem 보장
+            if (FindFirstObjectByType<EventSystem>() == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<EventSystem>();
+                esGO.AddComponent<StandaloneInputModule>();
+            }
         }
 
         if (pauseMenuInstance != null)
             pauseMenuInstance.SetActive(true);
 
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
         isPaused = true;
     }
 
-    // 게임 재개(메뉴 닫기)
     public void Resume()
     {
         Time.timeScale = 1f;
@@ -105,36 +116,40 @@ public class PauseManager : MonoBehaviour
         if (pauseMenuInstance != null)
             pauseMenuInstance.SetActive(false);
 
-        // 설정창도 함께 닫는다
         if (settingMenuInstance != null)
             settingMenuInstance.SetActive(false);
     }
 
-    // 설정창 열기
     public void OpenSettings()
     {
-        // 이미 생성된 SettingMenu가 없으면
         if (settingMenuInstance == null && settingMenuPrefab != null)
         {
-            GameObject canvasRoot = GameObject.FindGameObjectWithTag("MainCanvas");
-            if (canvasRoot == null)
+            settingMenuInstance = Instantiate(settingMenuPrefab);
+
+            var cv = settingMenuInstance.GetComponent<Canvas>();
+            if (cv == null) cv = settingMenuInstance.AddComponent<Canvas>();
+            cv.renderMode   = RenderMode.ScreenSpaceOverlay;
+            cv.sortingOrder = 2100; // Pause 메뉴 위
+
+            if (!settingMenuInstance.TryGetComponent<CanvasScaler>(out var scaler))
             {
-                Debug.LogWarning("[PauseManager] MainCanvas 태그의 오브젝트가 없음");
-                return;
+                scaler = settingMenuInstance.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920, 1080);
             }
-            settingMenuInstance = Instantiate(settingMenuPrefab, canvasRoot.transform);
+            if (!settingMenuInstance.TryGetComponent<GraphicRaycaster>(out _))
+                settingMenuInstance.AddComponent<GraphicRaycaster>();
         }
 
         if (settingMenuInstance != null)
             settingMenuInstance.SetActive(true);
     }
 
-    // 설정창 닫기
     public void CloseSettings()
     {
         if (settingMenuInstance != null)
             settingMenuInstance.SetActive(false);
     }
-    
+
     public bool IsPaused => isPaused;
 }
