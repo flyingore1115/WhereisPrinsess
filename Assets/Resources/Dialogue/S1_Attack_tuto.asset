@@ -68,8 +68,8 @@ MonoBehaviour:
     options: []
     actionKey: 
   - type: 0
-    characterName: 
-    dialogueText: 
+    characterName: "\uC544\uAC00\uC528"
+    dialogueText: ...
     options: []
     actionKey: 
   - type: 0
@@ -79,7 +79,7 @@ MonoBehaviour:
     options: []
     actionKey: FocusCameraOnTarget:Ms_Sprout:1.0
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "\uAEBC\uC838!!!"
     options: []
     actionKey: FocusCameraOnTarget:Player:1.0
@@ -89,12 +89,29 @@ MonoBehaviour:
     options: []
     actionKey: AttackTutorial
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: ...!
     options: []
     actionKey: FocusCameraOnTarget:Lady:1.0
+  - type: 0
+    characterName: 
+    dialogueText: "\uC18C\uB140\uB294 \uBD84\uD558\uB2E4\uB294 \uB4EF\uC774 \uC778\uC0C1\uC744
+      \uCC0C\uBFCC\uB9B0 \uCC44 \uC790\uB9AC\uC5D0\uC11C \uC77C\uC5B4\uB0AC\uB2E4."
+    options: []
+    actionKey: 
   - type: 2
     characterName: 
     dialogueText: 
     options: []
     actionKey: LadyDoorSeq
+  - type: 0
+    characterName: 
+    dialogueText: "\uBC14\uB2E5\uC5D0\uB294 \uCF00\uC774\uD06C \uC600\uB358 \uC794\uD574\uB4E4\uC774
+      \uC0AC\uACE0\uD604\uC7A5\uCC98\uB7FC \uD769\uBFCC\uB824\uC838 \uC788\uC5C8\uACE0,"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: 

@@ -7,6 +7,7 @@ public class PlayerOver : MonoBehaviour
 {
     public int maxHealth = 3;
     private int currentHealth;
+    public int CurrentHealth => currentHealth;
 
     [Header("Health Bar UI")]
     public Slider healthSlider;
@@ -45,6 +46,7 @@ public class PlayerOver : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         player = GetComponent<Player>();
+        UpdateHealthBar(currentHealth);
     }
 
     void Update()
@@ -67,8 +69,8 @@ public class PlayerOver : MonoBehaviour
 
     private void UpdateHealthBar(int health)
     {
-        if (healthSlider != null)
-            healthSlider.value = health;
+        if (CanvasManager.Instance != null)
+        CanvasManager.Instance.UpdateHealthUI(health, maxHealth);
     }
 
     public void RestoreHealth(int amount)
@@ -83,6 +85,7 @@ public class PlayerOver : MonoBehaviour
         if (currentHealth <= 0) return;
 
         Debug.Log($"받는 피해: {damage}, 남은 체력: {currentHealth}");
+        PostProcessingManager.Instance.ApplyCharacterHitEffect();
         int newHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
 
         if (healthLerpCoroutine != null)

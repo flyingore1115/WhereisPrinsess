@@ -1,62 +1,97 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-using MyGame;
+using MyGame;      // IDamageable, 기타 공용 네임스페이스
 
+/// <summary>
+/// 플레이어(메이드)의 **일반 근접 공격** 전담 스크립트  
+/// • 좌클릭 시 대상(IDamageable)로 돌진 후 타격  
+/// • 0.5초 쿨타임 적용  
+/// • 공격 중엔 Rigidbody 중력‧Collider 비활성화로 이동 제어  
+/// </summary>
 public class P_Attack : MonoBehaviour
 {
+    /*──────────────────────────────────────────────
+     * ▣ 인스펙터 노출 변수
+     *─────────────────────────────────────────────*/
 
     [Header("Basic Attack Settings")]
-    public float attackRange = 10f;             // 일반 공격 사거리
-    public float attackMoveSpeed = 150f;        // 적에게 이동 시 속도
-    public int damageAmount = 2;                // 공격 데미지 (기본)
+    [Tooltip("일반 공격 가능 사거리(유닛)")]
+    public float attackRange = 10f;
 
-    [Header("Combo Attack Settings")]
-    public float comboAttackDelay = 0.2f;       // 콤보 공격 간 대기 시간
-    public int comboThreshold = 3;             // 콤보 임계치 (초과 시 원콤)
+    [Tooltip("타깃에게 돌진할 때의 속도")]
+    public float attackMoveSpeed = 150f;
 
-    [Header("Prefabs for Effects")]
-    public GameObject attackParticlePrefab;     // 공격 시 나타날 파티클
+    [Tooltip("타깃에게 주는 기본 데미지")]
+    public int damageAmount = 2;
 
-    private Rigidbody2D rb;
-    private Collider2D playerCollider;
-    private float originalGravity;
+    [Header("Attack Cooldown")]
+    [Tooltip("공격 쿨타임(초)")]
+    public float attackCooldown = 0.5f;
 
-    private bool isAttacking;
-    public bool IsAttacking => isAttacking;
+    /*──────────────────────────────────────────────
+     * ▣ 내부 상태 변수
+     *─────────────────────────────────────────────*/
 
-    private float defaultGravity;
-    private Coroutine currentAttackCo;
+    private float lastAttackTime = -Mathf.Infinity; // 마지막 공격 시각
+    private Rigidbody2D rb;                          // 플레이어 Rigidbody
+    private Collider2D  playerCollider;              // 플레이어 Collider
+    private float originalGravity;                   // 원래 중력값
 
+    private bool      isAttacking;                   // 공격 중 여부 플래그
+    public  bool      IsAttacking => isAttacking;    // 읽기 전용 프로퍼티
+    private Coroutine currentAttackCo;               // 현재 실행 중 코루틴
 
+    /*──────────────────────────────────────────────
+     * ▣ 초기화
+     *─────────────────────────────────────────────*/
 
-    public void Init(Rigidbody2D rb, Collider2D playerCollider)
+    /// <summary>
+    /// Player.cs에서 호출하여 의존성 주입  
+    /// </summary>
+    public void Init(Rigidbody2D rb, Collider2D col)
     {
-        this.rb = rb;
-        this.playerCollider = playerCollider;
-        originalGravity = rb.gravityScale;
-        defaultGravity = rb.gravityScale;
+        this.rb            = rb;
+        this.playerCollider = col;
+        originalGravity     = rb.gravityScale;
     }
+
+    /*──────────────────────────────────────────────
+     * ▣ Unity 생명주기
+     *─────────────────────────────────────────────*/
 
     void Update()
     {
-        if (TimeStopController.Instance != null && TimeStopController.Instance.IsTimeStopped)
+        // 시간 정지 중에는 입력 무시
+        if (TimeStopController.Instance != null &&
+            TimeStopController.Instance.IsTimeStopped)
             return;
+
         HandleAttack();
     }
 
-    /// <summary>
-    /// 공격 로직 처리 (매 프레임 호출)
-    /// </summary>
-    public void HandleAttack()
-    {
-        if (Player.Instance.holdingPrincess) return;
-        if (!Input.GetMouseButtonDown(0)) return;
+    /*──────────────────────────────────────────────
+     * ▣ 공격 입력 처리
+     *─────────────────────────────────────────────*/
 
+    /// <summary>
+    /// 매 프레임 호출해 좌클릭 입력을 검사하고
+    /// 조건이 맞으면 공격을 시작
+    /// </summary>
+    private void HandleAttack()
+    {
+        if (Player.Instance.holdingPrincess) return;      // 공주 손잡기 중엔 불가
+        if (!Input.GetMouseButtonDown(0)) return;         // 좌클릭 아닐 때 무시
+        if (Player.Instance != null && Player.Instance.IsShootingMode) return;  //사격모드일때 무시
+
+        // 쿨타임 체크
+        if (Time.time - lastAttackTime < attackCooldown)
+            return;
+
+        // 마우스 월드 좌표
         Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         wp.z = 0f;
 
-        // 지점에 겹친 모든 Collider 검색
+        // 클릭 지점에 겹친 Collider 탐색
         var hits = Physics2D.OverlapPointAll(wp);
         IDamageable target = null;
 
@@ -65,62 +100,62 @@ public class P_Attack : MonoBehaviour
             target = col.GetComponent<IDamageable>()
                   ?? col.GetComponentInParent<IDamageable>()
                   ?? col.GetComponentInChildren<IDamageable>();
-
-            if (target != null) break;   // IDamageable 찾으면 즉시 탈출
+            if (target != null) break;
         }
+        if (target == null) return; // 공격 대상 없음
 
-        if (target == null) return;      // 아무 대상도 없으면 종료
-
+        // 사거리 체크
         float dist = Vector2.Distance(transform.position, target.transform.position);
         if (dist <= attackRange)
-            StartAttack(target);
-    }
-
-
-    /// <summary>
-    /// 시간 정지 중 적 클릭(좌클릭: 선택, 우클릭: 선택 해제)
-    /// </summary>
-    private void HandleTargetSelectionDuringTimeStop()
-    {
-        if (Input.GetMouseButtonDown(0))
         {
-            RaycastHit2D hit = Physics2D.Raycast(
-                Camera.main.ScreenToWorldPoint(Input.mousePosition),
-                Vector2.zero
-            );
+            StartAttack(target);
+            lastAttackTime = Time.time; // 쿨타임 갱신
         }
     }
 
-    // 외부에서 호출해 공격을 강제 취소
+    /*──────────────────────────────────────────────
+     * ▣ 외부(또는 내부) 호출용 보조 메서드
+     *─────────────────────────────────────────────*/
+
+    /// <summary>
+    /// 강제 공격 취소(코루틴 중지·상태 복구)
+    /// </summary>
     public void CancelAttack()
     {
         if (currentAttackCo != null)
         {
             StopCoroutine(currentAttackCo);
-            rb.gravityScale = originalGravity;
+            rb.gravityScale     = originalGravity;
             playerCollider.enabled = true;
-            isAttacking = false;
+            isAttacking         = false;
         }
     }
 
-
     /// <summary>
-    /// 일반 공격: 플레이어가 적에게 돌진 후 공격
+    /// 공격 루틴을 시작
     /// </summary>
-        public void StartAttack(IDamageable target)
+    public void StartAttack(IDamageable target)
     {
-        // 이미 돌진 중이면 취소 후 다시 실행
         CancelAttack();
         currentAttackCo = StartCoroutine(AttackRoutine(target));
     }
 
+    /*──────────────────────────────────────────────
+     * ▣ 코루틴: 돌진 → 타격
+     *─────────────────────────────────────────────*/
+
+    /// <summary>
+    /// 타깃까지 돌진한 뒤 데미지를 주는 메인 코루틴  
+    /// • 이동 중 중력·Collider 비활성  
+    /// • 타깃이 사라지면 즉시 종료  
+    /// </summary>
     private IEnumerator AttackRoutine(IDamageable target)
     {
-        isAttacking = true;
-        rb.gravityScale       = 0;
+        isAttacking           = true;
+        rb.gravityScale       = 0f;
         playerCollider.enabled = false;
 
-        // 안전 null 체크 (파괴됐으면 루프 즉시 탈출)
+        // 타깃에게 근접할 때까지 이동
         while (target != null && (target as Object) != null &&
                Vector2.Distance(transform.position, target.transform.position) > 0.1f)
         {
@@ -132,21 +167,20 @@ public class P_Attack : MonoBehaviour
             yield return null;
         }
 
-        // 타깃이 살아있을 때만 데미지·이펙트
+        // 근접 성공 시 데미지·이펙트
         if (target != null && (target as Object) != null)
         {
-            if (attackParticlePrefab != null)
-                Instantiate(attackParticlePrefab, target.transform.position, Quaternion.identity);
+            // (선택) 파티클·사운드
             SoundManager.Instance?.PlaySFX("PlayerAttackSound");
+
+            // 실제 데미지
             target.Hit(damageAmount);
         }
 
+        // 상태 복구
         playerCollider.enabled = true;
         rb.gravityScale        = originalGravity;
         isAttacking            = false;
         currentAttackCo        = null;
     }
-
-    /* 기존 HandleAttack 내부에서
-       StartCoroutine(MoveToEnemyAndAttack(target)) → StartAttack(target) 로 변경 */
 }

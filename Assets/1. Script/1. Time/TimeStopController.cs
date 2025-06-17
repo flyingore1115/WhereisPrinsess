@@ -14,9 +14,13 @@ public class TimeStopController : MonoBehaviour
     public float timeStopDrainRate = 0.01f;
     public float enemyKillGain = 0.3f;
 
+    [Header("Gauge Stacks")]
+    public int maxStacks = 3;            // ★추가: 스택 초기값
+    public int RemainingStacks { get; private set; } // ★추가
+
     [Header("UI")]
     public Slider timeGaugeSlider;
-    public Image fillImage;
+    //public Image fillImage;
 
     /*──────────────────────────────*/
     public float CurrentGauge { get; private set; }   // 읽기 전용
@@ -26,7 +30,7 @@ public class TimeStopController : MonoBehaviour
     bool _inputBlocked = true;               // 스토리 씬 기본 봉인
     readonly List<ITimeAffectable> _objs = new();
 
-Material _fillMat; //마테리얼
+    Material _fillMat; //마테리얼
     public float MaxGauge => maxTimeGauge;        // 읽기 전용
 
     /*──────────────────────────────*/
@@ -44,13 +48,15 @@ Material _fillMat; //마테리얼
         else { Destroy(gameObject); }
 
         // ① FillImage 머티리얼 복제
-        if (fillImage != null)
-        {
-            _fillMat = Instantiate(fillImage.material);
-            fillImage.material = _fillMat;
-        }
+        // if (fillImage != null)
+        // {
+        //     _fillMat = Instantiate(fillImage.material);
+        //     fillImage.material = _fillMat;
+        // }
 
+        RemainingStacks = maxStacks;          // 스택 초기화
         CurrentGauge = maxTimeGauge;
+
         UpdateGaugeUI();
     }
 
@@ -102,8 +108,16 @@ Material _fillMat; //마테리얼
             CurrentGauge -= drain * Time.deltaTime;
             if (CurrentGauge <= 0f)
             {
-                CurrentGauge = 0f;
-                ResumeTime();
+                if (RemainingStacks > 0)
+                {
+                    RemainingStacks--;            // 스택 하나 소모
+                    CurrentGauge = maxTimeGauge;  // 게이지 풀 충전
+                }
+                else
+                {
+                    CurrentGauge = 0f;            // 스택 없으면 완전 종료
+                    ResumeTime();
+                }
             }
         }
         else
@@ -124,7 +138,7 @@ Material _fillMat; //마테리얼
     {
         SoundManager.Instance?.PlaySFX("TimeStopSound");
         _isTimeStopped = true;
-        
+
         if (PostProcessingManager.Instance != null)
         {
             PostProcessingManager.Instance.ApplyTimeStop();
@@ -133,7 +147,9 @@ Material _fillMat; //마테리얼
         {
             Debug.LogWarning("포스트프로세싱적용안됨!!!!");
         }
-            
+        SoundManager.Instance?.PauseLoopSFX();                   // 변경
+        SoundManager.Instance?.PlayTimeStopLoop("TimeStopLoop");
+
         foreach (var o in _objs) o.StopTime();
     }
 
@@ -144,6 +160,9 @@ Material _fillMat; //마테리얼
         if (PostProcessingManager.Instance != null)
             PostProcessingManager.Instance.SetDefaultEffects();
 
+        SoundManager.Instance?.StopTimeStopLoop();               // 변경
+
+        SoundManager.Instance?.ResumeLoopSFX();
         foreach (var o in _objs) if (o != null) o.ResumeTime();
 
         //손잡기 상태 자동 해제
@@ -173,12 +192,12 @@ Material _fillMat; //마테리얼
     }
 
     /*──────────────────────────────*/
-void UpdateGaugeUI()
+    void UpdateGaugeUI()
     {
         if (timeGaugeSlider != null)
         {
             timeGaugeSlider.maxValue = maxTimeGauge;
-            timeGaugeSlider.value    = CurrentGauge;
+            timeGaugeSlider.value = CurrentGauge;
         }
 
         // ② 셰이더 _FillAmount 바인딩
@@ -203,11 +222,19 @@ void UpdateGaugeUI()
         CurrentGauge = Mathf.Clamp(CurrentGauge + amount, 0f, maxTimeGauge);
         UpdateGaugeUI();
     }
-    
+
     public void SetGauge(float value)
-{
-    CurrentGauge = Mathf.Clamp(value, 0f, maxTimeGauge);
-    UpdateGaugeUI(); // 게이지 UI 갱신 함수가 있다면 호출
-}
+    {
+        CurrentGauge = Mathf.Clamp(value, 0f, maxTimeGauge);
+        UpdateGaugeUI(); // 게이지 UI 갱신 함수가 있다면 호출
+    }
+
+    public void SetStacks(int stacks)
+    {
+        RemainingStacks = Mathf.Clamp(stacks, 0, maxStacks);
+        // 바로 UI 반영
+        CanvasManager.Instance?.UpdateTimeStopUI();
+    }
+
 
 }

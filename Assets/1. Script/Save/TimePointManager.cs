@@ -85,11 +85,9 @@ public class TimePointManager : MonoBehaviour
         if (player != null)
         {
             gameState.playerBulletCount = player.shooting.currentAmmo;
-            gameState.playerGauge = 0; // gauge 관련 값은 필요에 따라
+            gameState.playerTimeEnergy   = TimeStopController.Instance.CurrentGauge;
+            gameState.playerGaugeStacks  = TimeStopController.Instance.RemainingStacks;
             gameState.playerHealth = player.health;
-
-            var tsc = TimeStopController.Instance;
-            gameState.playerTimeEnergy = (tsc != null) ? tsc.CurrentGauge : player.timeEnergy;
 
             gameState.unlockedSkills = new List<string>(); // 필요시 처리
         }
@@ -195,17 +193,27 @@ public class TimePointManager : MonoBehaviour
                 playerOver.ForceSetHealth(lastGameStateData.playerHealth);  // 아래 정의
             }
 
+            if (CanvasManager.Instance != null)
+                CanvasManager.Instance.UpdateHealthUI(lastGameStateData.playerHealth, playerOver.maxHealth);
+
+
             player.health = lastGameStateData.playerHealth;
-            player.timeEnergy = lastGameStateData.playerTimeEnergy;
             player.shooting.currentAmmo = lastGameStateData.playerBulletCount;
             player.shooting.UpdateAmmoUI();
-            Debug.Log($"[TPM] 체력/에너지 복원 완료: 체력={player.health}, 에너지={player.timeEnergy}, 탄={player.shooting.currentAmmo}");
-    TimeStopController tsc = TimeStopController.Instance;
-if (tsc != null)
-{
-    tsc.SetGauge(player.timeEnergy);  // ← 강제 동기화
-    Debug.Log($"[TPM] 에너지 게이지 동기화 완료: {player.timeEnergy}");
-}
+
+            TimeStopController tsc = TimeStopController.Instance;
+
+            if (tsc != null)
+            {
+                if (tsc.IsTimeStopped)
+                    tsc.ResumeTime();
+
+                tsc.SetGauge(lastGameStateData.playerTimeEnergy);
+                tsc.SetStacks(lastGameStateData.playerGaugeStacks);
+                CanvasManager.Instance?.UpdateTimeStopUI();
+            }
+            
+        Debug.Log($"[TPM] 체력/에너지 복원 완료: 체력={player.health}, 에너지={lastGameStateData.playerTimeEnergy}, 탄={player.shooting.currentAmmo}");
 
 }
 
@@ -280,6 +288,30 @@ if (tsc != null)
             return;
         }
 
+        if (lastGameStateData != null)
+        {
+            // 체력·탄약
+            player.health = lastGameStateData.playerHealth;
+            if (player.shooting != null)
+            {
+                player.shooting.currentAmmo = lastGameStateData.playerBulletCount;
+                player.shooting.UpdateAmmoUI();
+            }
+            CanvasManager.Instance?.UpdateHealthUI(
+                player.health, FindFirstObjectByType<PlayerOver>()?.maxHealth ?? 3);
+
+            // 타임 게이지·스택
+            var tsc = TimeStopController.Instance;
+            if (tsc != null)
+            {
+                if (tsc.IsTimeStopped)
+                    tsc.ResumeTime();
+                tsc.SetGauge(lastGameStateData.playerTimeEnergy);
+                tsc.SetStacks(lastGameStateData.playerGaugeStacks);
+                CanvasManager.Instance?.UpdateTimeStopUI();
+            }
+        }
+
         player.ignoreInput = true;
         Vector2 targetPos = princess.transform.position;
         player.transform.position = targetPos;
@@ -305,6 +337,9 @@ if (tsc != null)
 
         // 체크포인트 갱신
         SaveCheckpoint(princess.transform.position, player.transform.position);
+
+        Debug.Log($"[TimePointManager] 체력·게이지·탄약 복원: 체력={player.health}, 에너지={lastGameStateData.playerTimeEnergy}, 탄약={lastGameStateData.playerBulletCount}");
+        Debug.LogWarning("테스트");
     }
 
     /// <summary>
@@ -323,43 +358,73 @@ if (tsc != null)
     /// <summary>
     /// 기존 되감기 코루틴(원본)
     /// </summary>
+    // TimePointManager.cs 에서…
+
     private IEnumerator RewindCoroutine()
     {
         Debug.Log("[TimePointManager] 되감기 시작...");
 
         Princess princess = FindFirstObjectByType<Princess>();
-        Player player = FindFirstObjectByType<Player>();
+        Player    player   = FindFirstObjectByType<Player>();
         if (princess == null || player == null)
         {
             Debug.LogWarning("[TimePointManager] 공주/플레이어 찾기 실패!");
             yield break;
         }
 
-        // 위치 보정
+        // ① 위치 보정
         princess.transform.position = lastCheckpointData.princessPosition;
-        player.transform.position = lastCheckpointData.playerPosition;
+        player.transform.position   = lastCheckpointData.playerPosition;
         Debug.Log($"[TimePointManager] 위치 보정 완료: 공주({lastCheckpointData.princessPosition}), 플레이어({lastCheckpointData.playerPosition})");
 
-        // ★ 수정: 죽은 적만 다시 활성화
+        // ② 죽은 적만 다시 활성화
         ReactivateDeadEnemies(lastCheckpointData);
 
-        Debug.Log("[TimePointManager] 되감기 완료.");
+        // ── 여기서 GameStateData 복원 추가 ──
+        if (lastGameStateData != null)
+        {
+            // PlayerOver 체력 복원
+            var playerOver = player.GetComponent<PlayerOver>();
+            if (playerOver != null)
+                playerOver.ForceSetHealth(lastGameStateData.playerHealth);
 
-        // 플레이어 ImmediateRevive
+            // Player 스크립트 체력 동기화
+            player.health = lastGameStateData.playerHealth;
+
+            // 타임 게이지 복원
+            var tsc = TimeStopController.Instance;
+                if (tsc != null)
+                {
+                    tsc.SetGauge(lastGameStateData.playerTimeEnergy);
+                    tsc.SetStacks(lastGameStateData.playerGaugeStacks);
+                }
+                
+                
+
+            // (선택) 탄약 복원
+                if (player.shooting != null)
+                {
+                    player.shooting.currentAmmo = lastGameStateData.playerBulletCount;
+                    player.shooting.UpdateAmmoUI();
+                }
+
+            Debug.Log($"[TimePointManager] 체력·게이지·탄약 복원: 체력={player.health}, 에너지={lastGameStateData.playerTimeEnergy}, 탄약={lastGameStateData.playerBulletCount}");
+        }
+        // ────────────────────────────────────────
+
+        // ③ 즉시 부활 처리
         ImmediateRevive();
 
-        // 대기
+        // ④ 사용자 입력 대기
         Time.timeScale = 0f;
         while (!Input.anyKeyDown)
-        {
             yield return null;
-        }
         Time.timeScale = 1f;
 
-        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
-        if (playerOver != null)
-        {
-            playerOver.ResumeAfterRewind();
-        }
+        // ⑤ 리와인드 완료 후 후처리
+        PlayerOver playerOverComp = FindFirstObjectByType<PlayerOver>();
+        if (playerOverComp != null)
+            playerOverComp.ResumeAfterRewind();
     }
+
 }

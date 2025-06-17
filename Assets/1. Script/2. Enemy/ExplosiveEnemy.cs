@@ -18,7 +18,6 @@ public class ExplosiveEnemy : BaseEnemy
     protected override void Awake()
     {
         base.Awake();
-        maxHealth = 2;
         currentHealth = maxHealth;
         UpdateHealthDisplay();
     }
@@ -110,6 +109,8 @@ public class ExplosiveEnemy : BaseEnemy
             psr.sortingOrder = 100;
         }
     }
+
+    SoundManager.Instance?.PlaySFX("EnemyExplosionSound");
 
 
         yield return new WaitForSeconds(0.5f);

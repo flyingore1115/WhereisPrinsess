@@ -18,9 +18,9 @@ public class BaseEnemy : MonoBehaviour, ITimeAffectable, IDamageable
     protected SpriteRenderer spriteRenderer;
     protected Animator animator;
 
-    public int maxHealth = 3;
+    public int maxHealth = 1;
 
-    [HideInInspector] public int currentHealth;  // 외부 TimePointManager가 접근 가능토
+    public int currentHealth;  // 외부 TimePointManager가 접근 가능토
     public TMP_Text healthDisplay; // 적 위에 표시할 텍스트 (Inspector에서 할당)
 
     public void Hit(int damage) => TakeDamage(damage);

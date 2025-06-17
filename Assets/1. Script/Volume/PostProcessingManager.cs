@@ -79,16 +79,27 @@ public class PostProcessingManager : MonoBehaviour
             SetDefaultEffects();
         }
     }
+    
+    //언제든 안전하게 컴포넌트를 확보
+private void EnsureComponents()
+{
+    if (colorAdjustments == null || vignette == null ||
+        chromaticAberration == null || filmGrain == null)
+    {
+        TryAssignPostProcessVolume();   // 이미 할당돼 있으면 그대로 통과
+    }
+}
 
     private IEnumerator ApplyTimeStopNextFrame()
-{
-    yield return null;          // 한 프레임 대기 (모든 오브젝트 로드 완료)
-    ApplyTimeStop();            // 확실히 적용
-}
+    {
+        yield return null;          // 한 프레임 대기 (모든 오브젝트 로드 완료)
+        ApplyTimeStop();            // 확실히 적용
+    }
 
 
     public void SetDefaultEffects()
     {
+        EnsureComponents();
         if (colorAdjustments != null)
         {
             colorAdjustments.saturation.value = 0f;
@@ -110,6 +121,7 @@ public class PostProcessingManager : MonoBehaviour
 
     public void ApplyTimeStop()
     {
+        EnsureComponents();
         if (colorAdjustments != null)
             colorAdjustments.saturation.value = -100f;
 

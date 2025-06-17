@@ -21,7 +21,6 @@ public class Player : MonoBehaviour, ITimeAffectable
     public bool applyRewindGrayscale = false;
 
     public int health = 100;
-    public float timeEnergy = 100f;
 
     // ────────────────────────────────────────────────────
     // ■ 새로 추가: 공격 모드 구분 변수
@@ -92,8 +91,8 @@ public class Player : MonoBehaviour, ITimeAffectable
             bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             bool ctrl  = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 
-            // (0-1) Shift + 좌클릭 → 정지된 총알 생성 (사격 모드 관계없이)
-            if (Input.GetMouseButtonDown(0))
+            // (0-1) Shift + 좌클릭 → 정지된 총알 생성
+            if (Input.GetMouseButtonDown(0) && isShootingMode)
             {
                 if (!PointerOverTagged("Enemy", "Princess"))
                     shooting.HandleShooting();
@@ -126,8 +125,8 @@ public class Player : MonoBehaviour, ITimeAffectable
                 }
             }
 
-            // (0-3) Ctrl 미사용 + 좌클릭 → 준비 공격 상태 (기존 근접 공격 준비)
-            else if (Input.GetMouseButtonDown(0))
+            // (0-3) 좌클릭 → 준비 공격 상태 (기존 근접 공격 준비)
+            else if (Input.GetMouseButtonDown(0) && !isShootingMode)
             {
                 Vector3 wp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 wp.z = 0;
@@ -250,8 +249,7 @@ public class Player : MonoBehaviour, ITimeAffectable
     {
         if (shooting != null)
             shooting.currentAmmo = gameState.playerBulletCount;
-        health     = gameState.playerHealth;
-        timeEnergy = gameState.playerTimeEnergy;
+        health = gameState.playerHealth;
     }
 
     public void StopTime()

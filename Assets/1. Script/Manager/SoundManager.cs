@@ -13,6 +13,8 @@ public class SoundManager : MonoBehaviour
 
     private List<AudioClip> bgmClips = new List<AudioClip>(); // Resources에서 로드한 BGM 클립들을 저장
 
+    private AudioSource timeStopSource; //시간정지 전용
+
     private float masterVolume = 0.8f;
     private float sfxVolume = 0.8f;
     private float bgmVolume = 0.8f;
@@ -50,6 +52,16 @@ public class SoundManager : MonoBehaviour
             rewindObj.transform.parent = this.transform;
             rewindSfxSource = rewindObj.AddComponent<AudioSource>();
             rewindSfxSource.loop = true;
+        }
+
+        //전용 시간정지 효과음
+        if (timeStopSource == null)
+        {
+            var go = new GameObject("TimeStopLoopSFX");
+            go.transform.parent = this.transform;
+            timeStopSource = go.AddComponent<AudioSource>();
+            timeStopSource.loop = true;
+            timeStopSource.volume = sfxVolume;
         }
     }
 
@@ -120,15 +132,21 @@ public class SoundManager : MonoBehaviour
         bgmSource.Stop();
     }
 
-    // 재생: 되감기 효과음 전용 AudioSource 사용
+    public void PauseLoopSFX()
+    {
+        if (rewindSfxSource != null && rewindSfxSource.isPlaying)
+            rewindSfxSource.Pause();    // 기존 루프 사운드(경고·폭탄) 일시정지
+    }
+
+    public void ResumeLoopSFX()
+    {
+        if (rewindSfxSource != null && rewindSfxSource.clip != null)
+            rewindSfxSource.UnPause();  // 멈췄던 루프 사운드 재생 계속
+    }
+
     public void PlayLoopSFX(string soundName)
     {
         EnsureAudioSources();
-        // 재생 전에 rewindSfxSource를 활성화
-        if (rewindSfxSource != null)
-        {
-            rewindSfxSource.enabled = true;
-        }
 
         if (soundClips.TryGetValue(soundName, out AudioClip clip))
         {
@@ -170,6 +188,25 @@ public class SoundManager : MonoBehaviour
         }
     }
 
+    // 변경: 시간정지 루프 사운드 재생
+    public void PlayTimeStopLoop(string soundName)
+    {
+        EnsureAudioSources();
+        if (soundClips.TryGetValue(soundName, out var clip) && clip != null)
+        {
+            timeStopSource.clip = clip;
+            timeStopSource.time = 0f;
+            timeStopSource.Play();
+        }
+    }
+    public void StopTimeStopLoop()
+    {
+        if (timeStopSource != null && timeStopSource.isPlaying)
+        {
+            timeStopSource.Stop();
+            timeStopSource.clip = null;
+        }
+    }
 
     public void SetBGMVolume(float volume)
     {
@@ -192,26 +229,26 @@ public class SoundManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         EnsureAudioSources();
-        // switch (scene.name)
-        // {
-        //     case "MainMenu":
-        //         PlayBGM("BGM_Start");
-        //         break;
-        //     case "Story_1":
-        //         PlayBGM("BGM_Stroy_1");
-        //         break;
-        //     case "Story_2":
-        //         PlayBGM("BGM_Story_2");
-        //         break;
-        //     case "New_Game":
-        //         PlayBGM("BGM_InGame");
-        //         break;
-        //     case "Boss":
-        //         PlayBGM("BGM_Boss");
-        //         break;
-        //     default:
-        //         StopBGM();
-        //         break;
-        // }
+        switch (scene.name)
+        {
+            case "MainMenu":
+                PlayBGM("BGM_Start");
+                break;
+            case "Story_1":
+                PlayBGM("BGM_Stroy_1");
+                break;
+            case "Story_2":
+                PlayBGM("BGM_Story_2");
+                break;
+            case "New_Game":
+                PlayBGM("BGM_InGame");
+                break;
+            case "Boss":
+                PlayBGM("BGM_Boss");
+                break;
+            default:
+                StopBGM();
+                break;
+        }
     }
 }

@@ -36,10 +36,15 @@ public class Bomb : MonoBehaviour, ITimeAffectable
         {
             transform.Translate(Vector2.down * fallSpeed * Time.deltaTime);
         }
+        //SoundManager.Instance?.PlaySFX("fallBomb");
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+
+        //SoundManager.Instance?.StopLoopSFX("fallBomb");        // 변경
+        //SoundManager.Instance?.PlaySFX("TedyBombSound");     // 변경
+
         // 폭발 범위 내 데미지 판정
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explodeRadius);
         foreach (var c in hits)
@@ -53,7 +58,6 @@ public class Bomb : MonoBehaviour, ITimeAffectable
                 c.GetComponent<Princess>()?.TakeDamage(1); // 공주에게도 데미지 적용
             }
         }
-
         // 폭발 이펙트 생성
         if (explosionParticlePrefab != null)
         {

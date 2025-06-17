@@ -20,6 +20,11 @@ MonoBehaviour:
     options: []
     actionKey: 
   - type: 0
+    characterName: 
+    dialogueText: "\uC65C \uCAD3\uC544\uC628\uAC70\uC57C?"
+    options: []
+    actionKey: 
+  - type: 0
     characterName: ???
     dialogueText: "\uBB50, \uAC10\uC0AC\uC778\uC0AC\uB77C\uB3C4 \uBC1B\uACE0 \uC2F6\uC5B4\uC11C?"
     options: []
@@ -28,7 +33,8 @@ MonoBehaviour:
     characterName: 
     dialogueText: 
     options:
-    - "\uC5B4...\uC5B4, \uC548\uB155"
+    - ...
+    - "\uADF8, \uAE00\uC384..."
     actionKey: 
   - type: 0
     characterName: ???
@@ -48,11 +54,47 @@ MonoBehaviour:
     actionKey: 
   - type: 0
     characterName: ???
-    dialogueText: "\uC5B4\uC11C, ...\uB098\uB77C\uACE0."
+    dialogueText: "\uAC70, \uAC70\uAE30! \uC7A0\uAE50 \uBE44\uCF1C\uBD10!!!"
     options: []
-    actionKey: LoadNextScene
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "...\uD14C\uC624\uB3C4\uC5B4 \uC120\uC0DD\uB2D8?"
+    options: []
+    actionKey: FocusCameraOnTarget:Lady:1.0
+  - type: 0
+    characterName: 
+    dialogueText: "\uB3C4\uB300\uCCB4 \uBB34\uC2A8 \uB300\uB2E8\uD55C \uC77C\uC774
+      \uC788\uC73C\uC154\uC11C \uADF8\uB807\uAC8C \uB6F0\uC5B4\uAC00\uC2DC\uB294..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "\uC544\uB2C8 \uBE44\uD0A4\uB77C\uACE0!!!"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: ???
+    dialogueText: "(\uB300\uCDA9 \uBD80\uB52A\uCE58\uB294 \uC5F0\uCD9C)"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: 
+    dialogueText: "\uC2DC\uC57C\uAC00 \uC554\uC804\uB41C\uB2E4."
+    options: []
+    actionKey: ShowCG:fade
+  - type: 0
+    characterName: 
+    dialogueText: "\uADF8\uB9AC\uACE0..."
+    options: []
+    actionKey: 
   - type: 2
     characterName: 
     dialogueText: 
     options: []
     actionKey: LoadNextScene
+  - type: 0
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: 

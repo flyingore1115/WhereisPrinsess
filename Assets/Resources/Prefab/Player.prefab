@@ -607,9 +607,7 @@ MonoBehaviour:
   attackRange: 12
   attackMoveSpeed: 150
   damageAmount: 1
-  comboAttackDelay: 0.3
-  comboThreshold: 3
-  attackParticlePrefab: {fileID: 6263782476919498309, guid: 1fd2749f2a4056446881dce86ed70c39, type: 3}
+  attackCooldown: 0.5
 --- !u!114 &1678615733877358607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -652,7 +650,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxTimeGauge: 1
   passiveChargeRate: 0
-  timeStopDrainRate: 0.01
-  enemyKillGain: 0.3
+  timeStopDrainRate: 0.4
+  enemyKillGain: 1
+  maxStacks: 3
   timeGaugeSlider: {fileID: 0}
-  fillImage: {fileID: 0}

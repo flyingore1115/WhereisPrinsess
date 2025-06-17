@@ -26,6 +26,9 @@ public class StatusTextManager : MonoBehaviour
     // 즉시 메시지 표시 후 일정 시간 뒤 사라지는 방식
     public void ShowMessage(string message)
     {
+
+        if (!gameObject.activeInHierarchy)
+        gameObject.SetActive(true);
         // 만약 “아무 키나 누르면 시작” 처럼 계속 띄워두려면, ‘유지’ 방식으로 해도 좋음
         if (currentMessageCoroutine != null)
             StopCoroutine(currentMessageCoroutine);

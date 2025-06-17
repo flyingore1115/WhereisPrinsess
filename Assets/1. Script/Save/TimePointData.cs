@@ -32,6 +32,7 @@ namespace MyGame
         public List<string> unlockedSkills;
         public int playerHealth;
         public float playerTimeEnergy;
+        public int   playerGaugeStacks; 
 
     }
 

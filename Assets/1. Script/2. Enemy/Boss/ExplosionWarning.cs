@@ -77,6 +77,7 @@ public class ExplosionWarning : MonoBehaviour
     {
         // 경고 코루틴 시작
         StartCoroutine(WarningRoutine());
+        SoundManager.Instance?.PlayLoopSFX("TeddyWarningSound");
     }
 
     void Update()
@@ -117,7 +118,10 @@ public class ExplosionWarning : MonoBehaviour
         yield return null;
     }
 
-    // 경고 종료 → 폭발
+        // 경고 종료 → 폭발
+    
+    SoundManager.Instance?.StopLoopSFX("TeddyWarningSound");
+    SoundManager.Instance?.PlaySFX("TeddyExplosion");
     Explode();
     Destroy(gameObject);
 }
