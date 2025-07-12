@@ -33,7 +33,10 @@ private void OnTriggerEnter2D(Collider2D collision)
         TimePointManager.Instance.SaveCheckpoint(
             princessTf.position, player.transform.position);
 
-        TimePointManager.Instance.ImmediateRevive();
+        if (RewindManager.Instance != null)
+{
+    RewindManager.Instance.StartRewind();   // 스냅샷 역재생+체크포인트 복원
+}
         StartCoroutine(CoStopPrincessAndResume((MonoBehaviour)(object)(princess ?? (object)lady)));
     }
     else

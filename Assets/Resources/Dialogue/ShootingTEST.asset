@@ -10,10 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
-  m_Name: Story2
+  m_Name: ShootingTEST
   m_EditorClassIdentifier: 
-  triggerID: Shooting_tuto
+  triggerID: TESTS
   entries:
+  - type: 2
+    characterName: 
+    dialogueText: 
+    options: []
+    actionKey: HideCG
   - type: 2
     characterName: 
     dialogueText: 
@@ -24,11 +29,6 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: ShootingTutorial
-  - type: 0
-    characterName: 
-    dialogueText: "\uC544\uC2AC\uC544\uC2AC\uD588\uC5B4"
-    options: []
-    actionKey: 
   - type: 2
     characterName: 
     dialogueText: 

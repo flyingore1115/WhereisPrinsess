@@ -1,6 +1,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 /// <summary>
 /// 여러 UI 요소(체력바, 시간정지 게이지)를 한 곳에서 통합 관리.
@@ -32,6 +34,8 @@ public class CanvasManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            bool isStory = SceneManager.GetActiveScene().name.Contains("Story");
+        SetGameUIActive(!isStory);
         }
         else
         {
@@ -91,9 +95,12 @@ public class CanvasManager : MonoBehaviour
         timeGaugeFillImage.fillAmount = ratio;                 // 원형 게이지
 
         // 스택 수 표기 (0이면 “X”)
-        timeGaugeText.text = (tsc.RemainingStacks > 0)
-                            ? tsc.RemainingStacks.ToString()
-                            : "X";
+        if (tsc.RemainingStacks <= 0)
+            timeGaugeText.text = "X";
+        else if (tsc.RemainingStacks >= 100)
+            timeGaugeText.text = "∞";
+        else
+            timeGaugeText.text = tsc.RemainingStacks.ToString();
     }
 
     /// <summary>

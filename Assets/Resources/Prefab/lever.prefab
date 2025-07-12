@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 1050579603052037683}
   - component: {fileID: 7318763196300798269}
   - component: {fileID: 1390256304156222330}
+  - component: {fileID: 4957194710164355012}
   m_Layer: 0
   m_Name: lever2
   m_TagString: Lever
@@ -225,6 +226,7 @@ MonoBehaviour:
   rotationSpeed: 200
   activatedAngle: 30
   deactivatedAngle: -30
+  actionText: "\uB808\uBC84 \uB2F9\uAE30\uAE30"
 --- !u!61 &1390256304156222330
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -271,3 +273,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 3, y: 3.5}
   m_EdgeRadius: 0
+--- !u!114 &4957194710164355012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8148009769634032913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a9c935f0acc3c14886bfd6d56e04425, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  worldOffset: {x: 0.8, y: 0.8, z: 0}
+  worldScale: 0.015
+  slideDistance: 0.5
+  slideDuration: 0.2

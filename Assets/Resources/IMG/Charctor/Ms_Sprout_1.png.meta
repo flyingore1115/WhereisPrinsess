@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8c133a950e458724ea3a04fd31901a6a
+guid: e072f9e251c95c24bbca1c014955054d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5159362228428509745
-    second: Spike_0
+      213: -4578714513930880782
+    second: Ms_Sprout_1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spike_0
+      name: Ms_Sprout_1_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 320
-        height: 480
+        x: 88
+        y: 63
+        width: 134
+        height: 347
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fcd63f283634668b0800000000000000
-      internalID: -5159362228428509745
+      spriteID: 2f8793d98632570c0800000000000000
+      internalID: -4578714513930880782
       vertices: []
       indices: 
       edges: []

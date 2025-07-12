@@ -68,11 +68,6 @@ MonoBehaviour:
     options: []
     actionKey: 
   - type: 0
-    characterName: "\uC544\uAC00\uC528"
-    dialogueText: ...
-    options: []
-    actionKey: 
-  - type: 0
     characterName: "Ms. \uC2A4\uD504\uB77C\uC6B0\uD2B8"
     dialogueText: "\uADF8\uC73C... \uAC8C \uB9D0\uC774\uC9C0, \uC7A0\uAE50 \uC880
       \uC9C4\uC815\uD558\uACE0 \uC598\uAE30\uB97C..."
@@ -106,12 +101,6 @@ MonoBehaviour:
     actionKey: LadyDoorSeq
   - type: 0
     characterName: 
-    dialogueText: "\uBC14\uB2E5\uC5D0\uB294 \uCF00\uC774\uD06C \uC600\uB358 \uC794\uD574\uB4E4\uC774
-      \uC0AC\uACE0\uD604\uC7A5\uCC98\uB7FC \uD769\uBFCC\uB824\uC838 \uC788\uC5C8\uACE0,"
-    options: []
-    actionKey: 
-  - type: 0
-    characterName: 
     dialogueText: 
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Player:1.0

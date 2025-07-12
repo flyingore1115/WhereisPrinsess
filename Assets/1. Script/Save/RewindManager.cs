@@ -207,7 +207,7 @@ public class RewindManager : MonoBehaviour
         }
     }
 
-    
+
 
     IEnumerator OnlyCheckpointRestore()
     {
@@ -215,10 +215,14 @@ public class RewindManager : MonoBehaviour
         if (TimePointManager.Instance.HasCheckpoint())
         {
             yield return StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(
-                TimePointManager.Instance.GetLastCheckpointData(), 
-                false
-            ));
+                TimePointManager.Instance.GetLastCheckpointData(), false));
         }
+        SetGameOver(false);
+
+        /* ★추가 : 스냅샷 리셋 후 1장 기록 */
+    snapshots.Clear();
+    RecordSnapshot();               // ← RewindManager 내부 함수
+    /* --------------------------------------- */
     }
 
     IEnumerator RewindCoroutine()

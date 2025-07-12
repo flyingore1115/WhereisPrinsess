@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8c133a950e458724ea3a04fd31901a6a
+guid: 37b0d2e5e30df33409250ec3bfcd0ff9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5159362228428509745
-    second: Spike_0
+      213: -6628414004274166170
+    second: gun_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spike_0
+      name: gun_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 320
-        height: 480
+        x: 73
+        y: 150
+        width: 224
+        height: 178
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fcd63f283634668b0800000000000000
-      internalID: -5159362228428509745
+      spriteID: 666830bf4942304a0800000000000000
+      internalID: -6628414004274166170
       vertices: []
       indices: 
       edges: []

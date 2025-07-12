@@ -20,7 +20,7 @@ public class Player : MonoBehaviour, ITimeAffectable
 
     public bool applyRewindGrayscale = false;
 
-    public int health = 100;
+    public int health = 3;
 
     // ────────────────────────────────────────────────────
     // ■ 새로 추가: 공격 모드 구분 변수

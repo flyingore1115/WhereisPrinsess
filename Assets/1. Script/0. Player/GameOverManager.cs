@@ -74,52 +74,52 @@ public class GameOverManager : MonoBehaviour
         // 여기부터 “보스전일 때” VS “일반 스테이지일 때” 분기
         // ───────────────────────────────────────────────────
 
-        bool isBossScene = false;
+        //bool isBossScene = false;
         // 방법 A: 씬 이름에 “Boss”가 포함된 경우
-        isBossScene = UnityEngine.SceneManagement.SceneManager
-            .GetActiveScene().name.Contains("Boss");
+        // isBossScene = UnityEngine.SceneManagement.SceneManager
+        //     .GetActiveScene().name.Contains("Boss");
 
-        // 방법 B: 씬에 살아 있는 Teddy(보스) 오브젝트가 있는지 검사하는 경우
-        if (!isBossScene)
-        {
-            var teddy = FindFirstObjectByType<Teddy>();
-            if (teddy != null && !teddy.isDead)
-            {
-                isBossScene = true;
-            }
-        }
+        // // 방법 B: 씬에 살아 있는 Teddy(보스) 오브젝트가 있는지 검사하는 경우
+        // if (!isBossScene)
+        // {
+        //     var teddy = FindFirstObjectByType<Teddy>();
+        //     if (teddy != null && !teddy.isDead)
+        //     {
+        //         isBossScene = true;
+        //     }
+        // }
 
-        if (isBossScene)
-        {
-            var currentPlayer = player != null ? player.GetComponent<Player>() : null;
-        if (currentPlayer != null)
-        {
-            currentPlayer.ignoreInput = false;
-            currentPlayer.isGameOver = false;
-            currentPlayer.applyRewindGrayscale = false;
-        }
-        foreach (var t in timeAffectedObjects)
-        {
-            t.ResumeTime();
-        }
+        // if (isBossScene)
+        // {
+        //     var currentPlayer = player != null ? player.GetComponent<Player>() : null;
+        // if (currentPlayer != null)
+        // {
+        //     currentPlayer.ignoreInput = false;
+        //     currentPlayer.isGameOver = false;
+        //     currentPlayer.applyRewindGrayscale = false;
+        // }
+        // foreach (var t in timeAffectedObjects)
+        // {
+        //     t.ResumeTime();
+        // }
 
-        // (b) RewindManager 상태 해제
-            if (RewindManager.Instance != null)
-            {
-                RewindManager.Instance.SetGameOver(false);
-            }
+        // // (b) RewindManager 상태 해제
+        //     if (RewindManager.Instance != null)
+        //     {
+        //         RewindManager.Instance.SetGameOver(false);
+        //     }
 
-        // (c) 포스트 프로세싱 원상 복구 (게임오버 모드 해제)
-        // PostProcessingManager.Instance?.SetDefaultEffects();
+        // // (c) 포스트 프로세싱 원상 복구 (게임오버 모드 해제)
+        // // PostProcessingManager.Instance?.SetDefaultEffects();
 
-        // (d) UI 원상 복구
-        CanvasManager.Instance?.SetGameUIActive(true);
+        // // (d) UI 원상 복구
+        // CanvasManager.Instance?.SetGameUIActive(true);
 
-            var sceneName = UnityEngine.SceneManagement.SceneManager
-                .GetActiveScene().name;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-            yield break;
-        }
+        //     var sceneName = UnityEngine.SceneManagement.SceneManager
+        //         .GetActiveScene().name;
+        //     UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        //     yield break;
+        // }
 
         // ── 일반 스테이지인 경우: 되감기 연출을 수행 ──
 

@@ -1,8 +1,11 @@
 using UnityEngine;
+
 using MyGame;
+using System.Collections.Generic;
 
 public class GameInitializer : MonoBehaviour
 {
+    private static readonly HashSet<string> _checkpointDoneScenes = new();
     void Start()
     {
         var tpManager = TimePointManager.Instance;
@@ -26,13 +29,23 @@ public class GameInitializer : MonoBehaviour
             // 플레이어는 씬에 배치된 위치 그대로 사용 (또는 필요하면 별도 초기화)
 
             // 씬 진입 시 자동 저장
-    Player p = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
-    Princess pr = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
-    if (p != null && pr != null)
-    {
-        TimePointManager.Instance.SaveCheckpoint(pr.transform.position, p.transform.position);
-        Debug.Log("[GameInitializer] 씬 진입 시 자동 체크포인트 저장 완료");
-    }
+        Player p = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
+        Princess pr = GameObject.FindGameObjectWithTag("Princess")?.GetComponent<Princess>();
+        
+        if (p != null && pr != null)
+            {
+                var sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+                if (!_checkpointDoneScenes.Contains(sceneName))
+                {
+                    Vector2 princessPos = Princess.Instance ? (Vector2)Princess.Instance.transform.position : Vector2.zero;
+                    Vector2 playerPos = Player.Instance ? (Vector2)Player.Instance.transform.position : Vector2.zero;
+
+                    TimePointManager.Instance.SaveCheckpoint(princessPos, playerPos);
+                    _checkpointDoneScenes.Add(sceneName);   // 이 씬은 더 이상 처음이 아님
+                    Debug.Log($"[GI] 최초 로드 – 체크포인트 저장 완료: {sceneName}");
+                }
+                //Debug.Log("[GameInitializer] 씬 진입 시 자동 체크포인트 저장 완료");
+            }
 
 
         }

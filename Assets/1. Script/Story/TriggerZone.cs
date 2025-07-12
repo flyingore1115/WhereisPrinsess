@@ -20,6 +20,16 @@ public class TriggerZone : MonoBehaviour
     {
         if (!other.CompareTag("Player") || manager == null) return;
 
+        if (!other.CompareTag("Player") || manager == null) return;
+
+    // ── 추가: 아가씨가 멈췄는지 검사 ───────────────────
+    if (triggerID == "Hallway_end")                       // Hallway_end 전용
+    {
+        Lady lady = StorySceneManager.Instance?.lady;
+        if (lady != null && !lady.IsStopped)
+            return;   // 아직 LadyStop에 닿지 않았으면 무시
+   }
+
         // 대사 시작
         manager.StartDialogueForTrigger(triggerID);
 

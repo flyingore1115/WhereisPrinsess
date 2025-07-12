@@ -55,10 +55,6 @@ public class P_Attack : MonoBehaviour
         originalGravity     = rb.gravityScale;
     }
 
-    /*──────────────────────────────────────────────
-     * ▣ Unity 생명주기
-     *─────────────────────────────────────────────*/
-
     void Update()
     {
         // 시간 정지 중에는 입력 무시
@@ -97,9 +93,7 @@ public class P_Attack : MonoBehaviour
 
         foreach (var col in hits)
         {
-            target = col.GetComponent<IDamageable>()
-                  ?? col.GetComponentInParent<IDamageable>()
-                  ?? col.GetComponentInChildren<IDamageable>();
+            target = col.GetComponent<IDamageable>()?? col.GetComponentInParent<IDamageable>()?? col.GetComponentInChildren<IDamageable>();
             if (target != null) break;
         }
         if (target == null) return; // 공격 대상 없음

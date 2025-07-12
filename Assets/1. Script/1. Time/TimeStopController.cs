@@ -15,7 +15,8 @@ public class TimeStopController : MonoBehaviour
     public float enemyKillGain = 0.3f;
 
     [Header("Gauge Stacks")]
-    public int maxStacks = 3;            // ★추가: 스택 초기값
+    public int maxStacks = 10;            // ★추가: 스택 초기값
+    public int MaxStacks => maxStacks;   // 외부에서 정상값 읽기용
     public int RemainingStacks { get; private set; } // ★추가
 
     [Header("UI")]
@@ -23,7 +24,7 @@ public class TimeStopController : MonoBehaviour
     //public Image fillImage;
 
     /*──────────────────────────────*/
-    public float CurrentGauge { get; private set; }   // 읽기 전용
+    public float CurrentGauge;
     public bool IsTimeStopped => _isTimeStopped;
 
     bool _isTimeStopped = false;
@@ -78,7 +79,7 @@ public class TimeStopController : MonoBehaviour
     void Update()
     {
         bool inDialogue = StorySceneManager.Instance != null &&
-                          StorySceneManager.Instance.IsDialogueActive;
+                          StorySceneManager.Instance.IsDialogueActive && StoryCanvasManager.Instance != null && StoryCanvasManager.Instance.DialoguePanel.activeSelf;
 
         bool isRewinding = RewindManager.Instance != null &&
                            RewindManager.Instance.IsRewinding;
@@ -229,12 +230,11 @@ public class TimeStopController : MonoBehaviour
         UpdateGaugeUI(); // 게이지 UI 갱신 함수가 있다면 호출
     }
 
-    public void SetStacks(int stacks)
+    public void SetStacks(int stacks, bool allowOverflow = false)
     {
-        RemainingStacks = Mathf.Clamp(stacks, 0, maxStacks);
-        // 바로 UI 반영
+        RemainingStacks = allowOverflow
+                       ? Mathf.Max(0, stacks)
+                       : Mathf.Clamp(stacks, 0, maxStacks);
         CanvasManager.Instance?.UpdateTimeStopUI();
     }
-
-
 }

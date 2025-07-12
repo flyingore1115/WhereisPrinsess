@@ -15,17 +15,17 @@ MonoBehaviour:
   triggerID: Hallway_end
   entries:
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: ...?
     options: []
     actionKey: 
   - type: 0
-    characterName: 
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "\uC65C \uCAD3\uC544\uC628\uAC70\uC57C?"
     options: []
     actionKey: 
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "\uBB50, \uAC10\uC0AC\uC778\uC0AC\uB77C\uB3C4 \uBC1B\uACE0 \uC2F6\uC5B4\uC11C?"
     options: []
     actionKey: 
@@ -37,19 +37,34 @@ MonoBehaviour:
     - "\uADF8, \uAE00\uC384..."
     actionKey: 
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "...\uD558,"
     options: []
     actionKey: 
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: ...
     options: []
     actionKey: 
   - type: 0
+    characterName: "\uC544\uAC00\uC528"
+    dialogueText: "\uBB50\uC57C, \uC544\uC9C1\uB3C4 \uC548\uAC00?"
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uC544\uAC00\uC528"
+    dialogueText: "\uB108 \uC9C4\uC9DC \uC774\uC0C1\uD55C \uC560\uAD6C\uB098..."
+    options: []
+    actionKey: 
+  - type: 0
+    characterName: "\uC544\uAC00\uC528"
+    dialogueText: "\uBB50... \uACE0\uB9D9\uC9C0 \uC54A\uB2E4\uB294\uAC74 \uC544\uB2C8\uAE30\uB3C4,"
+    options: []
+    actionKey: 
+  - type: 0
     characterName: 
-    dialogueText: "\uB098\uD55C\uD14C\uC11C \uBCFC\uC77C \uB2E4 \uBD24\uC73C\uBA74
-      \uADF8\uB9CC \uC77C\uC5B4\uB098\uC9C0 \uADF8\uB798?"
+    dialogueText: "\uC800 \uBA40\uB9AC\uC11C\uBD80\uD130 \uBC1C\uC18C\uB9AC\uAC00
+      \uB4E4\uB824\uC628\uB2E4"
     options: []
     actionKey: 
   - type: 0
@@ -58,12 +73,12 @@ MonoBehaviour:
     options: []
     actionKey: 
   - type: 0
-    characterName: ???
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "...\uD14C\uC624\uB3C4\uC5B4 \uC120\uC0DD\uB2D8?"
     options: []
     actionKey: FocusCameraOnTarget:Lady:1.0
   - type: 0
-    characterName: 
+    characterName: "\uC544\uAC00\uC528"
     dialogueText: "\uB3C4\uB300\uCCB4 \uBB34\uC2A8 \uB300\uB2E8\uD55C \uC77C\uC774
       \uC788\uC73C\uC154\uC11C \uADF8\uB807\uAC8C \uB6F0\uC5B4\uAC00\uC2DC\uB294..."
     options: []
@@ -93,8 +108,3 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: LoadNextScene
-  - type: 0
-    characterName: 
-    dialogueText: 
-    options: []
-    actionKey: 

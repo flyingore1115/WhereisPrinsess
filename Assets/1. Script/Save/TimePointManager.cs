@@ -54,6 +54,12 @@ public class TimePointManager : MonoBehaviour
 
     public void SaveCheckpoint(Vector2 princessPos, Vector2 playerPos)
     {
+if (RewindManager.Instance != null && RewindManager.Instance.IsGameOver())
+        return;
+
+    // (혹은) 플레이어가 이미 죽었으면 저장 금지
+    Player p = FindFirstObjectByType<Player>();
+    if (p != null && p.health <= 0) return;
         TimePointData data = new TimePointData();
         data.princessPosition = princessPos;
         data.playerPosition = playerPos;
@@ -212,6 +218,7 @@ public class TimePointManager : MonoBehaviour
                 tsc.SetStacks(lastGameStateData.playerGaugeStacks);
                 CanvasManager.Instance?.UpdateTimeStopUI();
             }
+        RewindManager.Instance?.SetGameOver(false);
             
         Debug.Log($"[TPM] 체력/에너지 복원 완료: 체력={player.health}, 에너지={lastGameStateData.playerTimeEnergy}, 탄={player.shooting.currentAmmo}");
 
@@ -266,82 +273,6 @@ public class TimePointManager : MonoBehaviour
             }
         }
     }
-
-
-
-    /// <summary>
-    /// 즉시 플레이어 부활
-    /// </summary>
-    public void ImmediateRevive()
-    {
-        if (!hasCheckpoint || lastCheckpointData == null)
-        {
-            Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
-            return;
-        }
-
-        Princess princess = FindFirstObjectByType<Princess>();
-        Player player = FindFirstObjectByType<Player>();
-        if (princess == null || player == null)
-        {
-            Debug.LogWarning("[TimePointManager] 부활 대상(공주/플레이어) 찾지 못함!");
-            return;
-        }
-
-        if (lastGameStateData != null)
-        {
-            // 체력·탄약
-            player.health = lastGameStateData.playerHealth;
-            if (player.shooting != null)
-            {
-                player.shooting.currentAmmo = lastGameStateData.playerBulletCount;
-                player.shooting.UpdateAmmoUI();
-            }
-            CanvasManager.Instance?.UpdateHealthUI(
-                player.health, FindFirstObjectByType<PlayerOver>()?.maxHealth ?? 3);
-
-            // 타임 게이지·스택
-            var tsc = TimeStopController.Instance;
-            if (tsc != null)
-            {
-                if (tsc.IsTimeStopped)
-                    tsc.ResumeTime();
-                tsc.SetGauge(lastGameStateData.playerTimeEnergy);
-                tsc.SetStacks(lastGameStateData.playerGaugeStacks);
-                CanvasManager.Instance?.UpdateTimeStopUI();
-            }
-        }
-
-        player.ignoreInput = true;
-        Vector2 targetPos = princess.transform.position;
-        player.transform.position = targetPos;
-
-        PlayerOver playerOver = FindFirstObjectByType<PlayerOver>();
-        if (playerOver != null && playerOver.IsDisabled)
-        {
-            playerOver.OnRewindComplete(targetPos);
-        }
-
-        princess.isControlled = true;
-        Rigidbody2D prb = princess.GetComponent<Rigidbody2D>();
-        if (prb != null)
-        {
-            prb.linearVelocity = Vector2.zero;
-        }
-
-        CameraFollow cf = FindFirstObjectByType<CameraFollow>();
-        if (cf != null)
-        {
-            cf.SetTarget(player.gameObject);
-        }
-
-        // 체크포인트 갱신
-        SaveCheckpoint(princess.transform.position, player.transform.position);
-
-        Debug.Log($"[TimePointManager] 체력·게이지·탄약 복원: 체력={player.health}, 에너지={lastGameStateData.playerTimeEnergy}, 탄약={lastGameStateData.playerBulletCount}");
-        Debug.LogWarning("테스트");
-    }
-
     /// <summary>
     /// 체크포인트가 있으면 되감기
     /// </summary>
@@ -352,7 +283,7 @@ public class TimePointManager : MonoBehaviour
             Debug.LogWarning("[TimePointManager] 체크포인트가 없습니다.");
             return;
         }
-        StartCoroutine(RewindCoroutine());
+        RewindManager.Instance.StartRewind();
     }
 
     /// <summary>
@@ -413,7 +344,10 @@ public class TimePointManager : MonoBehaviour
         // ────────────────────────────────────────
 
         // ③ 즉시 부활 처리
-        ImmediateRevive();
+        if (RewindManager.Instance != null)
+{
+    RewindManager.Instance.StartRewind();   // 스냅샷 역재생+체크포인트 복원
+}
 
         // ④ 사용자 입력 대기
         Time.timeScale = 0f;

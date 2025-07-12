@@ -53,6 +53,7 @@ public class Lady : MonoBehaviour, ITimeAffectable
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private bool isStopped = false;
+    public bool IsStopped => isStopped;
     Animator anim;
 
     Vector2 cachedVel;

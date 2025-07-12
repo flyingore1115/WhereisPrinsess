@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0524fc8750dad84ebe8a31de23f3995, type: 3}
   m_Name: S2_Shooting_tuto
   m_EditorClassIdentifier: 
-  triggerID: 
+  triggerID: Shooting_tuto
   entries:
   - type: 2
     characterName: 
@@ -87,7 +87,7 @@ MonoBehaviour:
     characterName: "\uBA54\uC774"
     dialogueText: "\uC544, \uB124\uC5D0..."
     options: []
-    actionKey: 
+    actionKey: FocusCameraOnTarget:Player:1.0
   - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: "\uC774\uBC88\uC5D0\uB294 \uBB34\uC2A8 \uC77C\uC778\uAC00\uC694?
@@ -121,7 +121,7 @@ MonoBehaviour:
     characterName: "\uBA54\uC774"
     dialogueText: "\uB3C4\uB300\uCCB4 \uBB58 \uBCF4\uACE0 \uB180\uB77C\uC2DC\uB294\uAC74\uAC00\uC694...?"
     options: []
-    actionKey: FocusCameraOnTarget:Player
+    actionKey: FocusCameraOnTarget:Player:1.0
   - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: "\uADF8\uB0E5 \uACF0\uC778\uD615 \uBD80\uD558\uC796\uC544\uC694."
@@ -158,11 +158,6 @@ MonoBehaviour:
     dialogueText: 
     options: []
     actionKey: ShootingTutorial
-  - type: 2
-    characterName: 
-    dialogueText: 
-    options: []
-    actionKey: LoadNextScene
   - type: 0
     characterName: "\uBA54\uC774"
     dialogueText: "... \uBC29\uAE08 \uADF8\uAC74 \uBB50\uC600\uC8E0?"
@@ -200,7 +195,7 @@ MonoBehaviour:
     actionKey: 
   - type: 0
     characterName: "\uD504\uB9B4"
-    dialogueText: "\uADF8\uB7EC\uB2C8\uAE4C \uBAA8\uD5D8\uC744 \uB5A0\uB098\uB294\uAC70\uC57C!"
+    dialogueText: "...\uADF8\uB7EC\uB2C8\uAE4C \uBAA8\uD5D8\uC744 \uB5A0\uB098\uB294\uAC70\uC57C!"
     options: []
     actionKey: 
   - type: 0
@@ -216,13 +211,8 @@ MonoBehaviour:
     dialogueText: "\uBA54\uC774\uB3C4 \uB0B4 \uC606\uC5D0 \uC788\uC744\uAC70\uC9C0?"
     options: []
     actionKey: 
-  - type: 0
-    characterName: "\uD504\uB9B4"
-    dialogueText: "\uC5B4, \uC5B4\uB77C...? \uBAB8\uC774 \uB9C8\uC74C\uB300\uB85C...?!"
+  - type: 2
+    characterName: 
+    dialogueText: 
     options: []
-    actionKey: 
-  - type: 0
-    characterName: "\uD504\uB9B4"
-    dialogueText: "(\uC5B4\uB514\uB860\uAC00 \uB6F0\uC5B4\uAC00\uB294 \uC560\uB2C8\uBA54\uC774\uC158)"
-    options: []
-    actionKey: 
+    actionKey: LoadNextScene

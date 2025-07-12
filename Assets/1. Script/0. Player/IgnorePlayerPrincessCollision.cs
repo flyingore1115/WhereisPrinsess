@@ -9,7 +9,7 @@ public class IgnorePlayerPrincessCollision : MonoBehaviour
         Collider2D myCollider = GetComponent<Collider2D>();
         if (myCollider == null)
             return;
-        
+
         if (gameObject.CompareTag("Player"))
         {
             GameObject princessObj = GameObject.FindGameObjectWithTag("Princess");
@@ -23,6 +23,18 @@ public class IgnorePlayerPrincessCollision : MonoBehaviour
             }
         }
         else if (gameObject.CompareTag("Princess"))
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                Collider2D playerCollider = playerObj.GetComponent<Collider2D>();
+                if (playerCollider != null)
+                {
+                    Physics2D.IgnoreCollision(myCollider, playerCollider, true);
+                }
+            }
+        }
+        else if (gameObject.CompareTag("Enemy"))
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null)
