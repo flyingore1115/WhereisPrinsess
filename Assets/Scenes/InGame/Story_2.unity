@@ -856,7 +856,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.84, z: -5}
+  m_LocalPosition: {x: -13.82, y: 0.37, z: -5}
   m_LocalScale: {x: 3.2916665, y: 1.6666665, z: 1.6666665}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -966,22 +966,6 @@ PrefabInstance:
     - target: {fileID: 2411688868015697623, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 2461597575102336040, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: -6628414004274166170, guid: 37b0d2e5e30df33409250ec3bfcd0ff9, type: 3}
-    - target: {fileID: 2461597575102336040, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2461597575102336040, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2461597575102336040, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
-      propertyPath: m_Color.r
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3566354105507724445, guid: 0e34c664b7c62ed4a8cb3e2d06c369fd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1561,7 +1545,7 @@ SpriteRenderer:
   m_SortingLayer: 1
   m_SortingOrder: 16
   m_Sprite: {fileID: 21300000, guid: 817b76fe5a753c64d9ee8739beab08f6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.4392157}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -347,7 +347,7 @@ public class StorySceneManager : MonoBehaviour
         TimeStopController.Instance.StopTime();
 
         Player.Instance.attack.enabled = true;
-        StoryCanvasManager.Instance.TutorialText.text = "던진 케이크를 모두 클릭하세요.";
+        StoryCanvasManager.Instance.TutorialText.text = "던진 케이크를 클릭하세요.";
         yield return new WaitUntil(() =>
             lady.spawned.Count == 0);
 
@@ -429,7 +429,7 @@ public class StorySceneManager : MonoBehaviour
 
         TimeStopController.Instance.SetInputBlocked(false);
 
-        StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 시간을 해제하세요!";
+        StoryCanvasManager.Instance.TutorialText.text = "스페이스바로 정지를 해제하세요!";
 
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         TimeStopController.Instance.ResumeTime();
@@ -467,7 +467,7 @@ public class StorySceneManager : MonoBehaviour
     BaseEnemy enemy = FindFirstObjectByType<BaseEnemy>();
 
     /* 1) 사격 모드 진입 */
-    StoryCanvasManager.Instance.TutorialText.text = "우클릭으로 총을 드세요!";
+    StoryCanvasManager.Instance.TutorialText.text = "마우스 우측 버튼을 길게 눌러 총을 드세요!";
     pl.ignoreInput = false;
     yield return new WaitUntil(() => pl.IsShootingMode);
 
@@ -475,9 +475,8 @@ public class StorySceneManager : MonoBehaviour
     pl.ignoreInput = true;
     pl.shooting.currentAmmo = 0;
     pl.shooting.UpdateAmmoUI();
-    StoryCanvasManager.Instance.TutorialText.text = "R 키로 재장전하세요!";
+    StoryCanvasManager.Instance.TutorialText.text = "짧은 우클릭으로 재장전하세요!";
     pl.ignoreInput = false;
-    yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.R));
     yield return new WaitUntil(() => pl.shooting.currentAmmo == pl.shooting.maxAmmo);
 
     /* 3) 사격 유도 */

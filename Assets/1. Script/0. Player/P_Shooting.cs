@@ -107,10 +107,6 @@ public class P_Shooting : MonoBehaviour
         {
             ShootBullet(dir);
         }
-        else if (Input.GetMouseButtonDown(1))
-        {
-            Reload();
-        }
     }
 
     /// <summary>
@@ -169,6 +165,8 @@ public class P_Shooting : MonoBehaviour
     /// </summary>
     public void Reload()
     {
+         if (currentAmmo >= maxAmmo) return;  // 이미 가득 차 있음
+         
         var tsc = TimeStopController.Instance;
         if (!tsc.TrySpendGauge(reloadEnergyCost))
         {

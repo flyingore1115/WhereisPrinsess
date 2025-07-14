@@ -10,7 +10,7 @@ public class RewindManager : MonoBehaviour
     public static RewindManager Instance;
 
     [Header("Recording Settings")]
-    public float recordTime = 3f; 
+    public float recordTime = 3f;
     private List<TimeSnapshot> snapshots = new List<TimeSnapshot>();
 
     [Header("References")]
@@ -21,7 +21,7 @@ public class RewindManager : MonoBehaviour
     private Animator princessAnimator;
 
     [Header("Rewind Settings")]
-    
+
     private bool isRewinding = false;
     public bool IsRewinding { get { return isRewinding; } }
 
@@ -35,7 +35,7 @@ public class RewindManager : MonoBehaviour
 
     private List<ITimeAffectable> timeAffectedObjects = new List<ITimeAffectable>();
 
-    public TimeStopController timeStopController; 
+    public TimeStopController timeStopController;
 
     void Awake()
     {
@@ -102,13 +102,13 @@ public class RewindManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(timeStopController == null)
+        if (timeStopController == null)
             timeStopController = FindFirstObjectByType<TimeStopController>();
 
         if (isGameOver) return;
         if (timeStopController != null && timeStopController.IsTimeStopped) return;
         if (isRewinding) return;
-        
+
 
         if (Time.time - lastSnapshotTime >= snapshotInterval)
         {
@@ -127,9 +127,9 @@ public class RewindManager : MonoBehaviour
         Rigidbody2D cRb = princess.GetComponent<Rigidbody2D>();
 
         TimeSnapshot snap = new TimeSnapshot();
-        snap.playerPosition   = player.transform.position;
+        snap.playerPosition = player.transform.position;
         snap.princessPosition = princess.transform.position;
-        snap.playerVelocity   = (pRb != null) ? pRb.linearVelocity : Vector2.zero;
+        snap.playerVelocity = (pRb != null) ? pRb.linearVelocity : Vector2.zero;
         snap.princessVelocity = (cRb != null) ? cRb.linearVelocity : Vector2.zero;
 
         if (playerAnimator != null)
@@ -182,6 +182,8 @@ public class RewindManager : MonoBehaviour
             return;
         }
 
+        PurgeBossObjects();          // ← 추가
+
         //되감기 시작
 
         if (!isRewinding)
@@ -220,9 +222,9 @@ public class RewindManager : MonoBehaviour
         SetGameOver(false);
 
         /* ★추가 : 스냅샷 리셋 후 1장 기록 */
-    snapshots.Clear();
-    RecordSnapshot();               // ← RewindManager 내부 함수
-    /* --------------------------------------- */
+        snapshots.Clear();
+        RecordSnapshot();               // ← RewindManager 내부 함수
+        /* --------------------------------------- */
     }
 
     IEnumerator RewindCoroutine()
@@ -243,6 +245,8 @@ public class RewindManager : MonoBehaviour
         isRewinding = true;
         float originalTimeScale = Time.timeScale;
         Time.timeScale = 0.3f;
+
+         
 
         PostProcessingManager.Instance.ApplyRewind();
 
@@ -269,11 +273,11 @@ public class RewindManager : MonoBehaviour
             TimeSnapshot snap1 = localSnapshots[i];
             TimeSnapshot snap2 = localSnapshots[i - 1];
 
-            player.transform.position   = Vector3.Lerp(snap1.playerPosition,   snap2.playerPosition,   0.5f);
+            player.transform.position = Vector3.Lerp(snap1.playerPosition, snap2.playerPosition, 0.5f);
             princess.transform.position = Vector3.Lerp(snap1.princessPosition, snap2.princessPosition, 0.5f);
 
             if (pRb != null)
-                pRb.linearVelocity = Vector2.Lerp(snap1.playerVelocity,   snap2.playerVelocity,   0.5f);
+                pRb.linearVelocity = Vector2.Lerp(snap1.playerVelocity, snap2.playerVelocity, 0.5f);
             if (cRb != null)
                 cRb.linearVelocity = Vector2.Lerp(snap1.princessVelocity, snap2.princessVelocity, 0.5f);
 
@@ -289,7 +293,7 @@ public class RewindManager : MonoBehaviour
         if (TimePointManager.Instance.HasCheckpoint())
         {
             yield return StartCoroutine(TimePointManager.Instance.ApplyCheckpoint(
-                TimePointManager.Instance.GetLastCheckpointData(), 
+                TimePointManager.Instance.GetLastCheckpointData(),
                 false
             ));
         }
@@ -320,7 +324,7 @@ public class RewindManager : MonoBehaviour
         if (princessAnimator != null)
             princessAnimator.speed = 1f;
 
-            if (princess != null)
+        if (princess != null)
         {
             Princess princessScript = princess.GetComponent<Princess>();
             if (princessScript != null)
@@ -337,11 +341,11 @@ public class RewindManager : MonoBehaviour
         if (cRb != null) cRb.bodyType = RigidbodyType2D.Dynamic;
 
         Lady lady = FindFirstObjectByType<Lady>();
-if (lady != null)
-{
-    lady.ForceIdle();                         // ① 모드 Idle + isStopped = true
-    lady.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;  // ② 속도 0
-}
+        if (lady != null)
+        {
+            lady.ForceIdle();                         // ① 모드 Idle + isStopped = true
+            lady.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;  // ② 속도 0
+        }
 
 
         ApplyGrayscaleEffect(false);
@@ -349,6 +353,8 @@ if (lady != null)
 
         Time.timeScale = originalTimeScale;
         isRewinding = false;
+
+        PurgeBossObjects();          // ← 추가
 
         // ── 되감기 끝난 뒤 Lady 자동 달리기 재개 ──
         Lady storyLady = FindFirstObjectByType<Lady>();
@@ -373,4 +379,19 @@ if (lady != null)
             else obj.ResumeTime();
         }
     }
+    
+    void PurgeBossObjects()
+{
+    // 장면에 남아있는 공격 프리팹 파괴
+    foreach (var b in FindObjectsByType<Bomb>              (FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        Destroy(b.gameObject);
+    foreach (var b in FindObjectsByType<TeddyBarrage>      (FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        Destroy(b.gameObject);
+    foreach (var w in FindObjectsByType<ExplosionWarning>  (FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        Destroy(w.gameObject);
+
+    // 보스 AI 내부 루프/변수 초기화
+    Teddy boss = FindFirstObjectByType<Teddy>();
+    if (boss != null) boss.ResetPatternOnRewind();
+}
 }

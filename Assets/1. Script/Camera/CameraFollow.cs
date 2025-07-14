@@ -32,7 +32,20 @@ public class CameraFollow : MonoBehaviour
     private Transform currentTarget;
     private bool storyMode = false;
 
-    public float GetCurrentSize() => cam.orthographicSize;
+    public float GetCurrentSize()
+{
+    if (cam == null)
+    {
+        Debug.LogWarning("[CameraFollow] cam is null! 초기화 지연으로 인해 GetCurrentSize 호출이 빠름");
+        cam = GetComponent<Camera>();
+        if (cam == null)
+        {
+            Debug.LogError("[CameraFollow] Camera 컴포넌트를 찾을 수 없습니다.");
+            return defaultSize;  // fallback
+        }
+    }
+    return cam.orthographicSize;
+}
 
     void Awake()
     {
@@ -138,12 +151,23 @@ public void EnableStoryMode(bool enable, bool keepSize = false)
     }
 }
 
-
     /// <summary>
     /// 즉시 카메라 크기만 변경
     /// </summary>
-    public void SetCameraSize(float newSize)
+public void SetCameraSize(float newSize)
+{
+    if (cam == null)
     {
-        cam.orthographicSize = newSize;
+        Debug.LogWarning("[CameraFollow] cam is null (SetCameraSize 시점)");
+        return;
     }
+    if (cam.Equals(null))  // Unity 특유의 MissingReference 방어
+    {
+        Debug.LogError("[CameraFollow] cam has been destroyed! (MissingReference)");
+        return;
+    }
+
+    cam.orthographicSize = newSize;
+}
+
 }
